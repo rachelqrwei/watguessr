@@ -4,10 +4,12 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
     <div class="wrapper">
       <!-- <HelloWorld msg="You did it!" /> -->
+       <div>
+        <img src="../src/assets/image/location_on.png"/>
+        <h1 class="">WATGUESSR.IO</h1>
+       </div>
 
       <nav>
         <RouterLink to="/">Home</RouterLink>
@@ -22,6 +24,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import "tailwindcss";
 
 :root {
   --dark-grey: #2A2A2C;
@@ -36,5 +39,7 @@ body {
   font-family: "Istok Web", sans-serif;
   font-weight: 400;
   font-style: normal;
+  background-color: var(--dark-grey);
+  color: var(--white);
 }
 </style>
