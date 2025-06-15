@@ -4,17 +4,39 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <header>
-    <div class="wrapper">
-      <!-- <HelloWorld msg="You did it!" /> -->
-       <div>
-        <img src="../src/assets/image/location_on.png"/>
-        <h1 class="">WATGUESSR.IO</h1>
-       </div>
+    <div>
+      <div class="flex-container">
+        <img src="../../src/assets/image/location_on.png" alt="Logo"/>
+        <h1 class="website-title">WATGUESSR.IO</h1>
+      </div>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+      <h4>MAIN</h4>
+
+      <div class="nav-option flex-container">
+        <img src="../../src/assets/image/play-icon.png" alt="Play"/>
+        <h5>PLAY WATGUESSR</h5>
+      </div>
+
+      <div>
+        <div class="nav-option flex-container">
+          <img src="../../src/assets/image/leaderboard-icon.png" alt="Leaderboard"/>
+          <h5>LEADERBOARD</h5>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-option flex-container">
+          <img src="../../src/assets/image/profile-icon.png" alt="Profile"/>
+          <h5>PROFILE</h5>
+        </div>
+      </div>
+      
+      <div>
+        <div class="nav-option flex-container">
+          <img src="../../src/assets/image/settings-icon.png" alt="Settings"/>
+          <h5>SETTINGS</h5>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -23,23 +45,33 @@ import { RouterLink, RouterView } from 'vue-router'
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import "tailwindcss";
-
-:root {
-  --dark-grey: #2A2A2C;
-  --yellow: #FFCB3B;
-  --light-grey: #9C9C9C;
-  --white: #FEFAF8;
-  --player-1-gradient: linear-gradient(#7FB9FF, #AA7FFF);
-  --player-2-gradient: linear-gradient(#FFE37F, #FF7F7F);
+h4 {
+  font-weight: bold;
+  color: var(--color-zinc-400);
+  font-size: 16px;
+  margin-top: 50px;
 }
 
-body {
-  font-family: "Istok Web", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  background-color: var(--dark-grey);
-  color: var(--white);
+.nav-option {
+  margin: 10px;
+  height: 36px;
+  align-items: center;
+  gap: 26px;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+.nav-option > img {
+  height: 36px;
+}
+
+.nav-option > h5 {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.nav-option:hover, .nav-option.selected {
+  box-shadow: inset 0 0 0 2px white;
+  background-color: rgba(139, 164, 177, 0.27);
 }
 </style>
