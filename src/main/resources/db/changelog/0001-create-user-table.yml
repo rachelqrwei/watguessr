@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: REIWEI
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "user"
+      changes:
+        - createTable:
+            tableName: "user"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime2
+              - column:
+                  name: username
+                  type: varchar(15)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email_address
+                  type: varchar(60)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: elo
+                  type: integer
+              - column:
+                  name: streak
+                  type: integer
+              - column:
+                  name: last_login_at
+                  type: datetime2

@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: REIWEI
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "guess"
+        - createTable:
+            tableName: "guess"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guess_user
+                    references: user(id)
+              - column:
+                  name: time
+                  type: datetime2
+                  constraints:
+                    nullable: false
+              - column:
+                  name: guess_x
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: guess_y
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: building_id
+                  type: uuid
+              - column:
+                  name: floor
+                  type: integer
