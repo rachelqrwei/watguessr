@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6
+      author: REIWEI
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "round_guess"
+        - createTable:
+            tableName: "round_guess"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: round_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_round_guess_round
+                    references: round(id)
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_round_guess_user
+                    references: user(id)
+              - column:
+                  name: guess_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_round_guess_guess
+                    references: guess(id)
+              - column:
+                  name: points
+                  type: int
+                  constraints:
+                    nullable: false

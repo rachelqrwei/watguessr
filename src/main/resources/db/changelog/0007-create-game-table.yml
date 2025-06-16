@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6
+      author: REIWEI
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "game"
+        - createTable:
+            tableName: "game"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime2
+                  constraints:
+                    nullable: false
+              - column:
+                  name: game_mode
+                  type: varchar(15)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: winner_user_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_game_winner_user
+                    references: user(id)
+              - column:
+                  name: ranked_average_elo
+                  type: integer
+              - column:
+                  name: multiplayer_timer
+                  type: integer
+              - column:
+                  name: multiplayer_round_count
+                  type: integer

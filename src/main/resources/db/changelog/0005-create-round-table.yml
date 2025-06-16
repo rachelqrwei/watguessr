@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: REIWEI
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "round"
+        - createTable:
+            tableName: "round"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scene_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_round_scene
+                    references: scene(id)
