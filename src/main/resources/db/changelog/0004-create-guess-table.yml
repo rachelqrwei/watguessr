@@ -25,7 +25,7 @@ databaseChangeLog:
                     references: user(id)
               - column:
                   name: time
-                  type: datetime2
+                  type: int
                   constraints:
                     nullable: false
               - column:

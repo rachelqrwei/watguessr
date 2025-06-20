@@ -1,0 +1,66 @@
+package com.gooners.watguessr.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class RoundGuess {
+
+    @Id
+    @Column(name = "round_guess", unique = true, nullable = false)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_round_guess_round"))
+    private Round round;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_round_guess_user"))
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_round_guess_guess"))
+    private Guess guess;
+
+    @Column(name = "points")
+    private Integer points;
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public Guess getGuess() {
+        return guess;
+    }
+
+    public void setGuess(Guess guess) {
+        this.guess = guess;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Round getRound() {
+        return round;
+    }
+
+    public void setRound(Round round) {
+        this.round = round;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+}
