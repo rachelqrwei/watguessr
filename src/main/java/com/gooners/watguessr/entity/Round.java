@@ -9,18 +9,18 @@ public class Round {
 
     @Id
     @Column(name = "RoundId", nullable = false, unique = true)
-    private UUID roundId;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "scene_id", foreignKey = @ForeignKey(name = "fk_round_scene"))
     private Scene scene;
 
-    public UUID getRoundId() {
-        return roundId;
+    public UUID getId() {
+        return id;
     }
 
-    public void setRoundId(UUID roundId) {
-        this.roundId = roundId;
+    public void setId(UUID roundId) {
+        this.id = roundId;
     }
 
     public Scene getScene() {

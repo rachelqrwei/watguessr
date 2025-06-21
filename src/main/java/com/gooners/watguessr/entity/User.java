@@ -14,13 +14,13 @@ public class User {
     private UUID id;
 
     @Column(name = "created_at")
-    private OffsetDateTime created_at;
+    private OffsetDateTime createdAt;
 
     @Column(name = "username")
     private String username;
 
     @Column(name = "email_address")
-    private String email_address;
+    private String emailAddress;
 
     @Column(name = "password")
     private String password;
@@ -32,31 +32,7 @@ public class User {
     private Integer streak;
 
     @Column(name = "last_login_at")
-    private OffsetDateTime last_login_at;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public OffsetDateTime getLast_login_at() {
-        return last_login_at;
-    }
-
-    public void setLast_login_at(OffsetDateTime last_login_at) {
-        this.last_login_at = last_login_at;
-    }
-
-    public OffsetDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(OffsetDateTime created_at) {
-        this.created_at = created_at;
-    }
+    private OffsetDateTime lastLoginAt;
 
     public String getUsername() {
         return username;
@@ -66,12 +42,28 @@ public class User {
         this.username = username;
     }
 
-    public String getEmail_address() {
-        return email_address;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setEmail_address(String email_address) {
-        this.email_address = email_address;
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
 
     public String getPassword() {
@@ -96,6 +88,14 @@ public class User {
 
     public void setStreak(Integer streak) {
         this.streak = streak;
+    }
+
+    public OffsetDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(OffsetDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 
 }

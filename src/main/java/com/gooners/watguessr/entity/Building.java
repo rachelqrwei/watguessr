@@ -9,7 +9,7 @@ import java.util.UUID;
 @Entity
 public class Building {
     @Id
-    @Column(name = "Id", nullable = false, unique = true)
+    @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
     @Column(name = "name")

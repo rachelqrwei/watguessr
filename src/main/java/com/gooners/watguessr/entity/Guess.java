@@ -1,8 +1,6 @@
 package com.gooners.watguessr.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
@@ -12,8 +10,9 @@ public class Guess {
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
-    @Column(name = "userId")
-    private UUID userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_guess_user"))
+    private User user;
 
     @Column(name = "time")
     private Integer time;
@@ -24,11 +23,20 @@ public class Guess {
     @Column(name = "guess_y")
     private Double guessY;
 
-    @Column(name = "building_id")
-    private Integer building_id;
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_guess_building"))
+    private Building building;
 
     @Column(name = "floor")
     private Integer floor;
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public UUID getId() {
         return id;
@@ -36,22 +44,6 @@ public class Guess {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public Integer getFloor() {
-        return floor;
-    }
-
-    public void setFloor(Integer floor) {
-        this.floor = floor;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public void setUserId(UUID userId) {
-        this.userId = userId;
     }
 
     public Integer getTime() {
@@ -62,14 +54,6 @@ public class Guess {
         this.time = time;
     }
 
-    public Double getGuessY() {
-        return guessY;
-    }
-
-    public void setGuessY(Double guessY) {
-        this.guessY = guessY;
-    }
-
     public Double getGuessX() {
         return guessX;
     }
@@ -78,13 +62,28 @@ public class Guess {
         this.guessX = guessX;
     }
 
-    public Integer getBuilding_id() {
-        return building_id;
+    public Double getGuessY() {
+        return guessY;
     }
 
-    public void setBuilding_id(Integer building_id) {
-        this.building_id = building_id;
+    public void setGuessY(Double guessY) {
+        this.guessY = guessY;
     }
 
+    public Building getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
+    }
+
+    public Integer getFloor() {
+        return floor;
+    }
+
+    public void setFloor(Integer floor) {
+        this.floor = floor;
+    }
 
 }

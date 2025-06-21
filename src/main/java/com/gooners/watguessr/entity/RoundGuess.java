@@ -8,7 +8,7 @@ import java.util.UUID;
 public class RoundGuess {
 
     @Id
-    @Column(name = "round_guess", unique = true, nullable = false)
+    @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
     @ManyToOne
@@ -20,7 +20,7 @@ public class RoundGuess {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_round_guess_guess"))
+    @JoinColumn(name = "guess_id", foreignKey = @ForeignKey(name = "fk_round_guess_guess"))
     private Guess guess;
 
     @Column(name = "points")
