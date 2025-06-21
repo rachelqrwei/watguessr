@@ -3,13 +3,14 @@ package com.gooners.watguessr.entity;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 public class Game {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    private Integer id;
+    private UUID id;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
@@ -30,11 +31,11 @@ public class Game {
     @Column(name = "multiplayer_round_count")
     private Integer multiplayerRoundCount;
 
-    public Integer getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -2,12 +2,14 @@ package com.gooners.watguessr.entity;
 
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
 @Entity
 public class RoundGuess {
 
     @Id
     @Column(name = "round_guess", unique = true, nullable = false)
-    private Long id;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_round_guess_round"))
@@ -56,11 +58,11 @@ public class RoundGuess {
         this.round = round;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 }

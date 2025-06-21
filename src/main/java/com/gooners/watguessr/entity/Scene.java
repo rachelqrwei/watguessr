@@ -1,8 +1,7 @@
-package com.gooners.watguessr.entity
+package com.gooners.watguessr.entity;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.Id
-import java.util.*
+import java.util.*;
 
 @Entity
 class Scene {
@@ -21,12 +20,12 @@ class Scene {
     @Column(name = "location_y")
     private Double locationY;
 
-    @Column(name = "building_id")
-    @ForeignKey(value = "building_id") //check
-    private UUID buildingId;
-
     @Column(name = "floor")
     private Double floor;
+
+    @ManyToOne
+    @JoinColumn(name = "building", foreignKey = @ForeignKey(name = "fk_scene_building"))
+    private Building building;
 
     public String getImage() {
         return image;
@@ -52,12 +51,12 @@ class Scene {
         this.floor = floor;
     }
 
-    public UUID getBuildingId() {
-        return buildingId;
+    public Building building() {
+        return building;
     }
 
-    public void setBuildingId(UUID buildingId) {
-        this.buildingId = buildingId;
+    public void setBuilding(Building buildingId) {
+        this.building = building;
     }
 
     public Double getLocationY() {
