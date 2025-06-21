@@ -8,7 +8,7 @@ import java.util.UUID;
 public class Round {
 
     @Id
-    @Column(name = "RoundId", nullable = false, unique = true)
+    @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
     @ManyToOne

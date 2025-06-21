@@ -9,7 +9,6 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)// check
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
@@ -26,7 +25,7 @@ public class User {
     private String password;
 
     @Column(name = "elo")
-    private String elo;
+    private Integer elo;
 
     @Column(name = "streak")
     private Integer streak;
@@ -74,11 +73,11 @@ public class User {
         this.password = password;
     }
 
-    public String getElo() {
+    public Integer getElo() {
         return elo;
     }
 
-    public void setElo(String elo) {
+    public void setElo(Integer elo) {
         this.elo = elo;
     }
 

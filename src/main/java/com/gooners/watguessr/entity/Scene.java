@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.*;
 
 @Entity
-class Scene {
+public class Scene {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
