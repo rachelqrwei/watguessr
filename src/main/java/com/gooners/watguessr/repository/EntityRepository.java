@@ -5,7 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
+import java.util.List;
 
 @Repository
 @Transactional(readOnly = true)
@@ -14,7 +14,7 @@ public class EntityRepository {
     @PersistenceContext
     protected EntityManager entityManager;
 
-    public <T> Collection<T> findAll(Class<T> entityClass) {
+    public <T> List<T> findAll(Class<T> entityClass) {
         String jpql = "select entity from " + entityClass.getName() + " entity";
         return entityManager.createQuery(jpql, entityClass)
                 .getResultList();
