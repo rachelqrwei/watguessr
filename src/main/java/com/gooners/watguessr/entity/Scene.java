@@ -55,7 +55,7 @@ public class Scene {
         return building;
     }
 
-    public void setBuilding(Building buildingId) {
+    public void setBuilding(Building building) {
         this.building = building;
     }
 
