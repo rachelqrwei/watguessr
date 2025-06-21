@@ -34,6 +34,9 @@ databaseChangeLog:
               - column:
                   name: building_id
                   type: uuid
+                  constraints:
+                    foreignKeyName: fk_scene_building
+                    references: building(id)
               - column:
                   name: floor
                   type: integer
