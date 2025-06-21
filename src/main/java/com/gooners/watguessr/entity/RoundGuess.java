@@ -8,6 +8,7 @@ import java.util.UUID;
 public class RoundGuess {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 

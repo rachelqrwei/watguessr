@@ -6,7 +6,9 @@ import java.util.UUID;
 
 @Entity
 public class GameRound {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 

@@ -8,6 +8,7 @@ import java.util.UUID;
 public class Round {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
