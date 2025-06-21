@@ -1,4 +1,15 @@
 package com.gooners.watguessr.repository;
 
-public class SceneRepository {
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Repository
+@Transactional
+public class SceneRepository extends EntityRepository {
+    @PersistenceContext
+    private EntityManager entityManager;
 }

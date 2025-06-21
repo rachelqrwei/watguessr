@@ -1,4 +1,15 @@
 package com.gooners.watguessr.repository;
 
-public class RoundRepository {
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Repository
+@Transactional
+public class RoundRepository extends EntityRepository {
+    @PersistenceContext
+    private EntityManager entityManager;
 }
