@@ -2,29 +2,29 @@ package com.gooners.watguessr.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
-@Repository
-@Transactional(readOnly = true)
-public class EntityRepository {
+public abstract class EntityRepository<T, ID> {
 
     @PersistenceContext
     protected EntityManager entityManager;
 
-    public <T> List<T> findAll(Class<T> entityClass) {
-        String jpql = "select entity from " + entityClass.getName() + " entity";
-        return entityManager.createQuery(jpql, entityClass)
-                .getResultList();
+    private final Class<T> entityClass;
+
+    protected EntityRepository(Class<T> entityClass) {
+        this.entityClass = entityClass;
     }
 
-    public <T> T find(Class<T> entityClass, Object id) {
+    public List<T> findAll() {
+        String jpql = "SELECT e FROM " + entityClass.getSimpleName() + " e";
+        return entityManager.createQuery(jpql, entityClass).getResultList();
+    }
+
+    public T find(ID id) {
         return entityManager.find(entityClass, id);
     }
 
-    public <T> void delete(Class<T> entityClass, Object id) {
+    public void delete(ID id) {
         T entity = entityManager.find(entityClass, id);
         if (entity != null) {
             entityManager.remove(entity);
