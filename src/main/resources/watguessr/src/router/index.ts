@@ -9,14 +9,14 @@ const router = createRouter({
       name: 'home',
       component: Home,
     },
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   // component: () => import('../views/AboutView.vue'),
-    // },
+    {
+      path: '/play',
+      name: 'play',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/Play.vue'),
+    },
   ],
 })
 
