@@ -6,7 +6,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/watguessr
+    url: jdbc:postgresql://localhost:5432/watguessr?currentSchema=watguessr
     username: watuser
     password: goon
     driver-class-name: org.postgresql.Driver
@@ -18,7 +18,10 @@ spring:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
       hibernate.format_sql: true
-  
+      hibernate.default_schema: watguessr
+
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yml
     contexts: default
+    default-schema: watguessr
+    liquibase-schema: watguessr
