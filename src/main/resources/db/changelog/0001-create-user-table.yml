@@ -19,7 +19,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: created_at
-                  type: datetime2
+                  type: timestamp
               - column:
                   name: username
                   type: varchar(15)
@@ -44,4 +44,4 @@ databaseChangeLog:
                   type: integer
               - column:
                   name: last_login_at
-                  type: datetime2
+                  type: timestamp
