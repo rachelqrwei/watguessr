@@ -10,7 +10,7 @@ databaseChangeLog:
   - include:
       file: db/changelog/0005-create-round-table.yml
   - include:
-      file: db/changelog/0006-create-round-guess-table.yml
+      file: db/changelog/0006-create-round-guess-rl-table.yml
   - include:
       file: db/changelog/0007-create-game-table.yml
   - include:

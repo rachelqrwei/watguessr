@@ -11,11 +11,11 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class SceneRepository extends EntityRepository<Scene, UUID> {
+public class SceneRepository extends EntityRepository<Scene> {
     @PersistenceContext
     private EntityManager entityManager;
 
-    protected SceneRepository(Class entityClass) {
-        super(entityClass);
+    public SceneRepository() {
+        super(Scene.class);
     }
 }

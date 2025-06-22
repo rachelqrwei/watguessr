@@ -6,7 +6,8 @@ databaseChangeLog:
         - onFail: MARK_RAN
         - not:
             - tableExists:
-                tableName: "round_guess"
+                tableName: "round_guess_rl"
+      changes:
         - createTable:
             tableName: "round_guess"
             columns:

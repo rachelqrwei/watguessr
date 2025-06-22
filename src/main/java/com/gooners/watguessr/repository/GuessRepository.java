@@ -11,11 +11,11 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class GuessRepository extends EntityRepository<Guess, UUID> {
+public class GuessRepository extends EntityRepository<Guess> {
     @PersistenceContext
     private EntityManager entityManager;
 
-    protected GuessRepository(Class<Guess> entityClass) {
-        super(entityClass);
+    public GuessRepository() {
+        super(Guess.class);
     }
 }

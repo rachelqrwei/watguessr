@@ -26,7 +26,7 @@ public class Guess {
     private Double guessY;
 
     @ManyToOne
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_guess_building"))
+    @JoinColumn(name = "building_id", foreignKey = @ForeignKey(name = "fk_guess_building"))
     private Building building;
 
     @Column(name = "floor")

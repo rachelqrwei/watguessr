@@ -12,11 +12,11 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class BuildingRepository extends EntityRepository<Building, UUID> {
+public class BuildingRepository extends EntityRepository<Building> {
     @PersistenceContext
     private EntityManager entityManager;
 
-    protected BuildingRepository(Class entityClass) {
-        super(entityClass);
+    public BuildingRepository() {
+        super(Building.class);
     }
 }

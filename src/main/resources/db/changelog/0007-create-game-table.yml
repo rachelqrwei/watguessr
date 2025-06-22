@@ -7,6 +7,7 @@ databaseChangeLog:
         - not:
             - tableExists:
                 tableName: "game"
+      changes:
         - createTable:
             tableName: "game"
             columns:

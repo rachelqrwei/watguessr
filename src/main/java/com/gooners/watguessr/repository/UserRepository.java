@@ -10,9 +10,9 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class UserRepository extends EntityRepository<User, UUID> {
-    protected UserRepository(Class entityClass) {
-        super(entityClass);
+public class UserRepository extends EntityRepository<User> {
+    public UserRepository() {
+        super(User.class);
     }
 
     public void create(User user) {

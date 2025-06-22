@@ -3,8 +3,9 @@ package com.gooners.watguessr.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import java.util.UUID;
 
-public abstract class EntityRepository<T, ID> {
+public abstract class EntityRepository<T> {
 
     @PersistenceContext
     protected EntityManager entityManager;
@@ -20,11 +21,11 @@ public abstract class EntityRepository<T, ID> {
         return entityManager.createQuery(jpql, entityClass).getResultList();
     }
 
-    public T find(ID id) {
+    public T find(UUID id) {
         return entityManager.find(entityClass, id);
     }
 
-    public void delete(ID id) {
+    public void delete(UUID id) {
         T entity = entityManager.find(entityClass, id);
         if (entity != null) {
             entityManager.remove(entity);

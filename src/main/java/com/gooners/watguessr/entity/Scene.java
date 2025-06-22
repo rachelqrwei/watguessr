@@ -24,7 +24,7 @@ public class Scene {
     private Integer floor;
 
     @ManyToOne
-    @JoinColumn(name = "building", foreignKey = @ForeignKey(name = "fk_scene_building"))
+    @JoinColumn(name = "building_id", foreignKey = @ForeignKey(name = "fk_scene_building"))
     private Building building;
 
     public String getImage() {

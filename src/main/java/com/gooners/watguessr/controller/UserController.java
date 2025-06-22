@@ -1,26 +1,41 @@
 package com.gooners.watguessr.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.service.UserService;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/user")
 public class UserController {
-    @PostMapping(value = "/craete")
-    public void register() {
-        //create user (persist)
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping(value = "/register")
+    public void register(User user) {
+        this.userService.create(user);
     }
 
     @PostMapping(value = "/login")
-    public void login() {
-
+    public void login(User user) {
+        user.setLastLoginAt(OffsetDateTime.now());
+        this.userService.update(user);
     }
 
-    @GetMapping(value = "/profile")
-    public void profile() {
+    @GetMapping(value = "/{id}")
+    public User getUser(@PathVariable UUID id) {
+        return this.userService.findById(id);
     }
 
+    @GetMapping(value = "/all")
+    public List<User> getSorted(String keyword, String sortBy, int page, int pageSize) {
+        return this.userService.findSorted(keyword, sortBy, page, pageSize);
+    }
 
 }

@@ -11,11 +11,11 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class RoundRepository extends EntityRepository<Round, UUID> {
+public class RoundRepository extends EntityRepository<Round> {
     @PersistenceContext
     private EntityManager entityManager;
 
-    protected RoundRepository(Class<Round> entityClass) {
-        super(entityClass);
+    public RoundRepository() {
+        super(Round.class);
     }
 }

@@ -20,6 +20,9 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public void update(User user) {
+        userRepository.update(user);
+    }
     public void create(User user) {
         if (!userRepository.emailAddressExists(user.getUsername())
                 && !userRepository.usernameExists(user.getUsername())) {

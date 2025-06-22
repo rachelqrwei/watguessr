@@ -7,6 +7,7 @@ databaseChangeLog:
         - not:
             - tableExists:
                 tableName: "building"
+      changes:
         - createTable:
             tableName: "building"
             columns:
