@@ -46,9 +46,9 @@ onMounted(() => {
 });
 </script>
 <template>
-    <div id='map' style='width: 800px; height: 800px;'></div>
+    <div id='map'></div>
 </template>
 <style>
-/* body { margin: 0; padding: 0; } */
-/* #map { position: absolute; top: 0; bottom: 0; width: 100%; } */
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: calc(100% - 200px); height: 800px;}
 </style>
