@@ -1,5 +1,7 @@
 databaseChangeLog:
   - include:
+       file: db/changelog/0000-create-db-postgresql.yml
+  - include:
       file: db/changelog/0001-create-user-table.yml
   - include:
       file: db/changelog/0002-create-building-table.yml
@@ -10,8 +12,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/0005-create-round-table.yml
   - include:
-      file: db/changelog/0006-create-round-guess-rl-table.yml
+      file: db/changelog/0006-create-round-guess-table.yml
   - include:
       file: db/changelog/0007-create-game-table.yml
   - include:
-      file: db/changelog/0008-create-game-round-rl-table.yml
+      file: db/changelog/0008-create-game-round-table.yml

@@ -1,0 +1,27 @@
+
+SELECT 'CREATE DATABASE watguessr'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'watguessr')\gexec
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_catalog.pg_roles 
+    WHERE rolname = 'watuser'
+  ) THEN
+    CREATE USER watuser WITH PASSWORD 'goon';
+  END IF;
+END
+$$;
+
+GRANT ALL PRIVILEGES ON DATABASE watguessr TO watuser;
+
+\c watguessr
+
+GRANT ALL ON SCHEMA public TO watuser;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO watuser;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO watuser;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO watuser;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO watuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO watuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO watuser;

@@ -6,7 +6,7 @@ databaseChangeLog:
         - onFail: MARK_RAN
         - not:
             - tableExists:
-                tableName: "game_round_rl"
+                tableName: "game_round"
       changes:
         - createTable:
             tableName: "game_round"
