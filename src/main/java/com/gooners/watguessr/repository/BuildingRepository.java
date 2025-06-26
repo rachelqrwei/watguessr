@@ -19,4 +19,5 @@ public class BuildingRepository extends EntityRepository<Building> {
     public BuildingRepository() {
         super(Building.class);
     }
+    //buildings will be manually populated in the database. no need for CRUD
 }
