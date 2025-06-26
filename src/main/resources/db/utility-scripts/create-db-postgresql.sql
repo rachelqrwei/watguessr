@@ -17,12 +17,12 @@ DO $$
     END
 $$;
 
+GRANT ALL PRIVILEGES ON DATABASE watguessr TO watuser;
+
 -- Connect to watguessr database (in psql client)
 -- \connect watguessr
 
 CREATE SCHEMA IF NOT EXISTS watguessr;
-
-GRANT ALL PRIVILEGES ON DATABASE watguessr TO watuser;
 
 -- Connect to watguessr database again (in psql client)
 -- \connect watguessr
