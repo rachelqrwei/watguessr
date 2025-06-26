@@ -18,4 +18,12 @@ public class GuessRepository extends EntityRepository<Guess> {
     public GuessRepository() {
         super(Guess.class);
     }
+
+    public void create(Guess guess) {
+        entityManager.persist(guess);
+    }
+
+    public void update(Guess guess) {
+        entityManager.merge(guess);
+    }
 }

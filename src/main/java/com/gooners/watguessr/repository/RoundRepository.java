@@ -18,4 +18,12 @@ public class RoundRepository extends EntityRepository<Round> {
     public RoundRepository() {
         super(Round.class);
     }
+
+    public void create(Round round) {
+        entityManager.persist(round);
+    }
+
+    public void update(Round round) {
+        entityManager.merge(round);
+    }
 }

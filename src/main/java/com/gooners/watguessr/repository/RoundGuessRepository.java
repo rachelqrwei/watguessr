@@ -1,6 +1,6 @@
 package com.gooners.watguessr.repository;
 
-import com.gooners.watguessr.entity.Game;
+import com.gooners.watguessr.entity.RoundGuess;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -11,19 +11,19 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public class GameRepository extends EntityRepository<Game> {
+public class RoundGuessRepository extends EntityRepository<RoundGuess> {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public GameRepository() {
-        super(Game.class);
+    public RoundGuessRepository() {
+        super(RoundGuess.class);
     }
 
-    public void create(Game game) {
-        entityManager.persist(game);
+    public void create(RoundGuess roundGuess) {
+        entityManager.persist(roundGuess);
     }
 
-    public void update(Game game) {
-        entityManager.merge(game);
+    public void update(RoundGuess roundGuess) {
+        entityManager.merge(roundGuess);
     }
-}
+} 

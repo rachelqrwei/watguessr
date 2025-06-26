@@ -2,7 +2,7 @@
 --      little bit “manual” there’s no fully pure SQL transactional way to 
 --      do “create-if-not-exists” for databases.
 -- 
--- CREATE DATABASE watguessr;
+CREATE DATABASE watguessr;
 
 -- Create user if not exists
 -- Can run on any database. The pg_catalog schema is shared across all databases in a PostgreSQL instance.
