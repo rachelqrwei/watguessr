@@ -1,85 +1,154 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterLink, RouterView } from 'vue-router';
+import { useRoute } from 'vue-router'
+import { ref, computed } from 'vue';
+
+const isHeaderVisible = ref(false);
+const route = useRoute();
+
+const isHomePage = computed(() => route.path === '/');
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="main-layout">
+    <div
+      class="header-wrapper"
+      @mouseenter="isHeaderVisible = true"
+      @mouseleave="isHeaderVisible = false"
+    >
+      <div :class="[(isHomePage || isHeaderVisible) ? 'none' : 'header-menu website-title-container flex-container']">
+        <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '50px'}"/>
+        <RouterLink to="/" class="website-title">WATGUESSR.IO</RouterLink>
+      </div>
+      
+      <header :class="[(!isHomePage && !isHeaderVisible) && 'hidden-header']">
+        <div class="website-title-container flex-container">
+          <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '50px'}"/>
+          <RouterLink to="/" class="website-title">WATGUESSR.IO</RouterLink>
+        </div>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <h4>MAIN</h4>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+        <div :class="['nav-option flex-container', route.path === '/play' && 'selected']">
+          <img src="../../src/assets/images/App/play-icon.png" alt="Play"/>
+          <RouterLink to="/play" id="router-link">PLAY WATGUESSR</RouterLink>
+        </div>
+
+        <div :class="['nav-option flex-container', route.path === '/leaderboard' && 'selected']">
+          <img src="../../src/assets/images/App/leaderboard-icon.png" alt="Leaderboard"/>
+          <RouterLink to="/leaderboard" id="router-link">LEADERBOARD</RouterLink>
+        </div>
+
+        <div :class="['nav-option flex-container', route.path === '/profile' && 'selected']">
+          <img src="../../src/assets/images/App/profile-icon.png" alt="Profile"/>
+          <RouterLink to="/profile" id="router-link">PROFILE</RouterLink>
+        </div>
+      
+        <div :class="['nav-option flex-container', route.path === '/settings' && 'selected']">
+          <img src="../../src/assets/images/App/settings-icon.png" alt="Settings"/>
+          <RouterLink to="/settings" id="router-link">SETTINGS</RouterLink>
+        </div>
+      </header>
     </div>
-  </header>
 
-  <RouterView />
+  </div>
+  <div :class="['main-content', (isHomePage) ? 'narrow' : 'full']">
+    <RouterView />
+  </div>
 </template>
 
 <style scoped>
 header {
-  line-height: 1.5;
-  max-height: 100vh;
+  position: fixed;
+  width: 30vw;
+  height: 100vh;
+  box-shadow: 1px 4px 20px rgba(0, 0, 0, 0.25);
+  background-color: var(--dark-grey);
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.main-layout {
+  display: flex;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.website-title-container {
+  align-items: center;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.website-title {
+  font-size: 32px;
+  font-weight: bold;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+h4 {
+  font-weight: bold;
+  color: var(--color-zinc-400);
+  font-size: 16px;
+  margin-top: 50px;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.header-menu {
+  padding: 30px;
+  background: var(--dark-grey);
+  border-radius: 0 0 30px 0;
+  align-items: baseline;
 }
 
-nav a:first-of-type {
-  border: 0;
+.nav-option {
+  margin: 10px;
+  height: 30px;
+  align-items: center;
+  gap: 26px;
+  padding: 30px;
+  border-radius: 5px;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+.nav-option > img {
+  height: 30px;
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+.nav-option:hover, .nav-option.selected {
+  box-shadow: inset 0 0 0 2px white;
+  background-color: rgba(139, 164, 177, 0.27);
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.main-content {
+  width: 100vw;
+  transition: width 0.3s ease;
+  padding: 50px;
+}
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+.main-content.full {
+  width: 100vw;
+  transition: width 0.3s ease;
+  padding: 100px;
+}
 
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.main-content.narrow {
+  width: 70vw;
+  margin-left: 30vw;
+  transition: width 0.3s ease;
+}
+
+.header-wrapper {
+  z-index: 999;
+}
+
+.hidden-header {
+  width: 30vw;
+  height: 100%;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 1px 4px 20px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  z-index: 1000;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* When hovering over header wrapper, shrink main content */
+.header-wrapper:hover + .main-content {
+  width: 70vw;
+  margin-left: 30vw;
 }
 </style>
