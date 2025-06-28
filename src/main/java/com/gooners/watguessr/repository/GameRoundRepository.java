@@ -1,6 +1,7 @@
 package com.gooners.watguessr.repository;
 
 import com.gooners.watguessr.entity.GameRound;
+import com.gooners.watguessr.entity.Round;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,10 @@ public class GameRoundRepository extends EntityRepository<GameRound> {
 
     public void create(GameRound gameRound) {
         entityManager.persist(gameRound);
+    }
+
+    public GameRound findByRound(Round round) {
+        return entityManager.find(GameRound.class, round.getId());
     }
 
     public void update(GameRound gameRound) {
