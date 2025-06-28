@@ -18,4 +18,6 @@ public class SceneRepository extends EntityRepository<Scene> {
     public SceneRepository() {
         super(Scene.class);
     }
+
+//scenes will be populated manually, no need for CRUD
 }
