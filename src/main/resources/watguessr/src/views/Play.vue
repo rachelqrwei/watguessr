@@ -20,13 +20,13 @@ onMounted(() => {
   map.on('load', () => {    
     const layers = map.getStyle().layers ?? [];
 
-    console.log(layers);
-    const labelLayerId = layers?.find(
-      layer => layer.type === 'symbol' && layer.layout?.['text-field']
-    )?.id;
+    const labelLayers = layers?.filter(
+      (layer) =>
+      layer.type === 'symbol') ?? [];
+    const labelLayerIds = labelLayers.map(layer => layer.id);
+    const insertBeforeLayerId = labelLayerIds[0] || undefined;
 
     map.addLayer(
-      
       {
         id: '3d-buildings',
         source: 'composite',
@@ -41,7 +41,7 @@ onMounted(() => {
           'fill-extrusion-opacity': 0.6
         }
       },
-      labelLayerId, // put the 3D layer below labels
+      insertBeforeLayerId
     );
 
     map.on('click', (e) => {
@@ -52,15 +52,25 @@ onMounted(() => {
         .setLngLat(coords)
         .addTo(map);
 
-      // Adjust to match your actual layer ID
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: ['3d-buildings'], // ✅ this must match the layer ID from your style
+      // const features = map.queryRenderedFeatures(e.point, {
+      //   layers: ['3d-buildings'], // ✅ this must match the layer ID from your style
+      // });
+
+      // if (features.length > 0) {
+      //   console.log('🏢 Clicked building:', features);
+      // } else {
+      //   console.log('❌ No building found at this location');
+      // }
+
+      const labelFeatures = map.queryRenderedFeatures(e.point, {
+        layers: labelLayerIds,
       });
 
-      if (features.length > 0) {
-        console.log('🏢 Clicked building:', features);
+      if (labelFeatures.length > 0) {
+        const buildingName = labelFeatures[0].properties.name;
+        console.log(buildingName);
       } else {
-        console.log('❌ No building found at this location');
+        console.log('❌ No label found at this location');
       }
     });
   });
