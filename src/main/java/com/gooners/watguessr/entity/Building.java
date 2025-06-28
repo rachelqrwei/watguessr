@@ -2,6 +2,7 @@ package com.gooners.watguessr.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -17,6 +18,12 @@ public class Building {
 
     @Column(name = "floors")
     private Integer floors;
+
+    @Column(name = "longitude",precision = 9, scale = 6)
+    private BigDecimal longitude;
+
+    @Column(name = "latitude", precision = 9, scale = 6)
+    private BigDecimal latitude;
 
     public UUID getId() {
         return id;
@@ -40,5 +47,21 @@ public class Building {
 
     public void setFloors(Integer floors) {
         this.floors = floors;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude;
+    }
+
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude;
     }
 }

@@ -25,3 +25,9 @@ databaseChangeLog:
               - column:
                   name: floors
                   type: integer
+              - column:
+                  name: longitude
+                  type: decimal(9,6)
+              - column:
+                  name: latitude
+                  type: decimal(9,6)
