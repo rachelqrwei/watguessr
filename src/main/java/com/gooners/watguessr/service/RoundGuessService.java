@@ -2,8 +2,8 @@ package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.RoundGuess;
 import com.gooners.watguessr.repository.RoundGuessRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,31 +17,32 @@ public class RoundGuessService {
         this.roundGuessRepository = roundGuessRepository;
     }
 
-    public void create(RoundGuess roundGuess) {
-        this.roundGuessRepository.create(roundGuess);
+    public RoundGuess create(RoundGuess roundGuess) {
+        return roundGuessRepository.save(roundGuess);
     }
 
-    public void update(RoundGuess roundGuess) {
-        roundGuessRepository.update(roundGuess);
+    public RoundGuess update(RoundGuess roundGuess) {
+        return roundGuessRepository.save(roundGuess);
     }
 
     public void delete(UUID id) {
-        this.roundGuessRepository.delete(id);
+        roundGuessRepository.deleteById(id);
     }
 
     public RoundGuess findById(UUID id) {
-        return this.roundGuessRepository.find(id);
+        return roundGuessRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("RoundGuess not found with id: " + id));
     }
 
     public List<RoundGuess> findAll() {
-        return this.roundGuessRepository.findAll();
+        return roundGuessRepository.findAll();
     }
 
     public List<RoundGuess> findByGameId(UUID gameId) {
-        return this.roundGuessRepository.findByGameId(gameId);
+        return roundGuessRepository.findByGameId(gameId);
     }
 
     public List<Object[]> getUserPointsForGame(UUID gameId) {
-        return this.roundGuessRepository.getUserPointsForGame(gameId);
+        return roundGuessRepository.getUserPointsForGame(gameId);
     }
-} 
+}

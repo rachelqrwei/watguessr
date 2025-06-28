@@ -3,13 +3,9 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.GameRound;
 import com.gooners.watguessr.entity.Round;
-import com.gooners.watguessr.repository.GameRepository;
-import com.gooners.watguessr.repository.GameRoundRepository;
 import com.gooners.watguessr.repository.RoundRepository;
-import com.gooners.watguessr.repository.SceneRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,48 +14,47 @@ import java.util.UUID;
 @Transactional
 public class RoundService {
     private final RoundRepository roundRepository;
-    private final GameRoundRepository gameRoundRepository;
+    private final GameRoundService gameRoundService;
     private final SceneService sceneService;
     private final GameService gameService;
 
-    @Autowired
-    public RoundService(RoundRepository roundRepository, GameRoundRepository gameRoundRepository, SceneService sceneService, GameService gameService) {
+    public RoundService(RoundRepository roundRepository, GameRoundService gameRoundService, SceneService sceneService,
+            GameService gameService) {
         this.roundRepository = roundRepository;
-        this.gameRoundRepository = gameRoundRepository;
+        this.gameRoundService = gameRoundService;
         this.sceneService = sceneService;
         this.gameService = gameService;
     }
 
     public UUID create(UUID gameId) {
         Game game = gameService.findById(gameId);
+
         Round newRound = new Round();
         newRound.setScene(sceneService.getRandom());
-        UUID newRoundId = newRound.getId();
-        this.roundRepository.create(newRound);
+        Round savedRound = roundRepository.save(newRound);
 
         GameRound newGameRound = new GameRound();
         newGameRound.setGame(game);
-        newGameRound.setRound(newRound);
+        newGameRound.setRound(savedRound);
+        gameRoundService.create(newGameRound);
 
-        this.gameRoundRepository.create(newGameRound);
-
-        return newRoundId;
+        return savedRound.getId();
     }
 
-    public void update(Round round) {
-        roundRepository.update(round);
+    public Round update(Round round) {
+        return roundRepository.save(round);
     }
 
     public void delete(UUID id) {
-        this.roundRepository.delete(id);
+        roundRepository.deleteById(id);
     }
 
     public Round findById(UUID id) {
-        return this.roundRepository.find(id);
+        return roundRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Round not found with id: " + id));
     }
 
     public List<Round> findAll() {
-        return this.roundRepository.findAll();
+        return roundRepository.findAll();
     }
-
 }

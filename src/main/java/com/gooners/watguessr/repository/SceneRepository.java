@@ -1,29 +1,15 @@
 package com.gooners.watguessr.repository;
 
 import com.gooners.watguessr.entity.Scene;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Transactional
-public class SceneRepository extends EntityRepository<Scene> {
-    @PersistenceContext
-    private EntityManager entityManager;
+public interface SceneRepository extends JpaRepository<Scene, UUID> {
 
-    public SceneRepository() {
-        super(Scene.class);
-    }
-
-    public Scene getRandom() {
-        return (entityManager
-                .createQuery("SELECT s FROM Scene s ORDER BY FUNCTION('RANDOM')", Scene.class)
-                .setMaxResults(1)
-                .getSingleResult()
-        );
-    }
+    @Query(value = "SELECT * FROM scene ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    Scene getRandom();
 }

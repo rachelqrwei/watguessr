@@ -12,8 +12,11 @@ import java.util.UUID;
 @RequestMapping("api/round")
 public class RoundController {
 
-    @Autowired
-    private RoundService roundService;
+    private final RoundService roundService;
+    
+    public RoundController(RoundService roundService) {
+        this.roundService = roundService;
+    }
 
     @GetMapping(value = "/create")
     public UUID createRound(UUID gameId) {

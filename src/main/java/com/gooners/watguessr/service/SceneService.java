@@ -2,8 +2,8 @@ package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.Scene;
 import com.gooners.watguessr.repository.SceneRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,18 +18,19 @@ public class SceneService {
     }
 
     public void delete(UUID id) {
-        this.sceneRepository.delete(id);
+        sceneRepository.deleteById(id);
     }
 
     public Scene findById(UUID id) {
-        return this.sceneRepository.find(id);
+        return sceneRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Scene not found with id: " + id));
     }
 
     public List<Scene> findAll() {
-        return this.sceneRepository.findAll();
+        return sceneRepository.findAll();
     }
 
     public Scene getRandom() {
-        return this.sceneRepository.getRandom();
+        return sceneRepository.getRandom();
     }
 }

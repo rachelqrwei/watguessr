@@ -1,6 +1,7 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.entity.Game;
+import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/game")
 public class GameController {
-
-    @Autowired
-    private GameService gameService;
+    
+    private final GameService gameService;
+    
+    public GameController(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     @GetMapping(value = "/create")
     public UUID createGame(Game sourceGame) {
