@@ -10,27 +10,59 @@ onMounted(() => {
 
   let map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/standard',
+    style: 'mapbox://styles/mapbox/streets-v12',
     center: [-80.54478250141877, 43.47247223467783 ],
-    zoom: 16,
+    zoom: 17,
     pitch: 70,
     bearing: -60, // rotate map slightly
   })
   
   map.on('load', () => {    
-    // Now safe to add click handler that queries the 'building' layer
+    const layers = map.getStyle().layers ?? [];
+
+    console.log(layers);
+    const labelLayerId = layers?.find(
+      layer => layer.type === 'symbol' && layer.layout?.['text-field']
+    )?.id;
+
+    map.addLayer(
+      
+      {
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': '#ffffff',
+          'fill-extrusion-height': ['get', 'height'],
+          'fill-extrusion-base': ['get', 'min_height'],
+          'fill-extrusion-opacity': 0.6
+        }
+      },
+      labelLayerId, // put the 3D layer below labels
+    );
+
     map.on('click', (e) => {
       const coords = [e.lngLat.lng, e.lngLat.lat];
       markerCoordinates.value.push(coords);
 
       new mapboxgl.Marker({ anchor: 'bottom' })
         .setLngLat(coords)
-        .addTo(map);    
-    });
-  });
+        .addTo(map);
 
-  map.on('style.load', () => {
-    map.setConfigProperty('basemap', 'lightPreset', 'dusk');
+      // Adjust to match your actual layer ID
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['3d-buildings'], // ✅ this must match the layer ID from your style
+      });
+
+      if (features.length > 0) {
+        console.log('🏢 Clicked building:', features);
+      } else {
+        console.log('❌ No building found at this location');
+      }
+    });
   });
 });
 </script>
