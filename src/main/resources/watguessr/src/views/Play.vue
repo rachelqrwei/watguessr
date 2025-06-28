@@ -13,8 +13,8 @@ onMounted(() => {
     style: 'mapbox://styles/mapbox/streets-v12',
     center: [-80.54478250141877, 43.47247223467783 ],
     zoom: 17,
-    pitch: 70,
-    bearing: -60, // rotate map slightly
+    pitch: 0,
+    bearing: 0, // rotate map slightly
   })
   
   map.on('load', () => {    
