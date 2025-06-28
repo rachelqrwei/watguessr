@@ -36,4 +36,12 @@ public class GameRoundService {
     public List<GameRound> findAll() {
         return this.gameRoundRepository.findAll();
     }
+
+    public List<GameRound> findByGameId(UUID gameId) {
+        return this.gameRoundRepository.findByGameId(gameId);
+    }
+
+    public Integer getRoundCountForGame(UUID gameId) {
+        return this.gameRoundRepository.getRoundCountForGame(gameId);
+    }
 } 

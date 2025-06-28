@@ -26,4 +26,18 @@ public class GameRoundRepository extends EntityRepository<GameRound> {
     public void update(GameRound gameRound) {
         entityManager.merge(gameRound);
     }
+
+    public List<GameRound> findByGameId(UUID gameId) {
+        return entityManager
+                .createQuery("SELECT gr FROM GameRound gr WHERE gr.game.id = :gameId", GameRound.class)
+                .setParameter("gameId", gameId)
+                .getResultList();
+    }
+
+    public Integer getRoundCountForGame(UUID gameId) {
+        return Math.toIntExact((Long) entityManager
+                .createQuery("SELECT COUNT(gr) FROM GameRound gr WHERE gr.game.id = :gameId")
+                .setParameter("gameId", gameId)
+                .getSingleResult());
+    }
 } 

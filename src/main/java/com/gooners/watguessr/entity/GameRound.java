@@ -14,7 +14,7 @@ public class GameRound {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "game_id", foreignKey = @ForeignKey(name = "fk_game_round_game"), nullable = false)
-    private Game gameId;
+    private Game game;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_game_round_round"))
@@ -28,12 +28,12 @@ public class GameRound {
         this.id = id;
     }
 
-    public Game getGameId() {
-        return gameId;
+    public Game getGame() {
+        return this.game;
     }
 
-    public void setGameId(Game gameId) {
-        this.gameId = gameId;
+    public void setGame(Game game) {
+        this.game = game;
     }
 
     public Round getRound() {

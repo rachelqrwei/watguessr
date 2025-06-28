@@ -26,4 +26,26 @@ public class RoundGuessRepository extends EntityRepository<RoundGuess> {
     public void update(RoundGuess roundGuess) {
         entityManager.merge(roundGuess);
     }
+
+    public List<RoundGuess> findByGameId(UUID gameId) {
+        return entityManager
+                .createQuery("SELECT rg FROM RoundGuess rg " +
+                           "JOIN rg.round r " +
+                           "JOIN GameRound gr ON gr.round.id = r.id " +
+                           "WHERE gr.game.id = :gameId", RoundGuess.class)
+                .setParameter("gameId", gameId)
+                .getResultList();
+    }
+
+    public List<Object[]> getUserPointsForGame(UUID gameId) {
+        return entityManager
+                .createQuery("SELECT rg.user.id, SUM(rg.points) FROM RoundGuess rg " +
+                           "JOIN rg.round r " +
+                           "JOIN GameRound gr ON gr.round.id = r.id " +
+                           "WHERE gr.game.id = :gameId " +
+                           "GROUP BY rg.user.id " +
+                           "ORDER BY SUM(rg.points) DESC")
+                .setParameter("gameId", gameId)
+                .getResultList();
+    }
 } 

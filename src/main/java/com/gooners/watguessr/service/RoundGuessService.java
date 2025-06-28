@@ -36,4 +36,12 @@ public class RoundGuessService {
     public List<RoundGuess> findAll() {
         return this.roundGuessRepository.findAll();
     }
+
+    public List<RoundGuess> findByGameId(UUID gameId) {
+        return this.roundGuessRepository.findByGameId(gameId);
+    }
+
+    public List<Object[]> getUserPointsForGame(UUID gameId) {
+        return this.roundGuessRepository.getUserPointsForGame(gameId);
+    }
 } 

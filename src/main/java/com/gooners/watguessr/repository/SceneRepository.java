@@ -19,5 +19,11 @@ public class SceneRepository extends EntityRepository<Scene> {
         super(Scene.class);
     }
 
-//scenes will be populated manually, no need for CRUD
+    public Scene getRandom() {
+        return (entityManager
+                .createQuery("SELECT s FROM Scene s ORDER BY FUNCTION('RANDOM')", Scene.class)
+                .setMaxResults(1)
+                .getSingleResult()
+        );
+    }
 }

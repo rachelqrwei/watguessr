@@ -6,8 +6,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.time.OffsetDateTime;
 
 @Repository
 @Transactional
@@ -20,6 +19,7 @@ public class GameRepository extends EntityRepository<Game> {
     }
 
     public void create(Game game) {
+        game.setCreatedAt(OffsetDateTime.now());
         entityManager.persist(game);
     }
 

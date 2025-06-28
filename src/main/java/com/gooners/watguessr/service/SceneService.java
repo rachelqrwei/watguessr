@@ -17,14 +17,6 @@ public class SceneService {
         this.sceneRepository = sceneRepository;
     }
 
-    public void create(Scene scene) {
-        this.sceneRepository.create(scene);
-    }
-
-    public void update(Scene scene) {
-        sceneRepository.update(scene);
-    }
-
     public void delete(UUID id) {
         this.sceneRepository.delete(id);
     }
@@ -35,5 +27,9 @@ public class SceneService {
 
     public List<Scene> findAll() {
         return this.sceneRepository.findAll();
+    }
+
+    public Scene getRandom() {
+        return this.sceneRepository.getRandom();
     }
 }
