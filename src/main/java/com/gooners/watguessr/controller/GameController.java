@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -22,15 +23,19 @@ public class GameController {
         this.gameService = gameService;
     }
 
-    @GetMapping(value = "/create")
-    public UUID createGame(Game sourceGame) {
-        return switch (sourceGame.getGameMode()) {
-            case "Singleplayer" -> gameService.createSingleplayerGame();
-            case "Multiplayer" ->
-                    gameService.createMultiplayerGame(sourceGame.getMultiplayerTimer(), sourceGame.getMultiplayerRoundCount());
-            case "Ranked" -> gameService.createRankedGame(sourceGame.getRankedAverageElo());
-            default -> null;
-        };
+    @GetMapping(value = "/create/singleplayer")
+    public UUID createSingleplayerGame() {
+        return gameService.createSingleplayerGame();
+    }
+
+    @GetMapping(value = "/create/multiplayer")
+    public UUID createMultiplayerGame(@RequestParam Integer roundCount, @RequestParam Integer timer) {
+        return gameService.createMultiplayerGame(roundCount, timer);
+    }
+
+    @GetMapping(value = "/create/ranked")
+    public UUID createRankedGame(@RequestParam Integer averageElo) {
+        return gameService.createRankedGame(averageElo);
     }
 
     @PostMapping(value = "/finish")
