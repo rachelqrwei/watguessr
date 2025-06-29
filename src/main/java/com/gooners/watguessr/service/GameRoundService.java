@@ -1,6 +1,8 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.GameRound;
+import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.repository.GameRoundRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import java.util.UUID;
 @Service
 @Transactional
 public class GameRoundService {
+
     private final GameRoundRepository gameRoundRepository;
 
     public GameRoundService(GameRoundRepository gameRoundRepository) {
@@ -18,7 +21,7 @@ public class GameRoundService {
     }
 
     public void create(GameRound gameRound) {
-        this.gameRoundRepository.create(gameRound);
+        gameRoundRepository.create(gameRound);
     }
 
     public void update(GameRound gameRound) {
@@ -29,11 +32,24 @@ public class GameRoundService {
         this.gameRoundRepository.delete(id);
     }
 
+    public Game getGameFromRound(Round round) {
+        GameRound gameRound = gameRoundRRepository.findByRound(round);
+        return gameRound.getGame();
+    }
+
     public GameRound findById(UUID id) {
         return this.gameRoundRepository.find(id);
     }
 
     public List<GameRound> findAll() {
         return this.gameRoundRepository.findAll();
+    }
+
+    public List<GameRound> findByGameId(UUID gameId) {
+        return this.gameRoundRepository.findByGameId(gameId);
+    }
+
+    public Integer getRoundCountForGame(UUID gameId) {
+        return this.gameRoundRepository.getRoundCountForGame(gameId);
     }
 } 
