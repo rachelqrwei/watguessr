@@ -24,18 +24,14 @@ public class GameController {
 
     @GetMapping(value = "/create")
     public UUID createGame(Game sourceGame) {
-        Game newGame = new Game();
-        newGame.setGameMode(sourceGame.getGameMode());
-        if (newGame.getGameMode().equals("Multiplayer")) {
-            newGame.setMultiplayerTimer(sourceGame.getMultiplayerTimer());
-            newGame.setMultiplayerRoundCount(sourceGame.getMultiplayerRoundCount());
-        }
-        if (newGame.getGameMode().equals("Ranked")) {
-            newGame.setRankedAverageElo(sourceGame.getRankedAverageElo());
-        }
-        return gameService.create(newGame);
+        return switch (sourceGame.getGameMode()) {
+            case "Singleplayer" -> gameService.createSingleplayerGame();
+            case "Multiplayer" ->
+                    gameService.createMultiplayerGame(sourceGame.getMultiplayerTimer(), sourceGame.getMultiplayerRoundCount());
+            case "Ranked" -> gameService.createRankedGame(sourceGame.getRankedAverageElo());
+            default -> null;
+        };
     }
-
 
     @PostMapping(value = "/finish")
     public HashMap<String, Object> finishGame(UUID gameId) {

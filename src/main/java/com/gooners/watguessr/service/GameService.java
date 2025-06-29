@@ -28,7 +28,33 @@ public class GameService {
         this.userService = userService;
     }
 
-    public UUID create(Game newGame) {
+    public UUID createSingleplayerGame() {
+        Game newGame = new Game();
+        newGame.setGameMode("Singleplayer");
+        newGame.setCreatedAt(OffsetDateTime.now());
+        return gameRepository.save(newGame).getId();
+    }
+
+    public UUID createMultiplayerGame(Integer roundCount, Integer timer) {
+        Game newGame = new Game();
+        newGame.setGameMode("Multiplayer");
+        newGame.setMultiplayerRoundCount(roundCount);
+        newGame.setMultiplayerTimer(timer);
+        newGame.setCreatedAt(OffsetDateTime.now());
+        return gameRepository.save(newGame).getId();
+    }
+
+    public UUID updateMultiplayerGame(UUID gameId, Integer roundCount, Integer timer) {
+        Game game = findById(gameId);
+        game.setMultiplayerRoundCount(roundCount);
+        game.setMultiplayerTimer(timer);
+        return gameRepository.save(game).getId();
+    }
+
+    public UUID createRankedGame(Integer averageElo) {
+        Game newGame = new Game();
+        newGame.setGameMode("Ranked");
+        newGame.setRankedAverageElo(averageElo);
         newGame.setCreatedAt(OffsetDateTime.now());
         return gameRepository.save(newGame).getId();
     }
