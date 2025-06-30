@@ -15,6 +15,9 @@ public interface GameRoundRepository extends JpaRepository<GameRound, UUID> {
     @Query("SELECT gr FROM GameRound gr WHERE gr.game.id = :gameId")
     List<GameRound> findByGameId(@Param("gameId") UUID gameId);
 
+    @Query("SELECT gr FROM GameRound gr WHERE gr.round.id = :roundId")
+    GameRound findByRoundId(@Param("roundId") UUID roundId);
+
     @Query("SELECT COUNT(gr) FROM GameRound gr WHERE gr.game.id = :gameId")
     Integer getRoundCountForGame(@Param("gameId") UUID gameId);
 }

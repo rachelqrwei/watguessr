@@ -21,25 +21,22 @@ public class GameRoundService {
     }
 
     public void create(GameRound gameRound) {
-        gameRoundRepository.create(gameRound);
+        gameRoundRepository.save(gameRound);
     }
 
-    public void update(GameRound gameRound) {
-        gameRoundRepository.update(gameRound);
-    }
-
-    public void delete(UUID id) {
-        this.gameRoundRepository.delete(id);
-    }
-
+//
+//    public void delete(Gs id) {
+//        this.gameRoundRepository.delete(id);
+//    }
+//
     public Game getGameFromRound(Round round) {
-        GameRound gameRound = gameRoundRepository.findByRound(round);
-        return gameRound.getGameId();
+        GameRound gameRound = gameRoundRepository.findByRoundId(round.getId());
+        return gameRound.getGame();
     }
-
-    public GameRound findById(UUID id) {
-        return this.gameRoundRepository.find(id);
-    }
+//
+//    public GameRound findById(UUID id) {
+//        return this.gameRoundRepository.find(id);
+//    }
 
     public List<GameRound> findAll() {
         return this.gameRoundRepository.findAll();
