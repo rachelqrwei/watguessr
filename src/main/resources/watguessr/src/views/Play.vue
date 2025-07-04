@@ -1,83 +1,40 @@
 <script setup>
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
 import { onMounted, ref } from 'vue';
+import PlayMapView from './play-views/Play.Map.vue';
+import PlayImageView from './play-views/Play.Image.vue';
 
-const markerCoordinates = ref([]);
+const currentView = ref("Map");
 
-onMounted(() => {
-  mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-
-  let map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: [-80.54478250141877, 43.47247223467783 ],
-    zoom: 17
-  })
-  
-  map.on('load', () => {    
-    const layers = map.getStyle().layers ?? [];
-
-    const labelLayers = layers?.filter(
-      (layer) =>
-      layer.type === 'symbol') ?? [];
-    const labelLayerIds = labelLayers.map(layer => layer.id);
-    const insertBeforeLayerId = labelLayerIds[0] || undefined;
-
-    map.addLayer(
-      {
-        id: '3d-buildings',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 15,
-        paint: {
-          'fill-extrusion-color': '#ffffff',
-          'fill-extrusion-height': ['get', 'height'],
-          'fill-extrusion-base': ['get', 'min_height'],
-          'fill-extrusion-opacity': 0.6
-        }
-      },
-      insertBeforeLayerId
-    );
-
-    map.on('click', (e) => {
-      const coords = [e.lngLat.lng, e.lngLat.lat];
-      markerCoordinates.value.push(coords);
-
-      new mapboxgl.Marker({ anchor: 'bottom' })
-        .setLngLat(coords)
-        .addTo(map);
-
-      // const features = map.queryRenderedFeatures(e.point, {
-      //   layers: ['3d-buildings'], // ✅ this must match the layer ID from your style
-      // });
-
-      // if (features.length > 0) {
-      //   console.log('🏢 Clicked building:', features);
-      // } else {
-      //   console.log('❌ No building found at this location');
-      // }
-
-      const labelFeatures = map.queryRenderedFeatures(e.point, {
-        layers: labelLayerIds,
-      });
-
-      if (labelFeatures.length > 0) {
-        const buildingName = labelFeatures[0].properties.name;
-        console.log(buildingName);
-      } else {
-        console.log('❌ No label found at this location');
-      }
-    });
-  });
-});
+function changeView(nextView) {
+  currentView.value = nextView;
+}
 </script>
 <template>
-    <div id='map'></div>
+  <div v-if="currentView === 'Map'">
+    <button class="view-change-button" @click="changeView('Image')">VIEW IMAGE</button>
+
+    <PlayMapView />
+  </div>
+  <div v-if="currentView === 'Image'">
+    <button class="view-change-button" @click="changeView('Map')">VIEW MAP</button>
+
+    <PlayImageView />
+  </div>
 </template>
-<style>
-body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: calc(100% - 200px); height: 800px;}
+<style scoped>
+.view-change-button {
+  position: absolute;
+  top: 125px;
+  left: 125px;
+  z-index: 10;
+  background: var(--dark-grey);
+  padding: 20px;
+  border: none;
+  border-radius: 40px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  width: 200px;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+}
 </style>

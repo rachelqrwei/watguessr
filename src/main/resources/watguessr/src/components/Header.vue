@@ -13,7 +13,7 @@
             </button>
         </div>
     </div>
-    
+
 </template>
 <script>
 </script>
@@ -22,6 +22,10 @@
     display: flex;
     justify-content: flex-end;
     gap: 50px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 30px;
 }
 
 .streak-container {
