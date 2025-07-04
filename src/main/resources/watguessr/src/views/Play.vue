@@ -25,7 +25,7 @@ function changeView(nextView) {
 .view-change-button {
   position: absolute;
   top: 125px;
-  left: 125px;
+  left: 50px;
   z-index: 10;
   background: var(--dark-grey);
   padding: 20px;
