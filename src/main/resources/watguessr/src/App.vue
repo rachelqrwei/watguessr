@@ -2,14 +2,16 @@
 import { RouterLink, RouterView } from 'vue-router';
 import { useRoute } from 'vue-router'
 import { ref, computed } from 'vue';
+import Header from './components/Header.vue';
+
 
 const isHeaderVisible = ref(false);
 const route = useRoute();
 
 const isHomePage = computed(() => route.path === '/');
 </script>
-
 <template>
+  <Header />
   <div class="main-layout">
     <div
       class="header-wrapper"
@@ -17,14 +19,14 @@ const isHomePage = computed(() => route.path === '/');
       @mouseleave="isHeaderVisible = false"
     >
       <div :class="[(isHomePage || isHeaderVisible) ? 'none' : 'header-menu website-title-container flex-container']">
-        <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '50px'}"/>
-        <RouterLink to="/" class="website-title">WATGUESSR.IO</RouterLink>
+        <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '40px'}"/>
+        <RouterLink to="/" class="website-title"> WATGUESSR.IO</RouterLink>
       </div>
-      
+
       <header :class="[(!isHomePage && !isHeaderVisible) && 'hidden-header']">
         <div class="website-title-container flex-container">
-          <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '50px'}"/>
-          <RouterLink to="/" class="website-title">WATGUESSR.IO</RouterLink>
+          <img src="../../src/assets/images/App/location_on.png" alt="Logo" :style="{height: '40px'}"/>
+          <RouterLink to="/" class="website-title"> WATGUESSR.IO</RouterLink>
         </div>
 
         <h4>MAIN</h4>
@@ -43,7 +45,7 @@ const isHomePage = computed(() => route.path === '/');
           <img src="../../src/assets/images/App/profile-icon.png" alt="Profile"/>
           <RouterLink to="/profile" id="router-link">PROFILE</RouterLink>
         </div>
-      
+
         <div :class="['nav-option flex-container', route.path === '/settings' && 'selected']">
           <img src="../../src/assets/images/App/settings-icon.png" alt="Settings"/>
           <RouterLink to="/settings" id="router-link">SETTINGS</RouterLink>
@@ -71,11 +73,11 @@ header {
 }
 
 .website-title-container {
-  align-items: center;
+  align-items: baseline;
 }
 
 .website-title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
 }
 
@@ -87,7 +89,7 @@ h4 {
 }
 
 .header-menu {
-  padding: 30px;
+  padding: 20px;
   background: var(--dark-grey);
   border-radius: 0 0 30px 0;
   align-items: baseline;
@@ -98,7 +100,7 @@ h4 {
   height: 30px;
   align-items: center;
   gap: 26px;
-  padding: 30px;
+  padding: 20px;
   border-radius: 5px;
 }
 
@@ -134,7 +136,6 @@ h4 {
 }
 
 .hidden-header {
-  width: 30vw;
   height: 100%;
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;

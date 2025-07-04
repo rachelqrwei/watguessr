@@ -1,54 +1,46 @@
 <script setup>
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
+import PlayStopwatch from "@/views/play-components/Play.Stopwatch.vue";
+import PlayMapView from '@/views/play-components/Play.Map.vue';
+import PlayImageView from '@/views/play-components/Play.Image.vue';
+import PlayScoreTracker from "@/views/play-components/Play.ScoreTracker.vue";
 
-onMounted(() => {
-  mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+const currentView = ref("Map");
 
-  let map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/standard',
-    center: [-80.54478250141877, 43.47247223467783 ],
-    zoom: 17,
-    pitch: 70,
-    bearing: -60, // rotate map slightly
-  })
-  
-  map.on("load", () => {
-    const layers = map.getStyle.layers;
-    const labelLayerId = layers?.find(
-      layer => layer.type === 'symbol' && layer.layout?.['text-field']
-    )?.id;
-
-    map.addLayer(
-      {
-        id: '3d-buildings',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 15,
-        paint: {
-          'fill-extrusion-color': '#aaa',
-          'fill-extrusion-height': ['get', 'height'],
-          'fill-extrusion-base': ['get', 'min_height'],
-          'fill-extrusion-opacity': 0.6
-        }
-      },
-      labelLayerId // put the 3D layer below labels
-    );
-  });
-
-  map.on('style.load', () => {
-    map.setConfigProperty('basemap', 'lightPreset', 'dusk');
-  });
-});
+function changeView(nextView) {
+  currentView.value = nextView;
+}
 </script>
 <template>
-    <div id='map'></div>
+  <PlayStopwatch />
+
+  <div v-if="currentView === 'Map'">
+    <button class="view-change-button" @click="changeView('Image')">VIEW IMAGE</button>
+
+    <PlayMapView />
+  </div>
+  <div v-if="currentView === 'Image'">
+    <button class="view-change-button" @click="changeView('Map')">VIEW MAP</button>
+
+    <PlayImageView />
+  </div>
+
+  <PlayScoreTracker />
 </template>
-<style>
-body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: calc(100% - 200px); height: 800px;}
+<style scoped>
+.view-change-button {
+  position: absolute;
+  top: 125px;
+  left: 50px;
+  z-index: 10;
+  background: var(--dark-grey);
+  padding: 20px;
+  border: none;
+  border-radius: 40px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  width: 200px;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+}
 </style>
