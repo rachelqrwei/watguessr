@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import Stopwatch from "./play-views/Stopwatch.vue";
 import PlayMapView from './play-views/Play.Map.vue';
 import PlayImageView from './play-views/Play.Image.vue';
 
@@ -10,6 +11,8 @@ function changeView(nextView) {
 }
 </script>
 <template>
+  <Stopwatch />
+
   <div v-if="currentView === 'Map'">
     <button class="view-change-button" @click="changeView('Image')">VIEW IMAGE</button>
 
