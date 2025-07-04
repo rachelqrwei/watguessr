@@ -58,7 +58,7 @@ const player2ScorePercentage = computed(() => {
   width: 100%;        /* Full width */
   color: white;
   padding: 16px;
-  z-index: 9999;
+  z-index: 5;
 
   display: flex;
   justify-content: space-between; /* Push children to left & right */
