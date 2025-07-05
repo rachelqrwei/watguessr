@@ -4,11 +4,7 @@ import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -38,11 +34,15 @@ public class GameController {
         return gameService.createRankedGame(averageElo);
     }
 
-    @PostMapping(value = "/finish")
-    public HashMap<String, Object> finishGame(UUID gameId) {
-        return gameService.finishGame(gameId);
+    @PostMapping(value = "/finish/singleplayer")
+    public Integer finishSingleplayerGame(UUID gameId) {
+        return gameService.resolveSingleplayerGame(gameId);
     }
-    //if you want to get the results for the singleplayer game, its in "singlePlayerRoundsSurvived", roundsSurvived
-    //if multiplayer or ranked, its ordered in points descending in
+
+    @PostMapping(value = "/finish/multiplayer")
+    public HashMap<UUID, Integer> finishMultiplayerGame(UUID gameId) { return gameService.resolveMultiplayerGame(gameId);}
+
+    @PostMapping(value = "/finish/ranked")
+    public HashMap<UUID, Integer> finishRankedGame(UUID gameId) { return gameService.resolveRankedGame(gameId);}
 
 }

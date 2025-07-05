@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Building {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
