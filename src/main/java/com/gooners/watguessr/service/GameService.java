@@ -59,30 +59,118 @@ public class GameService {
         return gameRepository.save(newGame).getId();
     }
 
-    public HashMap<String, Object> finishGame(UUID gameId) {
-        Game game = findById(gameId);
-        HashMap<String, Object> result = new HashMap<>();
-
-        if (game.getGameMode().equals("Singleplayer")) {
-            // end stats for sp game is number of rounds survived
-            Integer roundsSurvived = gameRoundService.getRoundCountForGame(gameId);
-            result.put("singlePlayerRoundsSurvived", roundsSurvived);
-        } else if ((game.getGameMode().equals("Multiplayer")) || game.getGameMode().equals("Ranked")) {
-            // get user points for multiplayer game and determine winner
-            HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
-            result.put("userPoints", userPoints);
-
-            // find winner (user with most points)
-            UUID winnerId = findWinner(userPoints);
-            if (winnerId != null) {
-                User winner = userService.findById(winnerId);
-                game.setWinner(winner);
-                update(game);
-            }
-        }
-
-        return result;
+    public Integer resolveSingleplayerGame(UUID gameId) {
+        return gameRoundService.getRoundCountForGame(gameId);
     }
+
+    public HashMap<UUID, Integer> resolveMultiplayerGame(UUID gameId) {
+        Game game = findById(gameId);
+        HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+        UUID winnerId = findWinner(userPoints);
+        
+        User winner =  userService.findById(winnerId);
+        game.setWinner(winner);
+        update(game);
+
+        return userPoints;
+    }
+
+    public HashMap<UUID, Integer> resolveRankedGame(UUID gameId) {
+        Game game = findById(gameId);
+        HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+        UUID winnerId = findWinner(userPoints);
+        Integer averageElo = game.getRankedAverageElo();
+
+        User winner = userService.findById(winnerId);
+        game.setWinner(winner);
+        update(game);
+
+        updateEloRatings(userPoints, averageElo);
+
+        return userPoints;
+    }
+
+    /**
+     * Updates ELO ratings for all players in a ranked game
+     * @param userPoints HashMap containing user IDs and their scores
+     * @param averageElo The average ELO of all players in the match
+     */
+    private void updateEloRatings(HashMap<UUID, Integer> userPoints, Integer averageElo) {
+        UUID winnerId = findWinner(userPoints);
+        Integer winnerScore = userPoints.get(winnerId);
+        
+        for (HashMap.Entry<UUID, Integer> entry : userPoints.entrySet()) {
+            UUID userId = entry.getKey();
+            Integer userScore = entry.getValue();
+            User user = userService.findById(userId);
+            
+            // Determine if user won
+            boolean won = userId.equals(winnerId);
+            
+            // Calculate score difference from winner's score
+            Integer scoreDifference = Math.abs(userScore - winnerScore);
+            
+            // Calculate ELO change
+            Integer eloChange = calculateEloChange(averageElo, user.getElo(), won, scoreDifference);
+            
+            // Update user's ELO, ensuring it doesn't go below 0
+            Integer newElo = user.getElo() + eloChange;
+            user.setElo(Math.max(0, newElo));
+            userService.update(user);
+        }
+    }
+
+    /**
+     * Calculates ELO rating change for a player based on match performance
+     * @param averageElo The average ELO of all players in the match
+     * @param userElo The current ELO of the player
+     * @param won Whether the player won the match
+     * @param scoreDifference The point difference between the player and winner
+     * @return The ELO change (positive for gain, negative for loss)
+     */
+    private Integer calculateEloChange(Integer averageElo, Integer userElo, boolean won, Integer scoreDifference) {
+        // K-factor determines how much ELO can change per game
+        // Higher K-factor for beginners, lower for experts
+        Integer kFactor;
+        if (userElo < 400) {
+            kFactor = 40; // Beginners
+        } else if (userElo < 1200) {
+            kFactor = 30; // Intermediate players
+        } else if (userElo < 1800) {
+            kFactor = 20; // Advanced players
+        } else {
+            kFactor = 15; // Expert players
+        }
+        
+        // Calculate expected score based on ELO difference
+        // Using standard ELO formula: Expected = 1 / (1 + 10^((opponent_elo - player_elo) / 400))
+        double eloDifference = averageElo - userElo;
+        double expectedScore = 1.0 / (1.0 + Math.pow(10.0, eloDifference / 400.0));
+        
+        // Actual score: 1 for win, 0 for loss
+        // Adjust based on score difference to reward/penalize margin of victory/defeat
+        double actualScore = won ? 1.0 : 0.0;
+        
+        // Adjust for score difference (reduce impact of luck, reward skill)
+        if (won && scoreDifference > 0) {
+            // Bonus for winning by a large margin (up to 10% bonus)
+            double bonus = Math.min(scoreDifference / 1000.0, 0.1);
+            actualScore += bonus;
+        } else if (!won && scoreDifference > 0) {
+            // Reduce penalty for close losses (up to 10% reduction)
+            double reduction = Math.min(scoreDifference / 1000.0, 0.1);
+            actualScore += reduction;
+        }
+        
+        // Ensure actualScore stays within bounds
+        actualScore = Math.max(0.0, Math.min(1.1, actualScore));
+        
+        // Calculate ELO change
+        double eloChange = kFactor * (actualScore - expectedScore);
+        
+        return (int) Math.round(eloChange);
+    }
+
 
     private HashMap<UUID, Integer> getUserPointsForGame(UUID gameId) {
         List<Object[]> userPointsData = roundGuessService.getUserPointsForGame(gameId);

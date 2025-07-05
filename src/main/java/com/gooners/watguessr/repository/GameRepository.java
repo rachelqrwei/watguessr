@@ -8,6 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, UUID> {
-    // JpaRepository provides save(), findById(), findAll(), delete(), etc.
-    // No need for custom create() and update() methods
+    
 }
