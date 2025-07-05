@@ -16,7 +16,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
                   name: user_id
                   type: uuid

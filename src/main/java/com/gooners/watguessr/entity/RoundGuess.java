@@ -8,23 +8,23 @@ import java.util.UUID;
 public class RoundGuess {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_round_guess_round"))
+    @JoinColumn(name = "round_id", nullable = false, foreignKey = @ForeignKey(name = "fk_round_guess_round"))
     private Round round;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_round_guess_user"))
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_round_guess_user"))
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "guess_id", foreignKey = @ForeignKey(name = "fk_round_guess_guess"))
+    @JoinColumn(name = "guess_id", nullable = false, foreignKey = @ForeignKey(name = "fk_round_guess_guess"))
     private Guess guess;
 
-    @Column(name = "points")
+    @Column(name = "points", nullable = false)
     private Integer points;
 
     public Integer getPoints() {

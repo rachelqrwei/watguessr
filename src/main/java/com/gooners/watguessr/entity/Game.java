@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Game {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
@@ -19,8 +19,8 @@ public class Game {
     @Column(name = "game_mode", nullable = false)
     private String gameMode;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "winner_user_id", foreignKey = @ForeignKey(name = "fk_game_winner_user") )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_user_id", foreignKey = @ForeignKey(name = "fk_game_winner_user"))
     private User winner;
 
     @Column(name = "ranked_average_elo")

@@ -8,21 +8,21 @@ import java.util.UUID;
 public class Guess {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_guess_user"))
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_guess_user"))
     private User user;
 
-    @Column(name = "time")
+    @Column(name = "time", nullable = false)
     private Integer time;
 
-    @Column(name = "guess_x")
+    @Column(name = "guess_x", nullable = false)
     private Double guessX;
 
-    @Column(name = "guess_y")
+    @Column(name = "guess_y", nullable = false)
     private Double guessY;
 
     @ManyToOne

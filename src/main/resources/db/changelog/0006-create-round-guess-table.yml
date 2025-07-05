@@ -16,7 +16,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
                   name: round_id
                   type: uuid
@@ -41,5 +40,6 @@ databaseChangeLog:
               - column:
                   name: points
                   type: int
+                  defaultValue: 0
                   constraints:
                     nullable: false

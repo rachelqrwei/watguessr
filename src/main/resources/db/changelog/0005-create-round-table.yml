@@ -16,7 +16,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
                   name: scene_id
                   type: uuid
