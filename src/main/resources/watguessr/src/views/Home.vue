@@ -3,7 +3,6 @@ import Header from '../components/Header.vue';
 
 </script>
 <template>
-    <Header />
     <div class="flex-container home-description-container">
         <div class="placeholder-square"></div>
 
