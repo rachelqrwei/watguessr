@@ -8,16 +8,16 @@ import java.util.UUID;
 public class GameRound {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "game_id", foreignKey = @ForeignKey(name = "fk_game_round_game"), nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_id", nullable = false, foreignKey = @ForeignKey(name = "fk_game_round_game"))
     private Game game;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_game_round_round"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round_id", nullable = false, foreignKey = @ForeignKey(name = "fk_game_round_round"))
     private Round round;
 
     public UUID getId() {

@@ -16,7 +16,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
                   name: name
                   type: varchar(60)
@@ -25,9 +24,15 @@ databaseChangeLog:
               - column:
                   name: floors
                   type: integer
+                  constraints:
+                      nullable: false
               - column:
                   name: longitude
                   type: decimal(9,6)
+                  constraints:
+                      nullable: false
               - column:
                   name: latitude
                   type: decimal(9,6)
+                  constraints:
+                      nullable: false

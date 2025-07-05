@@ -7,17 +7,17 @@ import java.util.*;
 public class Scene {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
-    @Column(name = "image")
+    @Column(name = "image", nullable = false)
     private String image;
 
-    @Column(name = "location_x")
+    @Column(name = "location_x", nullable = false)
     private Double locationX;
 
-    @Column(name = "location_y")
+    @Column(name = "location_y", nullable = false)
     private Double locationY;
 
     @Column(name = "floor")
