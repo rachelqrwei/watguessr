@@ -1,11 +1,10 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.*;
-import com.gooners.watguessr.repository.GameRoundRepository;
 import com.gooners.watguessr.repository.GuessRepository;
+import com.gooners.watguessr.repository.RoundGuessRepository;
 import com.gooners.watguessr.utils.PointsCalculator;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,25 +15,21 @@ import java.util.UUID;
 public class GuessService {
 
     private final GuessRepository guessRepository;
+    private final GameRoundService gameRoundService;
+    private final RoundGuessService roundGuessService;
+    private final RoundService roundService;
+    private final UserService userService;
+    private final RoundGuessRepository roundGuessRepository;
 
-    @Autowired
-    private GameRoundService gameRoundService;
-
-    @Autowired
-    private RoundGuessService roundGuessService;
-
-    @Autowired
-    private RoundService roundService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private GameRoundRepository gameRoundRepository;
-
-    @Autowired
-    public GuessService(GuessRepository guessRepository) {
+    public GuessService(GuessRepository guessRepository, GameRoundService gameRoundService,
+                       RoundGuessService roundGuessService, RoundService roundService,
+                       UserService userService, RoundGuessRepository roundGuessRepository) {
         this.guessRepository = guessRepository;
+        this.gameRoundService = gameRoundService;
+        this.roundGuessService = roundGuessService;
+        this.roundService = roundService;
+        this.userService = userService;
+        this.roundGuessRepository = roundGuessRepository;
     }
 
     public void create(Guess guess, UUID userId, UUID roundId) {
@@ -49,7 +44,7 @@ public class GuessService {
         
         // Calculate points using utility class
         Game game = gameRoundService.getGameFromRound(round);
-        roundGuess.setPoints(PointsCalculator.calculatePoints(roundGuess, game, gameRoundRepository));
+        roundGuess.setPoints(PointsCalculator.calculatePoints(roundGuess, game, roundGuessRepository));
         
         roundGuessService.create(roundGuess);
 

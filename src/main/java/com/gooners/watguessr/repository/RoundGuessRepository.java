@@ -25,4 +25,10 @@ public interface RoundGuessRepository extends JpaRepository<RoundGuess, UUID> {
             "GROUP BY rg.user.id " +
             "ORDER BY SUM(rg.points) DESC")
     List<Object[]> getUserPointsForGame(@Param("gameId") UUID gameId);
+
+    @Query("SELECT SUM(rg.points) FROM RoundGuess rg " +
+            "JOIN rg.round r " +
+            "JOIN GameRound gr ON gr.round.id = r.id " +
+            "WHERE gr.game.id = :gameId AND rg.user.id = :userId")
+    Integer getUserPointsForGameAndUser(@Param("gameId") UUID gameId, @Param("userId") UUID userId);
 }

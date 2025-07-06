@@ -2,20 +2,15 @@ package com.gooners.watguessr.utils;
 
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GameRoundRepository;
+import com.gooners.watguessr.repository.RoundGuessRepository;
 
-/**
- * Utility class for points calculation functions
- */
+import java.util.UUID;
+
+
 public class PointsCalculator {
 
-    /**
-     * Calculate points for a round guess
-     * @param roundGuess The round guess to calculate points for
-     * @param game The game being played
-     * @param gameRoundRepository Repository for game round operations
-     * @return The calculated points
-     */
-    public static int calculatePoints(RoundGuess roundGuess, Game game, GameRoundRepository gameRoundRepository) {
+    //calculate points for a roundGuess
+    public static int calculatePoints(RoundGuess roundGuess, Game game, RoundGuessRepository roundGuessRepository) {
         Round round = roundGuess.getRound();
         Guess guess = roundGuess.getGuess();
         Scene scene = round.getScene();
@@ -39,7 +34,7 @@ public class PointsCalculator {
         }
 
         if (game.getGameMode().equals("Singleplayer")) {
-            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, gameRoundRepository);
+            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, roundGuessRepository, roundGuess.getUser());
         } else if (game.getGameMode().equals("Multiplayer") || game.getGameMode().equals("Ranked")) {
             return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
         }
@@ -47,10 +42,7 @@ public class PointsCalculator {
         return 0;
     }
 
-    /**
-     * Calculate distance between two points using Euclidean distance
-     * For lat/lng coordinates, this approximation works well for small distances like a campus
-     */
+    //calculate euclidean distance
     private static double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
         if (x1 == null || y1 == null || x2 == null || y2 == null) {
             return Double.MAX_VALUE; // maximum penalty for missing coordinates
@@ -67,56 +59,41 @@ public class PointsCalculator {
         return Math.sqrt(latDiffMeters * latDiffMeters + lngDiffMeters * lngDiffMeters);
     }
 
-    /**
-     * Calculate points for multiplayer/ranked modes
-     * Players start at 0 and gain points based on accuracy
-     */
+    //calculate for multiplayer/ranked modes
     private static int calculateMultiplayerPoints(double distance, boolean buildingMatch, boolean floorMatch) {
         int basePoints = 0;
 
         // Distance-based scoring with less steep exponential falloff
         if (distance == 0) {
-            basePoints = 1000;
+            basePoints = 500; // Reduced from 1000 to 500
         } else {
             // Maximum reasonable distance on campus: ~2km (2000 meters)
             double maxDistance = 2000.0; // meters
             double normalizedDistance = Math.min(distance / maxDistance, 1.0);
 
-            // Less steep exponential decay: points = 1000 * e^(-1.5 * normalizedDistance)
-            // This gives more generous scoring:
-            // - 100m away: ~861 points
-            // - 250m away: ~688 points  
-            // - 500m away: ~472 points
-            // - 1000m away: ~223 points
-            // - 2000m+ away: ~50 points
-            basePoints = (int) (1000 * Math.exp(-1.5 * normalizedDistance));
+            // Less steep exponential decay: points = 500 * e^(-1.5 * normalizedDistance)
+            // This gives more balanced scoring:
+            // - 100m away: ~430 points
+            // - 250m away: ~344 points  
+            // - 500m away: ~236 points
+            // - 1000m away: ~111 points
+            // - 2000m+ away: ~25 points
+            basePoints = (int) (500 * Math.exp(-1.5 * normalizedDistance));
         }
 
-        // Bonus points for correct building and floor
+        // Bonus points for correct building and floor (reduced proportionally)
         if (buildingMatch) {
-            basePoints += 200; // Building bonus
+            basePoints += 100; // Reduced from 200 to 100
             if (floorMatch) {
-                basePoints += 100; // Additional floor bonus
+                basePoints += 50; // Reduced from 100 to 50
             }
         }
 
-        return Math.max(basePoints, 50); // Minimum 50 points for any guess
+        return Math.max(basePoints, 25); // Minimum 25 points for any guess (reduced from 50)
     }
 
-    /**
-     * Calculate points for singleplayer mode
-     * Players start at 1000 points and lose points based on inaccuracy
-     */
-    private static int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game, GameRoundRepository gameRoundRepository) {
-        // Check if this is the first round of the game
-        boolean isFirstRound = isFirstRoundOfGame(game, gameRoundRepository);
-
-        if (!isFirstRound) {
-            // If not first round, calculate as normal multiplayer points
-            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
-        }
-
-        int startingPoints = 1000;
+    //calculate points for a singleplayer game
+    private static int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game, RoundGuessRepository roundGuessRepository, User user) {
         int penalty = 0;
 
         // Distance-based penalty with less steep falloff
@@ -144,20 +121,27 @@ public class PointsCalculator {
             }
         }
 
-        return Math.max(startingPoints - penalty, 50); // Minimum 50 points, ensure non-negative points
+        // Ensure minimum penalty of 10 points for any guess (except perfect)
+        if (penalty == 0 && distance > 0) {
+            penalty = 10;
+        }
+
+        // Return negative penalty to be stored in database
+        return -penalty;
     }
 
-    /**
-     * Check if this is the first round of a singleplayer game
-     */
-    private static boolean isFirstRoundOfGame(Game game, GameRoundRepository gameRoundRepository) {
-        try {
-            // Count existing GameRounds for this game
-            Integer roundCount = gameRoundRepository.getRoundCountForGame(game.getId());
-            return roundCount <= 1; // first round (current round is already created)
-        } catch (Exception e) {
-            // if query fails, assume it's the first round
-            return true;
+    //Calculate current score for a singleplayer game
+    public static int getCurrentSingleplayerScore(UUID gameId, UUID userId, RoundGuessRepository roundGuessRepository) {
+        Integer totalPenalties = roundGuessRepository.getUserPointsForGameAndUser(gameId, userId);
+        if (totalPenalties == null) {
+            totalPenalties = 0;
         }
+        // since penalties are stored as negative numbers, we add them (which subtracts from 1000)
+        return Math.max(1000 + totalPenalties, 0); // Ensure score doesn't go below 0
+    }
+
+    //check if a singleplayer game should end
+    public static boolean shouldEndSingleplayerGame(UUID gameId, UUID userId, RoundGuessRepository roundGuessRepository) {
+        return getCurrentSingleplayerScore(gameId, userId, roundGuessRepository) <= 0;
     }
 } 

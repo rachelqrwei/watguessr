@@ -24,19 +24,10 @@ public class GameRoundService {
         gameRoundRepository.save(gameRound);
     }
 
-//
-//    public void delete(Gs id) {
-//        this.gameRoundRepository.delete(id);
-//    }
-//
     public Game getGameFromRound(Round round) {
         GameRound gameRound = gameRoundRepository.findByRoundId(round.getId());
         return gameRound.getGame();
     }
-//
-//    public GameRound findById(UUID id) {
-//        return this.gameRoundRepository.find(id);
-//    }
 
     public List<GameRound> findAll() {
         return this.gameRoundRepository.findAll();

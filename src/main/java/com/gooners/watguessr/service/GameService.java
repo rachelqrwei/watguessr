@@ -2,8 +2,11 @@ package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.dto.SingleplayerGameState;
 import com.gooners.watguessr.repository.GameRepository;
+import com.gooners.watguessr.repository.RoundGuessRepository;
 import com.gooners.watguessr.utils.EloCalculator;
+import com.gooners.watguessr.utils.PointsCalculator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +23,15 @@ public class GameService {
     private final RoundGuessService roundGuessService;
     private final GameRoundService gameRoundService;
     private final UserService userService;
+    private final RoundGuessRepository roundGuessRepository;
 
     public GameService(GameRepository gameRepository, RoundGuessService roundGuessService,
-            GameRoundService gameRoundService, UserService userService) {
+            GameRoundService gameRoundService, UserService userService, RoundGuessRepository roundGuessRepository) {
         this.gameRepository = gameRepository;
         this.roundGuessService = roundGuessService;
         this.gameRoundService = gameRoundService;
         this.userService = userService;
+        this.roundGuessRepository = roundGuessRepository;
     }
 
     public UUID createSingleplayerGame() {
@@ -91,11 +96,25 @@ public class GameService {
         return userPoints;
     }
 
-    /**
-     * Updates ELO ratings for all players in a ranked game
-     * @param userPoints HashMap containing user IDs and their scores
-     * @param averageElo The average ELO of all players in the match
-     */
+    public Integer getCurrentSingleplayerScore(UUID gameId, UUID userId) {
+        return PointsCalculator.getCurrentSingleplayerScore(gameId, userId, roundGuessRepository);
+    }
+
+    public boolean shouldEndSingleplayerGame(UUID gameId, UUID userId) {
+        return PointsCalculator.shouldEndSingleplayerGame(gameId, userId, roundGuessRepository);
+    }
+
+    public SingleplayerGameState getSingleplayerGameState(UUID gameId, UUID userId) {
+        Integer currentScore = getCurrentSingleplayerScore(gameId, userId);
+        Integer roundsCompleted = gameRoundService.getRoundCountForGame(gameId);
+        boolean shouldEnd = shouldEndSingleplayerGame(gameId, userId);
+        
+        Game game = findById(gameId);
+        boolean isGameEnded = game.getWinner() != null;
+        
+        return new SingleplayerGameState(gameId, currentScore, roundsCompleted, shouldEnd, isGameEnded);
+    }
+
     private void updateEloRatings(HashMap<UUID, Integer> userPoints, Integer averageElo) {
         UUID winnerId = findWinner(userPoints);
         Integer winnerScore = userPoints.get(winnerId);
@@ -104,19 +123,14 @@ public class GameService {
             UUID userId = entry.getKey();
             Integer userScore = entry.getValue();
             User user = userService.findById(userId);
-            
-            // Determine if user won
+
             boolean won = userId.equals(winnerId);
-            
-            // Calculate score difference from winner's score
             Integer scoreDifference = Math.abs(userScore - winnerScore);
-            
-            // Calculate ELO change using utility class
+
             Integer eloChange = EloCalculator.calculateEloChange(averageElo, user.getElo(), won, scoreDifference);
-            
-            // Update user's ELO, ensuring it doesn't go below 0
+
             Integer newElo = user.getElo() + eloChange;
-            user.setElo(Math.max(0, newElo));
+            user.setElo(Math.max(0, newElo)); //ensure not below 0
             userService.update(user);
         }
     }
