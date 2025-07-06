@@ -2,6 +2,7 @@ package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.Scene;
+import com.gooners.watguessr.repository.RoundRepository;
 import com.gooners.watguessr.repository.SceneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,11 +15,11 @@ import java.util.UUID;
 @Transactional
 public class SceneService {
     private final SceneRepository sceneRepository;
-    private final RoundService roundService;
+    private final RoundRepository roundRepository;
 
-    public SceneService(SceneRepository sceneRepository, RoundService roundService) {
+    public SceneService(SceneRepository sceneRepository, RoundRepository roundRepository) {
         this.sceneRepository = sceneRepository;
-        this.roundService = roundService;
+        this.roundRepository = roundRepository;
     }
 
     public Scene findById(UUID id) {
@@ -35,13 +36,15 @@ public class SceneService {
     }
 
     public String getImageByRoundId(UUID roundId) {
-        Round round = roundService.findById(roundId);
+        Round round = roundRepository.findById(roundId)
+                .orElseThrow(() -> new RuntimeException("Round not found with id: " + roundId));
         Scene scene = round.getScene();
         return scene.getImage();
     }
 
     public HashMap<String, Double> getLocationByRoundId(UUID roundId) {
-        Round round = roundService.findById(roundId);
+        Round round = roundRepository.findById(roundId)
+                .orElseThrow(() -> new RuntimeException("Round not found with id: " + roundId));
         Scene scene = round.getScene();
         HashMap<String, Double> location = new HashMap<>();
         location.put("longitude", scene.getLocationX());

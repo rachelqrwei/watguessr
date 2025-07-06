@@ -1,6 +1,5 @@
 package com.gooners.watguessr.controller;
 
-import com.gooners.watguessr.service.RoundService;
 import com.gooners.watguessr.service.SceneService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,11 +14,10 @@ import java.util.UUID;
 public class SceneController {
 
     private final SceneService sceneService;
-    private final RoundService roundService;
 
-    public SceneController(SceneService sceneService, RoundService roundService) {
+    public SceneController(SceneService sceneService) {
         this.sceneService = sceneService;
-        this.roundService = roundService;
+
     }
 
 
