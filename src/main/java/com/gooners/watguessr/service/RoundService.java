@@ -3,6 +3,7 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.GameRound;
 import com.gooners.watguessr.entity.Round;
+import com.gooners.watguessr.entity.Scene;
 import com.gooners.watguessr.repository.RoundRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,7 @@ public class RoundService {
         Game game = gameService.findById(gameId);
 
         Round newRound = new Round();
-        newRound.setScene(sceneService.getRandom());
+        AssignSceneToRound(newRound.getId(), sceneService.getRandom());
         Round savedRound = roundRepository.save(newRound);
 
         GameRound newGameRound = new GameRound();
@@ -39,6 +40,23 @@ public class RoundService {
         gameRoundService.create(newGameRound);
 
         return savedRound.getId();
+    }
+
+    public void AssignSceneToRound(UUID roundId, Scene scene) {
+        Round round = findById(roundId);
+        round.setScene(scene);
+    }
+
+    public List<Round> GetRoundsByGame(UUID gameId) {
+        return gameRoundService.findByGameId(gameId)
+                .stream()
+                .map(GameRound::getRound)
+                .toList();
+    }
+
+//    JOIN b/w game and round table.
+    public void getRoundsOfGame() {
+
     }
 
     public Round update(Round round) {
