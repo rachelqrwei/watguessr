@@ -3,10 +3,12 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GameRoundRepository;
 import com.gooners.watguessr.repository.GuessRepository;
+import com.gooners.watguessr.repository.RoundGuessRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +32,9 @@ public class GuessService {
 
     @Autowired
     private GameRoundRepository gameRoundRepository;
+
+    @Autowired
+    private RoundGuessRepository roundGuessRepository;
 
     @Autowired
     public GuessService(GuessRepository guessRepository) {
@@ -68,6 +73,18 @@ public class GuessService {
         return this.guessRepository.findAll();
     }
 
+    public List<RoundGuess> findRoundGuessByRoundId(UUID roundId) {
+        return this.roundGuessRepository.findByGameId(roundId);
+    }
+
+    public List<Guess> findGuessByRoundId(UUID roundId) {
+        List<RoundGuess> RoundGuessList = findRoundGuessByRoundId(roundId);
+        List<Guess> res = new ArrayList<>();
+        for (RoundGuess roundGuess : RoundGuessList) {
+            res.add(roundGuess.getGuess());
+        }
+        return res;
+    }
 
     public int calculatePoints(RoundGuess roundGuess) {
         Round round = roundGuess.getRound();

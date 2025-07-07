@@ -48,7 +48,7 @@ public class RoundService {
     }
 
     public List<Round> GetRoundsByGame(UUID gameId) {
-        return gameRoundService.findByGameId(gameId)
+        return gameRoundService.findAllGameRoundByGameId(gameId)
                 .stream()
                 .map(GameRound::getRound)
                 .toList();

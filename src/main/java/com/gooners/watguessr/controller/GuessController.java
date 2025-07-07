@@ -1,12 +1,12 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.entity.Guess;
+import com.gooners.watguessr.entity.RoundGuess;
 import com.gooners.watguessr.service.GuessService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,6 +28,11 @@ public class GuessController {
         }
         guess.setTime(sourceGuess.getTime());
         guessService.create(guess, userId, roundId);
+    }
+
+    @GetMapping(value = "/get-all-guess")
+    public List<Guess> getAllGuess(@RequestParam UUID roundId) {
+        return guessService.findGuessByRoundId(roundId);
     }
 
 

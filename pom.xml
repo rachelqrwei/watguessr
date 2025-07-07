@@ -124,7 +124,11 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>2.15.2</version>  <!-- match your Spring Boot–managed Jackson version -->
 		</dependency>
-
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-hibernate6</artifactId>
+			<version>2.19.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

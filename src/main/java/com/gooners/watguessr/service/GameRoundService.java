@@ -42,7 +42,7 @@ public class GameRoundService {
         return this.gameRoundRepository.findAll();
     }
 
-    public List<GameRound> findByGameId(UUID gameId) {
+    public List<GameRound> findAllGameRoundByGameId(UUID gameId) {
         return this.gameRoundRepository.findByGameId(gameId);
     }
 
