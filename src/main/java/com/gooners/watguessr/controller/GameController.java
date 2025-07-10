@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.dto.SingleplayerGameState;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.service.GameService;
@@ -34,15 +35,24 @@ public class GameController {
         return gameService.createRankedGame(averageElo);
     }
 
+    @GetMapping(value = "/state/singleplayer")
+    public SingleplayerGameState getSingleplayerGameState(@RequestParam UUID gameId, @RequestParam UUID userId) {
+        return gameService.getSingleplayerGameState(gameId, userId);
+    }
+
     @PostMapping(value = "/finish/singleplayer")
-    public Integer finishSingleplayerGame(UUID gameId) {
+    public Integer finishSingleplayerGame(@RequestParam UUID gameId) {
         return gameService.resolveSingleplayerGame(gameId);
     }
 
     @PostMapping(value = "/finish/multiplayer")
-    public HashMap<UUID, Integer> finishMultiplayerGame(UUID gameId) { return gameService.resolveMultiplayerGame(gameId);}
+    public HashMap<UUID, Integer> finishMultiplayerGame(@RequestParam UUID gameId) { 
+        return gameService.resolveMultiplayerGame(gameId);
+    }
 
     @PostMapping(value = "/finish/ranked")
-    public HashMap<UUID, Integer> finishRankedGame(UUID gameId) { return gameService.resolveRankedGame(gameId);}
+    public HashMap<UUID, Integer> finishRankedGame(@RequestParam UUID gameId) { 
+        return gameService.resolveRankedGame(gameId);
+    }
 
 }

@@ -18,6 +18,10 @@ public class Round {
     @JoinColumn(name = "scene_id", foreignKey = @ForeignKey(name = "fk_round_scene"))
     private Scene scene;
 
+    @ManyToOne
+    @JoinColumn(name = "game_id", foreignKey = @ForeignKey(name = "fk_round_game"))
+    private Game game;
+
     public UUID getId() {
         return id;
     }
@@ -34,4 +38,11 @@ public class Round {
         this.scene = scene;
     }
 
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
 }

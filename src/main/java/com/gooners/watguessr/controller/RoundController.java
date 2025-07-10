@@ -26,7 +26,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/create")
-    public UUID createRound(UUID gameId) {
+    public UUID createRound(@RequestParam UUID gameId) {
         return roundService.create(gameId);
     }
 
