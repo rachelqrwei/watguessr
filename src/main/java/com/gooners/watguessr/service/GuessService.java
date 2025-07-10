@@ -41,7 +41,7 @@ public class GuessService {
         this.guessRepository = guessRepository;
     }
 
-    public void create(Guess guess, UUID userId, UUID roundId) {
+    public Guess create(Guess guess, UUID userId, UUID roundId) {
         User user = userService.findById(userId);
         Round round = roundService.findById(roundId);
         guess.setUser(user);
@@ -53,7 +53,7 @@ public class GuessService {
         roundGuess.setPoints(calculatePoints(roundGuess));
         roundGuessService.create(roundGuess);
 
-        this.guessRepository.save(guess);
+        return this.guessRepository.save(guess);
     }
 
     public void update(Guess guess) {
@@ -95,8 +95,7 @@ public class GuessService {
         // calculate base distance between guess and actual location
         double distance = calculateDistance(
                 guess.getGuessX(), guess.getGuessY(),
-                scene.getLocationX(), scene.getLocationY()
-        );
+                scene.getLocationX(), scene.getLocationY());
 
         // check for perfect matches
         boolean buildingMatch = false;
@@ -121,7 +120,8 @@ public class GuessService {
 
     /**
      * Calculate distance between two points using Euclidean distance
-     * For lat/lng coordinates, this approximation works well for small distances like a campus
+     * For lat/lng coordinates, this approximation works well for small distances
+     * like a campus
      */
     private double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
         if (x1 == null || y1 == null || x2 == null || y2 == null) {
@@ -157,7 +157,7 @@ public class GuessService {
             // Less steep exponential decay: points = 1000 * e^(-1.5 * normalizedDistance)
             // This gives more generous scoring:
             // - 100m away: ~861 points
-            // - 250m away: ~688 points  
+            // - 250m away: ~688 points
             // - 500m away: ~472 points
             // - 1000m away: ~223 points
             // - 2000m+ away: ~50 points
