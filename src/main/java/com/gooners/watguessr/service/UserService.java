@@ -1,8 +1,10 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,4 +55,24 @@ public class UserService {
     public List<User> findSorted(String keyword, String sortBy, int page, int pageSize) {
         return userRepository.findSorted(keyword, sortBy, PageRequest.of(page, pageSize));
     }
+
+    public void clearSession(){
+
+    }
+
+    public void clearToken() {
+
+    }
+
+    public void JWTTokenValidate() {
+
+    }
+
+    // wip
+    public List<Game> getMatchHistory() {
+
+    }
+
+
+
 }

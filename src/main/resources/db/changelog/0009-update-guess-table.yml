@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9
+      author: KENNY
+      changes:
+        - addColumn:
+            tableName: "guess"
+            columns:
+              - column:
+                  name: round_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guess_round
+                    references: "round(id)"
+              - column:
+                  name: points
+                  type: int
+                  constraints:
+                    nullable: false

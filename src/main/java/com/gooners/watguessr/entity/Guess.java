@@ -32,6 +32,13 @@ public class Guess {
     @Column(name = "floor")
     private Integer floor;
 
+    @ManyToOne
+    @JoinColumn(name = "round_id")
+    private Round round;
+
+    @Column(name = "points")
+    private Integer points;
+
     public User getUser() {
         return user;
     }
@@ -88,4 +95,20 @@ public class Guess {
         this.floor = floor;
     }
 
+
+    public Round getRound() {
+        return round;
+    }
+
+    public void setRound(Round round) {
+        this.round = round;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
 }

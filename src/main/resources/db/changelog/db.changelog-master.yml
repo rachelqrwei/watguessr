@@ -8,9 +8,12 @@ databaseChangeLog:
   - include:
       file: db/changelog/0004-create-guess-table.yml
   - include:
-      file: db/changelog/0005-create-game-table.yml
+      file: db/changelog/0005-create-round-table.yml
   - include:
-      file: db/changelog/0006-create-round-table.yml
+      file: db/changelog/0007-create-game-table.yml
   - include:
-      file: db/changelog/0007-create-round-guess-table.yml
-
+      file: db/changelog/0008-create-game-round-table.yml
+  - include:
+      file: db/changelog/0009-update-guess-table.yml
+  - include:
+      file: db/changelog/0010-update-round-table.yml

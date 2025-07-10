@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10
+      author: KENNY
+      changes:
+        - addColumn:
+            tableName: "round"
+            columns:
+              - column:
+                  name: game_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guess_game
+                    references: "game(id)"
