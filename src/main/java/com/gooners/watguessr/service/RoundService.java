@@ -4,6 +4,7 @@ import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.RoundRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +57,9 @@ public class RoundService {
     public List<Round> findByGameId(UUID gameId) {
         return roundRepository.findByGameId(gameId);
     }
+
+    List<Object[]> getUserPointsForGame(@Param("gameId") UUID gameId){ return roundRepository.getUserPointsForGame(gameId); }
+
 
     public Integer getRoundCountForGame(UUID gameId) {
         return roundRepository.getRoundCountForGame(gameId);

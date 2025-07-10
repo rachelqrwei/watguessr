@@ -1,8 +1,11 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.SingleplayerGameState;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.GameRepository;
+import com.gooners.watguessr.repository.RoundRepository;
+import com.gooners.watguessr.utils.PointsCalculator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,18 +15,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.gooners.watguessr.utils.PointsCalculator.*;
+
 @Service
 @Transactional
 public class GameService {
     private final GameRepository gameRepository;
     private final UserService userService;
-    private final GuessService guessService;
+    private final GameService gameService;
+    private final RoundService roundService;
+    private final RoundRepository roundRepository;
 
     public GameService(GameRepository gameRepository,
-                       UserService userService, GuessService guessService) {
+                       UserService userService, GameService gameService, RoundService roundService, RoundRepository roundRepository) {
         this.gameRepository = gameRepository;
         this.userService = userService;
-        this.guessService = guessService;
+        this.gameService = gameService;
+        this.roundService = roundService;
+        this.roundRepository = roundRepository;
     }
 
     public UUID createSingleplayerGame() {
@@ -58,7 +67,7 @@ public class GameService {
     }
 
     public Integer resolveSingleplayerGame(UUID gameId) {
-        return gameRoundService.getRoundCountForGame(gameId);
+        return roundService.getRoundCountForGame(gameId);
     }
 
     public HashMap<UUID, Integer> resolveMultiplayerGame(UUID gameId) {
@@ -171,7 +180,7 @@ public class GameService {
 
 
     private HashMap<UUID, Integer> getUserPointsForGame(UUID gameId) {
-        List<Object[]> userPointsData = guessService.getUserPointsForGame(gameId);
+        List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
         HashMap<UUID, Integer> userPoints = new HashMap<>();
 
         for (Object[] row : userPointsData) {
@@ -199,6 +208,21 @@ public class GameService {
         }
 
         return winnerId;
+    }
+
+    public Integer getCurrentSingleplayerScore(UUID gameId, UUID userId) {
+        return PointsCalculator.getCurrentSingleplayerScore(gameId, userId, roundRepository);
+    }
+
+    public SingleplayerGameState getSingleplayerGameState(UUID gameId, UUID userId) {
+        Integer currentScore = getCurrentSingleplayerScore(gameId, userId);
+        Integer roundsCompleted = roundService.getRoundCountForGame(gameId);
+        boolean shouldEnd = shouldEndSingleplayerGame(gameId, userId, roundRepository);
+
+        Game game = findById(gameId);
+        boolean isGameEnded = game.getWinner() != null;
+
+        return new SingleplayerGameState(gameId, currentScore, roundsCompleted, shouldEnd, isGameEnded);
     }
 
 

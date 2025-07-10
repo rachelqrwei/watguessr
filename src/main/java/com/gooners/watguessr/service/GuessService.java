@@ -1,13 +1,10 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.*;
-import com.gooners.watguessr.repository.GameRoundRepository;
 import com.gooners.watguessr.repository.GuessRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,12 +13,14 @@ import java.util.UUID;
 public class GuessService {
 
     private final GuessRepository guessRepository;
+    private final RoundService roundService;
     private UserService userService;
 
     public GuessService(GuessRepository guessRepository,
-                        UserService userService) {
+                        UserService userService, RoundService roundService) {
         this.guessRepository = guessRepository;
         this.userService = userService;
+        this.roundService = roundService;
     }
 
     public void create(Guess guess) {
@@ -69,7 +68,7 @@ public class GuessService {
     }
 
     public int calculatePoints(Round round, Guess guess) {
-        Game game = gameRoundService.getGameFromRound(round);
+        Game game = round.getGame();
         Scene scene = round.getScene();
 
         // calculate base distance between guess and actual location
@@ -205,7 +204,7 @@ public class GuessService {
     private boolean isFirstRoundOfGame(Game game) {
         try {
             // Count existing GameRounds for this game
-            Integer roundCount = gameRoundRepository.getRoundCountForGame(game.getId());
+            Integer roundCount = roundService.getRoundCountForGame(game.getId());
             return roundCount <= 1; // first round (current round is already created)
         } catch (Exception e) {
             // if query fails, assume it's the first round
@@ -213,8 +212,9 @@ public class GuessService {
         }
     }
 
+
     public List<Object[]> findUserPointsByGame (UUID gameId) {
-        guessRepository.findUserPointsByGame(gameId);
+        return guessRepository.findUserPointsByGame(gameId);
     }
 
     //Submit a Guess for a Round

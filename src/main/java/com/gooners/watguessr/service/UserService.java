@@ -69,7 +69,7 @@ public class UserService {
     }
 
     // wip
-    public List<Game> getMatchHistory() {
+    public void getMatchHistory() {
 
     }
 

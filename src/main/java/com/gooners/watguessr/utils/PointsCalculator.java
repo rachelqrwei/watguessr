@@ -1,7 +1,7 @@
 package com.gooners.watguessr.utils;
 
 import com.gooners.watguessr.entity.*;
-import com.gooners.watguessr.repository.RoundGuessRepository;
+import com.gooners.watguessr.repository.RoundRepository;
 
 import java.util.UUID;
 
@@ -9,10 +9,10 @@ import java.util.UUID;
 public class PointsCalculator {
 
     //calculate points for a roundGuess
-    public static int calculatePoints(RoundGuess roundGuess, Game game, RoundGuessRepository roundGuessRepository) {
-        Round round = roundGuess.getRound();
-        Guess guess = roundGuess.getGuess();
+    public static int calculatePoints(Guess guess, RoundRepository roundRepository) {
+        Round round = guess.getRound();
         Scene scene = round.getScene();
+        Game game = round.getGame();
 
         // calculate base distance between guess and actual location
         double distance = calculateDistance(
@@ -33,7 +33,7 @@ public class PointsCalculator {
         }
 
         if (game.getGameMode().equals("Singleplayer")) {
-            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, roundGuessRepository, roundGuess.getUser());
+            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, roundRepository, guess.getUser());
         } else if (game.getGameMode().equals("Multiplayer") || game.getGameMode().equals("Ranked")) {
             return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
         }
@@ -92,7 +92,7 @@ public class PointsCalculator {
     }
 
     //calculate points for a singleplayer game
-    private static int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game, RoundGuessRepository roundGuessRepository, User user) {
+    private static int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game, RoundRepository roundRepository, User user) {
         int penalty = 0;
 
         // Distance-based penalty with less steep falloff
@@ -130,8 +130,8 @@ public class PointsCalculator {
     }
 
     //Calculate current score for a singleplayer game
-    public static int getCurrentSingleplayerScore(UUID gameId, UUID userId, RoundGuessRepository roundGuessRepository) {
-        Integer totalPenalties = roundGuessRepository.getUserPointsForGameAndUser(gameId, userId);
+    public static int getCurrentSingleplayerScore(UUID gameId, UUID userId, RoundRepository roundRepository) {
+        Integer totalPenalties = roundRepository.getUserPointsForGameAndUser(gameId, userId);
         if (totalPenalties == null) {
             totalPenalties = 0;
         }
@@ -140,7 +140,7 @@ public class PointsCalculator {
     }
 
     //check if a singleplayer game should end
-    public static boolean shouldEndSingleplayerGame(UUID gameId, UUID userId, RoundGuessRepository roundGuessRepository) {
-        return getCurrentSingleplayerScore(gameId, userId, roundGuessRepository) <= 0;
+    public static boolean shouldEndSingleplayerGame(UUID gameId, UUID userId, RoundRepository roundRepository) {
+        return getCurrentSingleplayerScore(gameId, userId, roundRepository) <= 0;
     }
 } 
