@@ -41,14 +41,18 @@ public class GameController {
     }
 
     @PostMapping(value = "/finish/singleplayer")
-    public Integer finishSingleplayerGame(@RequestBody UUID gameId) {
+    public Integer finishSingleplayerGame(@RequestParam UUID gameId) {
         return gameService.resolveSingleplayerGame(gameId);
     }
 
     @PostMapping(value = "/finish/multiplayer")
-    public HashMap<UUID, Integer> finishMultiplayerGame(@RequestBody UUID gameId) { return gameService.resolveMultiplayerGame(gameId);}
+    public HashMap<UUID, Integer> finishMultiplayerGame(@RequestParam UUID gameId) { 
+        return gameService.resolveMultiplayerGame(gameId);
+    }
 
     @PostMapping(value = "/finish/ranked")
-    public HashMap<UUID, Integer> finishRankedGame(@RequestBody UUID gameId) { return gameService.resolveRankedGame(gameId);}
+    public HashMap<UUID, Integer> finishRankedGame(@RequestParam UUID gameId) { 
+        return gameService.resolveRankedGame(gameId);
+    }
 
 }

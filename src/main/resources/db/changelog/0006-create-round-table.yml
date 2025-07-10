@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 5
+      id: 6
       author: REIWEI
       preConditions:
         - onFail: MARK_RAN
@@ -23,3 +23,10 @@ databaseChangeLog:
                     nullable: false
                     foreignKeyName: fk_round_scene
                     references: scene(id)
+              - column:
+                  name: game_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_round_game
+                    references: game(id)

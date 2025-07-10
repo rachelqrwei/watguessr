@@ -1,8 +1,8 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.entity.Game;
-import com.gooners.watguessr.entity.GameRound;
 import com.gooners.watguessr.entity.Round;
+import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.RoundRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,29 +14,24 @@ import java.util.UUID;
 @Transactional
 public class RoundService {
     private final RoundRepository roundRepository;
-    private final GameRoundService gameRoundService;
     private final SceneService sceneService;
-    private final GameService gameService;
+    private final GameRepository gameRepository;
 
-    public RoundService(RoundRepository roundRepository, GameRoundService gameRoundService, SceneService sceneService,
-            GameService gameService) {
+    public RoundService(RoundRepository roundRepository, SceneService sceneService,
+            GameRepository gameRepository) {
         this.roundRepository = roundRepository;
-        this.gameRoundService = gameRoundService;
         this.sceneService = sceneService;
-        this.gameService = gameService;
+        this.gameRepository = gameRepository;
     }
 
     public UUID create(UUID gameId) {
-        Game game = gameService.findById(gameId);
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found with id: " + gameId));
 
         Round newRound = new Round();
         newRound.setScene(sceneService.getRandom());
+        newRound.setGame(game);
         Round savedRound = roundRepository.save(newRound);
-
-        GameRound newGameRound = new GameRound();
-        newGameRound.setGame(game);
-        newGameRound.setRound(savedRound);
-        gameRoundService.create(newGameRound);
 
         return savedRound.getId();
     }
@@ -56,5 +51,13 @@ public class RoundService {
 
     public List<Round> findAll() {
         return roundRepository.findAll();
+    }
+
+    public List<Round> findByGameId(UUID gameId) {
+        return roundRepository.findByGameId(gameId);
+    }
+
+    public Integer getRoundCountForGame(UUID gameId) {
+        return roundRepository.getRoundCountForGame(gameId);
     }
 }

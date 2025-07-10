@@ -3,6 +3,7 @@ package com.gooners.watguessr.entity;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +32,9 @@ public class Game {
 
     @Column(name = "multiplayer_round_count")
     private Integer multiplayerRoundCount;
+
+    @OneToMany(mappedBy = "game")
+    private List<Round> round;
 
     public UUID getId() {
         return id;

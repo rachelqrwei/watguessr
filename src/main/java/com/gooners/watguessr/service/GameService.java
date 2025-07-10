@@ -21,15 +21,15 @@ import java.util.UUID;
 public class GameService {
     private final GameRepository gameRepository;
     private final RoundGuessService roundGuessService;
-    private final GameRoundService gameRoundService;
+    private final RoundService roundService;
     private final UserService userService;
     private final RoundGuessRepository roundGuessRepository;
 
     public GameService(GameRepository gameRepository, RoundGuessService roundGuessService,
-            GameRoundService gameRoundService, UserService userService, RoundGuessRepository roundGuessRepository) {
+            RoundService roundService, UserService userService, RoundGuessRepository roundGuessRepository) {
         this.gameRepository = gameRepository;
         this.roundGuessService = roundGuessService;
-        this.gameRoundService = gameRoundService;
+        this.roundService = roundService;
         this.userService = userService;
         this.roundGuessRepository = roundGuessRepository;
     }
@@ -66,7 +66,7 @@ public class GameService {
     }
 
     public Integer resolveSingleplayerGame(UUID gameId) {
-        return gameRoundService.getRoundCountForGame(gameId);
+        return roundService.getRoundCountForGame(gameId);
     }
 
     public HashMap<UUID, Integer> resolveMultiplayerGame(UUID gameId) {
@@ -106,7 +106,7 @@ public class GameService {
 
     public SingleplayerGameState getSingleplayerGameState(UUID gameId, UUID userId) {
         Integer currentScore = getCurrentSingleplayerScore(gameId, userId);
-        Integer roundsCompleted = gameRoundService.getRoundCountForGame(gameId);
+        Integer roundsCompleted = roundService.getRoundCountForGame(gameId);
         boolean shouldEnd = shouldEndSingleplayerGame(gameId, userId);
         
         Game game = findById(gameId);

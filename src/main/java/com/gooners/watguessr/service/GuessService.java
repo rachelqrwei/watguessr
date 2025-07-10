@@ -15,17 +15,15 @@ import java.util.UUID;
 public class GuessService {
 
     private final GuessRepository guessRepository;
-    private final GameRoundService gameRoundService;
     private final RoundGuessService roundGuessService;
     private final RoundService roundService;
     private final UserService userService;
     private final RoundGuessRepository roundGuessRepository;
 
-    public GuessService(GuessRepository guessRepository, GameRoundService gameRoundService,
+    public GuessService(GuessRepository guessRepository,
                        RoundGuessService roundGuessService, RoundService roundService,
                        UserService userService, RoundGuessRepository roundGuessRepository) {
         this.guessRepository = guessRepository;
-        this.gameRoundService = gameRoundService;
         this.roundGuessService = roundGuessService;
         this.roundService = roundService;
         this.userService = userService;
@@ -43,7 +41,7 @@ public class GuessService {
         roundGuess.setUser(user);
         
         // Calculate points using utility class
-        Game game = gameRoundService.getGameFromRound(round);
+        Game game = round.getGame();
         roundGuess.setPoints(PointsCalculator.calculatePoints(roundGuess, game, roundGuessRepository));
         
         roundGuessService.create(roundGuess);
