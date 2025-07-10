@@ -1,6 +1,5 @@
 package com.gooners.watguessr.repository;
 
-import com.gooners.watguessr.entity.GameRound;
 import com.gooners.watguessr.entity.Guess;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

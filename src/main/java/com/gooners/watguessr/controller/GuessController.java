@@ -30,10 +30,6 @@ public class GuessController {
         guessService.create(guess, userId, roundId);
     }
 
-    @GetMapping(value = "/get-all-guess")
-    public List<Guess> getAllGuess(@RequestParam UUID roundId) {
-        return guessService.findGuessByRoundId(roundId);
-    }
 
 
 }
