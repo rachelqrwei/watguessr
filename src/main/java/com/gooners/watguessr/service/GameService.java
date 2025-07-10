@@ -201,6 +201,7 @@ public class GameService {
         return winnerId;
     }
 
+
     public void update(Game game) {
         gameRepository.save(game);
     }
