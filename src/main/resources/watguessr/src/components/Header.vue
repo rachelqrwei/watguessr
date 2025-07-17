@@ -1,129 +1,146 @@
 <template>
-    <div class="header-container">
-        <div class="streak-container flex-container">
-            <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
-            <p>1</p>
-        </div>
-
-        <div class="profile-container flex-container" @click="dropdownOpen = !dropdownOpen">
-            <img src="../assets/images/Header/generic-avatar.png" alt="Profile Icon" />
-            <p>RACHEL W</p>
-            <img src="../assets/images/Header/drop-down.png" alt="Drop down" />
-        </div>
-
-        <div v-if="dropdownOpen" class="dropdown-menu" @click.outside="dropdownOpen = false">
-          <ul>
-            <li @click="handleSettings">Settings</li>
-            <li @click="handleLogout">Log Out</li>
-            <li @click="handleQuit">Quit Game</li>
-          </ul>
-        </div>
+  <div class="header-container">
+    <div class="streak-container flex-container">
+      <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
+      <p>1</p>
     </div>
+
+    <div class="profile-container flex-container" @click="dropdownOpen = !dropdownOpen">
+      <font-awesome-icon icon="user" class="profile-icon" />
+      <p>RACHEL W</p>
+      <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
+    </div>
+
+    <div v-if="dropdownOpen" class="dropdown-menu">
+      <ul>
+        <li @click="handleSettings">Settings</li>
+        <li @click="handleLogout">Log Out</li>
+        <li @click="handleQuit">Quit Game</li>
+      </ul>
+    </div>
+  </div>
 </template>
+
 <script setup>
-import {onBeforeUnmount, onMounted, ref} from "vue";
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-const dropdownOpen = ref(false);
+const dropdownOpen = ref(false)
 
-function handleSettings() {
-  console.log('Navigating to settings...');
-  dropdownOpen.value = false;
+const handleSettings = () => {
+  console.log('Navigating to settings...')
+  dropdownOpen.value = false
 }
 
-function handleLogout() {
-  console.log('Logging out...');
-  dropdownOpen.value = false;
+const handleLogout = () => {
+  console.log('Logging out...')
+  dropdownOpen.value = false
 }
 
-function handleQuit() {
-  console.log('Quitting game...');
-  dropdownOpen.value = false;
+const handleQuit = () => {
+  console.log('Quitting game...')
+  dropdownOpen.value = false
 }
 
-function onClickOutside(event) {
-  const dropdown = document.querySelector('.dropdown-container');
-  if (dropdown && !dropdown.contains(event.target))
-  {
-    dropdownOpen.value = false;
+const onClickOutside = (event) => {
+  const dropdown = document.querySelector('.dropdown-container')
+  if (dropdown && !dropdown.contains(event.target)) {
+    dropdownOpen.value = false
   }
 }
 
 onMounted(() => {
-  document.addEventListener('click', onClickOutside);
-});
+  document.addEventListener('click', onClickOutside)
+})
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onClickOutside);
-});
-
+  document.removeEventListener('click', onClickOutside)
+})
 </script>
+
 <style scoped>
 .header-container {
-    display: flex;
-    justify-content: flex-end;
-    gap: 50px;
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 40px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 24px;
+  z-index: 1001;
 }
 
 .streak-container {
-    align-items: center;
-    gap: 10px;
+  align-items: center;
+  gap: 8px;
+}
+
+.streak-container img {
+  height: 28px;
+  width: 24px;
 }
 
 .streak-container p {
-    font-weight: bold;
-    font-size: 16px;
-    background: var(--player-1-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--player-1-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .profile-container {
-    align-items: center;
-    gap: 10px;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.profile-container:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-icon {
+  height: 24px;
+  width: 24px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.dropdown-icon {
+  height: 16px;
+  width: 16px;
+  color: var(--white);
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.profile-container:hover .dropdown-icon {
+  opacity: 1;
+  transform: translateY(1px);
 }
 
 .profile-container p {
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.profile-container img {
-    height: 36px;
-}
-
-button {
-  cursor: pointer
-}
-
-.dropdown-container {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-toggle {
-  padding: 10px;
-  font-size: 18px;
-  border: none;
-  background: var(--dark-grey);
-  color: white;
-  cursor: pointer;
-  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--white);
+  letter-spacing: 0.5px;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 80px;
-  right: 30px;
+  top: 70px;
+  right: 0;
   background: var(--dark-grey);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 1002;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  min-width: 160px;
 }
 
 .dropdown-menu ul {
@@ -133,13 +150,20 @@ button {
 }
 
 .dropdown-menu li {
-  padding: 10px 20px;
+  padding: 12px 16px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
 }
 
 .dropdown-menu li:hover {
-  background: #f0f0f0;
-  color: black;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu li:active {
+  background: rgba(255, 255, 255, 0.15);
 }
 </style>
