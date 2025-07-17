@@ -22,15 +22,13 @@ import static com.gooners.watguessr.utils.PointsCalculator.*;
 public class GameService {
     private final GameRepository gameRepository;
     private final UserService userService;
-    private final GameService gameService;
     private final RoundService roundService;
     private final RoundRepository roundRepository;
 
     public GameService(GameRepository gameRepository,
-                       UserService userService, GameService gameService, RoundService roundService, RoundRepository roundRepository) {
+                       UserService userService, RoundService roundService, RoundRepository roundRepository) {
         this.gameRepository = gameRepository;
         this.userService = userService;
-        this.gameService = gameService;
         this.roundService = roundService;
         this.roundRepository = roundRepository;
     }

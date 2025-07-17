@@ -11,5 +11,5 @@ import java.util.UUID;
 public interface BuildingRepository extends JpaRepository<Building, UUID> {
     // Buildings will be manually populated in the database. No need for additional
     // CRUD operations.
-    Optional<Building> findByBuildingName(String buildingName);
+//    Optional<Building> findByBuildingName(String buildingName);
 }

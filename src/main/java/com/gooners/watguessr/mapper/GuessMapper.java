@@ -18,10 +18,5 @@ public interface GuessMapper {
     @Mapping(source = "userId",       target = "user.id")
     @Mapping(source = "buildingId",   target = "building.id")
     @Mapping(source = "roundId",      target = "round.id")
-    Guess toEntity(GuessDto dto);
-
-    @Mapping(source = "userId",       target = "user.id")
-    @Mapping(source = "buildingId",   target = "building.id")
-    @Mapping(source = "roundId",      target = "round.id")
     Guess toEntity(GuessCreateDto dto);
 }

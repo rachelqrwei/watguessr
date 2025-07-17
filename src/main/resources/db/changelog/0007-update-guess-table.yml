@@ -1,7 +1,19 @@
 databaseChangeLog:
   - changeSet:
-      id: 9
+      id: 7
       author: KENNY
+      preConditions:
+        - onFail:
+        - tableExists:
+            tableName: guess
+        - not:
+            columnExists:
+              tableName: guess
+              columnName: round_id
+        - not:
+            columnExists:
+              tableName: guess
+              columnName: points
       changes:
         - addColumn:
             tableName: "guess"
@@ -10,11 +22,8 @@ databaseChangeLog:
                   name: round_id
                   type: uuid
                   constraints:
-                    nullable: false
                     foreignKeyName: fk_guess_round
                     references: "round(id)"
               - column:
                   name: points
                   type: int
-                  constraints:
-                    nullable: false

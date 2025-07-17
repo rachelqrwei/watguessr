@@ -26,8 +26,8 @@ public class BuildingService {
                 .orElseThrow(() -> new RuntimeException("Building not found with id: " + id));
     }
 
-    public Building findByBuildingName(String buildingName) {
-        return buildingRepository.findByBuildingName(buildingName)
-                .orElseThrow(() -> new RuntimeException("Building not found with name: " + buildingName));
-    }
+//    public Building findByBuildingName(String buildingName) {
+//        return buildingRepository.findByBuildingName(buildingName)
+//                .orElseThrow(() -> new RuntimeException("Building not found with name: " + buildingName));
+//    }
 }
