@@ -1,9 +1,10 @@
-// com/gooners/watguessr/dto/GuessCreateDto.java
+// com/gooners/watguessr/dto/GuessDto.java
 package com.gooners.watguessr.dto;
 
 import java.util.UUID;
 
-public class GuessCreateDto {
+public class GuessDto {
+    private UUID id;
     private UUID userId;
     private Integer time;
     private Double guessX;
@@ -11,7 +12,10 @@ public class GuessCreateDto {
     private UUID buildingId;
     private Integer floor;
     private UUID roundId;
+    private Integer points;
 
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
@@ -33,4 +37,7 @@ public class GuessCreateDto {
 
     public UUID getRoundId() { return roundId; }
     public void setRoundId(UUID roundId) { this.roundId = roundId; }
+
+    public Integer getPoints() { return points; }
+    public void setPoints(Integer points) { this.points = points; }
 }
