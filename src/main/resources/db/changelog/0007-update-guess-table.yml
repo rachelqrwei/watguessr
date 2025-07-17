@@ -1,7 +1,19 @@
 databaseChangeLog:
   - changeSet:
-      id: 9
+      id: 7
       author: KENNY
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: guess
+        - not:
+            columnExists:
+              tableName: guess
+              columnName: round_id
+        - not:
+            columnExists:
+              tableName: guess
+              columnName: points
       changes:
         - addColumn:
             tableName: "guess"
