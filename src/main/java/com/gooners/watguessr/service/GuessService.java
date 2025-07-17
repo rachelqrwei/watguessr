@@ -23,7 +23,7 @@ public class GuessService {
         this.roundService = roundService;
     }
 
-    public void create(Guess guess) {
+    public Guess create(Guess guess) {
         // check if guess can be instantiated
         if (guess.getPoints() != null) {
             throw new RuntimeException("points can't be set");
@@ -44,6 +44,7 @@ public class GuessService {
 
         User user = userService.findById(guess.getUser().getId());
         this.guessRepository.save(guess);
+        return guess;
     }
 
     public void update(Guess guess) {

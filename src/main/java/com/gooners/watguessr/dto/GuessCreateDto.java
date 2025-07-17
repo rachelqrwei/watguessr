@@ -12,7 +12,7 @@ public class GuessCreateDto {
     private Integer floor;
     private UUID roundId;
 
-    // getters & setters
+
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
 

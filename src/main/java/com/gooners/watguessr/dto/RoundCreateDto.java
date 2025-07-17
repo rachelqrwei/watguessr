@@ -2,13 +2,10 @@ package com.gooners.watguessr.dto;
 
 import java.util.UUID;
 
-public class RoundDto {
-    private UUID id;
+public class RoundCreateDto {
     private UUID sceneId;
     private UUID gameId;
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
     public UUID getSceneId() { return sceneId; }
     public void setSceneId(UUID sceneId) { this.sceneId = sceneId; }
     public UUID getGameId() { return gameId; }
