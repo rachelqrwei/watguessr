@@ -22,58 +22,66 @@
           </ul>
         </div>
 
-      <LoginModal :visible="showLoginModal" @close="showLoginModal = false" />
+    <AuthModalManager
+      :visible="showAuthModal"
+      :initialMode="authMode"
+      @close="showAuthModal = false"
+    />
     </div>
 </template>
 <script setup>
-import {onBeforeUnmount, onMounted, ref} from "vue";
-import A from "@/views/auth/AuthModalManager.vue";
-
-import {data} from "autoprefixer";
+import { onMounted, onBeforeUnmount, ref } from "vue";
+import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 
 const dropdownOpen = ref(false);
 const loggedIn = ref(false);
 const signedIn = ref(false);
-const showLoginModal = ref(false);
+
+const showAuthModal = ref(false);
+const authMode = ref("login"); // "login" or "signup"
 
 const handleSettings = () => {
-  console.log('Navigating to settings...')
-  dropdownOpen.value = false
-}
+  console.log('Navigating to settings...');
+  dropdownOpen.value = false;
+};
 
 const handleLogout = () => {
-  console.log('Logging out...')
-  dropdownOpen.value = false
-}
-
-function handleLogin() {
-  console.log('Logging in...');
+  console.log('Logging out...');
+  loggedIn.value = false;
   dropdownOpen.value = false;
-  showLoginModal.value = true;
-}
+};
+
+const handleLogin = () => {
+  console.log('Logging in...');
+  authMode.value = "login";
+  showAuthModal.value = true;
+  dropdownOpen.value = false;
+};
+
+const handleSignIn = () => {
+  console.log('Signing in...');
+  authMode.value = "signup";
+  showAuthModal.value = true;
+  dropdownOpen.value = false;
+};
 
 const handleSignOut = () => {
-  console.log('Signing out...')
-  dropdownOpen.value = false
-}
-
-function handleSignIn() {
-  console.log('Signing in...');
+  console.log('Signing out...');
+  signedIn.value = false;
   dropdownOpen.value = false;
-  showSignInModal.value = true;
-}
+};
 
-function handleQuit() {
+const handleQuit = () => {
   console.log('Quitting game...');
   dropdownOpen.value = false;
-}
+};
 
 const onClickOutside = (event) => {
-  const dropdown = document.querySelector('.dropdown-container')
+  const dropdown = document.querySelector('.dropdown-menu');
   if (dropdown && !dropdown.contains(event.target)) {
-    dropdownOpen.value = false
+    dropdownOpen.value = false;
   }
-}
+};
 
 onMounted(() => {
   document.addEventListener('click', onClickOutside);
@@ -82,9 +90,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', onClickOutside);
 });
-
-
 </script>
+
 <style scoped>
 .header-container {
   display: flex;

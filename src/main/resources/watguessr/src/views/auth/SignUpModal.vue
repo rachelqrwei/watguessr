@@ -2,7 +2,7 @@
   <div class="modal-overlay" v-if="visible">
     <div class="modal-content">
       <button class="close-btn" @click="$emit('close')">×</button>
-      <form @submit.prevent="submitSignIn" class="login-form">
+      <form @submit.prevent="submitSignUp" class="login-form">
         <div class="form-group">
           <label for="email">Email</label>
           <input type="email" id="email" v-model="email" />
@@ -49,7 +49,7 @@ export default {
     };
   },
   methods: {
-    submitSignIn() {
+    submitSignUp() {
       if (this.password !== this.confirmPassword) {
         alert("Passwords do not match");
         return;
