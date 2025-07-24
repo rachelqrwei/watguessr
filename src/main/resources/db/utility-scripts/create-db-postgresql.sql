@@ -1,4 +1,4 @@
--- Create Database Manually first.Creating databases in Postgres is a 
+-- Create Database Manually first. Creating databases in Postgres is a
 --      little bit “manual” there’s no fully pure SQL transactional way to 
 --      do “create-if-not-exists” for databases.
 -- 

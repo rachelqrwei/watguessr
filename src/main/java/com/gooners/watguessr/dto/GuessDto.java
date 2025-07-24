@@ -1,6 +1,5 @@
 package com.gooners.watguessr.dto;
 
-
 import java.util.UUID;
 
 public class GuessDto {
@@ -14,7 +13,6 @@ public class GuessDto {
     private UUID roundId;
     private Integer points;
 
-    // getters & setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

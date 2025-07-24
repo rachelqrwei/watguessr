@@ -3,7 +3,7 @@ databaseChangeLog:
       id: 7
       author: KENNY
       preConditions:
-        - onFail:
+        - onFail: MARK_RAN
         - tableExists:
             tableName: guess
         - not:
@@ -22,8 +22,11 @@ databaseChangeLog:
                   name: round_id
                   type: uuid
                   constraints:
+                    nullable: false
                     foreignKeyName: fk_guess_round
                     references: "round(id)"
               - column:
                   name: points
                   type: int
+                  constraints:
+                    nullable: false
