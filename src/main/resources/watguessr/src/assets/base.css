@@ -7,8 +7,8 @@
   --yellow: #FFCB3B;
   --light-grey: #9C9C9C;
   --white: #FEFAF8;
-  --player-1-gradient: linear-gradient(#FFE37F, #FF7F7F);
-  --player-2-gradient: linear-gradient(#7FB9FF, #AA7FFF);
+  --player-1-gradient: linear-gradient(to right, #FFE37F, #FF7F7F);
+  --player-2-gradient: linear-gradient(to right, #7FB9FF, #AA7FFF);
 }
 
 /* semantic color variables for this project */
