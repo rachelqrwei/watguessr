@@ -1,22 +1,3 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import Header from './components/Header.vue'
-
-const route = useRoute()
-const isHoveringHeader = ref(false)
-
-const isHomePage = computed(() => route.path === '/')
-const showHeader = computed(() => isHomePage.value || isHoveringHeader.value)
-
-const navLinks = [
-  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
-  { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
-  { path: '/profile', label: 'PROFILE', icon: 'user' },
-  { path: '/settings', label: 'SETTINGS', icon: 'cog' }
-]
-</script>
-
 <template>
   <Header />
 
@@ -62,7 +43,9 @@ const navLinks = [
       <div class="sidebar-footer">
         <div class="report-bug-sidebar">
           <h4>REPORT A BUG</h4>
-          <p>To leave feedback, please <span class="link">LOG IN</span></p>
+          <p>To leave feedback, please
+            <span class="link" @click="showLogin = true">LOG IN</span>
+          </p>
         </div>
         <div class="version-info">v1.0.0</div>
       </div>
@@ -74,13 +57,37 @@ const navLinks = [
       </div>
     </main>
 
-    <div 
-      v-if="showHeader && !isHomePage" 
+    <LoginModal :visible="showLogin" @close="showLogin = false" />
+
+    <div
+      v-if="showHeader && !isHomePage"
       class="backdrop"
       @click="isHoveringHeader = false"
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import Header from './components/Header.vue'
+import LoginModal from "@/views/auth/LoginModal.vue";
+
+const route = useRoute()
+const isHoveringHeader = ref(false)
+const showLogin = ref(false) // ✅ reactive state for login modal
+
+const isHomePage = computed(() => route.path === '/')
+const showHeader = computed(() => isHomePage.value || isHoveringHeader.value)
+
+const navLinks = [
+  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
+  { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
+  { path: '/profile', label: 'PROFILE', icon: 'user' },
+  { path: '/settings', label: 'SETTINGS', icon: 'cog' }
+]
+
+</script>
 
 <style scoped>
 .layout {
@@ -107,7 +114,7 @@ const navLinks = [
   height: 100vh;
   background: linear-gradient(180deg, var(--dark-grey) 0%, #1a1a1c 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     4px 0 20px rgba(0, 0, 0, 0.3),
     inset -1px 0 0 rgba(255, 255, 255, 0.05);
   transform: translateX(0);
@@ -349,15 +356,15 @@ const navLinks = [
     width: 100vw;
     transform: translateX(-100%);
   }
-  
+
   .sidebar-trigger {
     width: 30px;
   }
-  
+
   .main-content {
     margin-left: 0;
   }
-  
+
   .content-wrapper {
     padding: 20px;
   }
@@ -403,7 +410,7 @@ const navLinks = [
 }
 
 .sidebar:hover {
-  box-shadow: 
+  box-shadow:
     4px 0 25px rgba(0, 0, 0, 0.4),
     inset -1px 0 0 rgba(255, 255, 255, 0.1);
 }
@@ -415,5 +422,14 @@ const navLinks = [
 
 .logo-text:focus {
   outline: none;
+}
+
+.link {
+  color: #00d8ff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link:hover {
+  text-decoration: none;
 }
 </style>

@@ -11,20 +11,30 @@
       <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
     </div>
 
-    <div v-if="dropdownOpen" class="dropdown-menu">
-      <ul>
-        <li @click="handleSettings">Settings</li>
-        <li @click="handleLogout">Log Out</li>
-        <li @click="handleQuit">Quit Game</li>
-      </ul>
+        <div v-if="dropdownOpen" class="dropdown-menu" @click.outside="dropdownOpen = false">
+          <ul>
+            <li @click="handleSettings">Settings</li>
+            <li @click="handleLogout" v-if="loggedIn">Log Out</li>
+            <li @click="handleLogin" v-if="!loggedIn">Log in</li>
+            <li @click="handleSignOut" v-if="signedIn">Sign Out</li>
+            <li @click="handleSignIn" v-if="!signedIn">Sign in</li>
+            <li @click="handleQuit">Quit Game</li>
+          </ul>
+        </div>
+
+      <LoginModal :visible="showLoginModal" @close="showLoginModal = false" />
     </div>
-  </div>
 </template>
-
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import {onBeforeUnmount, onMounted, ref} from "vue";
+import A from "@/views/auth/AuthModalManager.vue";
 
-const dropdownOpen = ref(false)
+import {data} from "autoprefixer";
+
+const dropdownOpen = ref(false);
+const loggedIn = ref(false);
+const signedIn = ref(false);
+const showLoginModal = ref(false);
 
 const handleSettings = () => {
   console.log('Navigating to settings...')
@@ -36,9 +46,26 @@ const handleLogout = () => {
   dropdownOpen.value = false
 }
 
-const handleQuit = () => {
-  console.log('Quitting game...')
+function handleLogin() {
+  console.log('Logging in...');
+  dropdownOpen.value = false;
+  showLoginModal.value = true;
+}
+
+const handleSignOut = () => {
+  console.log('Signing out...')
   dropdownOpen.value = false
+}
+
+function handleSignIn() {
+  console.log('Signing in...');
+  dropdownOpen.value = false;
+  showSignInModal.value = true;
+}
+
+function handleQuit() {
+  console.log('Quitting game...');
+  dropdownOpen.value = false;
 }
 
 const onClickOutside = (event) => {
@@ -49,14 +76,15 @@ const onClickOutside = (event) => {
 }
 
 onMounted(() => {
-  document.addEventListener('click', onClickOutside)
-})
+  document.addEventListener('click', onClickOutside);
+});
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onClickOutside)
-})
-</script>
+  document.removeEventListener('click', onClickOutside);
+});
 
+
+</script>
 <style scoped>
 .header-container {
   display: flex;
