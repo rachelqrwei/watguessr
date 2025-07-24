@@ -194,7 +194,7 @@ export default {
   position: absolute;
   inset: 0;
   background: url('/GamePage.png') center bottom / cover no-repeat;
-  opacity: 0.8; 
+  opacity: 0.8;
   pointer-events: none;
 }
 

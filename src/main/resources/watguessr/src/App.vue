@@ -340,6 +340,14 @@ const navLinks = [
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.content-expanded {
+  margin-left: 0;
+}
+
+.content-with-sidebar {
+  margin-left: 200px; /* Adjust based on sidebar width */
+}
+
 .content-wrapper {
   padding: 40px;
   max-width: 1200px;
