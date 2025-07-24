@@ -18,11 +18,12 @@ import {
   faChevronDown,
   faStar,
   faClipboard,
-  faUsers
+  faUsers,
+  faImage
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
-library.add(faPlay, faTrophy, faUser, faCog, faMapMarkerAlt, faChevronDown, faStar, faClipboard, faUsers)
+library.add(faPlay, faTrophy, faUser, faCog, faMapMarkerAlt, faChevronDown, faStar, faClipboard, faUsers, faImage)
 
 const app = createApp(App)
 

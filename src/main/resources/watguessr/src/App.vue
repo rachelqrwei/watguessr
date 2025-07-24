@@ -7,7 +7,8 @@ const route = useRoute()
 const isHoveringHeader = ref(false)
 
 const isHomePage = computed(() => route.path === '/')
-const showHeader = computed(() => isHomePage.value || isHoveringHeader.value)
+const isPlayPage = computed(() => route.path === '/play')
+const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 
 const navLinks = [
   { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
@@ -103,7 +104,7 @@ const navLinks = [
   position: fixed;
   top: 0;
   left: 0;
-  width: 280px;
+  width: 270px;
   height: 100vh;
   background: linear-gradient(180deg, var(--dark-grey) 0%, #1a1a1c 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -123,7 +124,7 @@ const navLinks = [
 }
 
 .logo-section {
-  padding: 24px;
+  padding: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, rgba(255, 203, 59, 0.1) 0%, rgba(255, 203, 59, 0.05) 100%);
 }
@@ -155,7 +156,7 @@ const navLinks = [
 
 .nav-section {
   flex: 1;
-  padding: 24px;
+  padding: 16px;
   overflow-y: auto;
 }
 
@@ -263,7 +264,7 @@ const navLinks = [
 }
 
 .sidebar-footer {
-  padding: 24px;
+  padding: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
 }
@@ -317,7 +318,7 @@ const navLinks = [
 }
 
 .content-with-sidebar {
-  margin-left: 280px; /* Adjust based on sidebar width */
+  margin-left: 200px; /* Adjust based on sidebar width */
 }
 
 .content-wrapper {

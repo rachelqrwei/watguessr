@@ -57,27 +57,27 @@ const formattedTimeLeft = computed(() => {
   transform: translateX(-50%);
   background-color: var(--color-gray-700);
   color: white;
-  padding: 20px;
-  font-size: 30px;
-  width: 200px;
-  line-height: 40px;
+  padding: 19px;
+  font-size: 28.5px;
+  width: 190px;
+  line-height: 38px;
   text-align: center;
   font-weight: bolder;
   font-family: 'Oxanium', sans-serif;
   border-radius: 25px;
   z-index: 999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .stopwatch-container {
   position: fixed;
-  top: 25px;
+  top: 5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 210px;
-  border-radius: 30px;
-  height: 90px;
+  width: 237.5px;
+  border-radius: 50px;
+  height: 123.5px;
   background-color: var(--dark-grey);
   z-index: 998;
+  border: 19px solid #2A2A2C;
 }
 </style>
