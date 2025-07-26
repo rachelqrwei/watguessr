@@ -1,6 +1,13 @@
 <template>
-  <LoginModal :visible="showLogin" @close="showLogin = false" @openSignUp="openSignUp" />
-  <SignUpModal :visible="showSignUp" @close="showSignUp = false" @openLogin="openLogin" />
+  <LoginModal
+    :visible="showLogin"
+    @close="$emit('closeLogin')"
+    @openSignUp="$emit('closeLogin'); $emit('openSignUp')" />
+
+  <SignUpModal
+    :visible="showSignUp"
+    @close="$emit('closeSignUp')"
+    @openLogin="$emit('closeSignUp'); $emit('openLogin')" />
 </template>
 
 <script>
@@ -15,6 +22,8 @@ export default {
       showSignUp: false,
     };
   },
+  props: ["showLogin", "showSignUp"],
+  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp'],
   methods: {
     openLogin() {
       this.showSignUp = false;

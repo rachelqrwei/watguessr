@@ -57,7 +57,14 @@
       </div>
     </main>
 
-    <LoginModal :visible="showLogin" @close="showLogin = false" />
+    <AuthModalManager
+      :showLogin="showLogin"
+      :showSignUp="showSignUp"
+      @closeLogin="showLogin = false"
+      @closeSignUp="showSignUp = false"
+      @openLogin="() => { showLogin = true; showSignUp = false }"
+      @openSignUp="() => { showSignUp = true; showLogin = false }"
+    />
 
     <div
       v-if="showHeader && !isHomePage"
@@ -71,11 +78,12 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
-import LoginModal from "@/views/auth/LoginModal.vue";
+import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
 const showLogin = ref(false) // ✅ reactive state for login modal
+const showSignUp = ref(false);
 
 const isHomePage = computed(() => route.path === '/')
 const showHeader = computed(() => isHomePage.value || isHoveringHeader.value)

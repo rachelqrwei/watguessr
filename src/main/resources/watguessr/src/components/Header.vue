@@ -11,23 +11,26 @@
       <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
     </div>
 
-        <div v-if="dropdownOpen" class="dropdown-menu" @click.outside="dropdownOpen = false">
+        <div v-if="dropdownOpen" class="dropdown-menu">
           <ul>
             <li @click="handleSettings">Settings</li>
             <li @click="handleLogout" v-if="loggedIn">Log Out</li>
             <li @click="handleLogin" v-if="!loggedIn">Log in</li>
-            <li @click="handleSignOut" v-if="signedIn">Sign Out</li>
-            <li @click="handleSignIn" v-if="!signedIn">Sign in</li>
+            <li @click="handleSignOut" v-if="signedUp">Sign Out</li>
+            <li @click="handleSignUp" v-if="!signedUp">Sign in</li>
             <li @click="handleQuit">Quit Game</li>
           </ul>
         </div>
 
     <AuthModalManager
-      :visible="showAuthModal"
-      :initialMode="authMode"
-      @close="showAuthModal = false"
+      :showLogin="showLogin"
+      :showSignUp="showSignUp"
+      @closeLogin="showLogin = false"
+      @closeSignUp="showSignUp = false"
+      @openLogin="() => { showLogin = true; showSignUp = false }"
+      @openSignUp="() => { showSignUp = true; showLogin = false }"
     />
-    </div>
+  </div>
 </template>
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from "vue";
@@ -35,10 +38,9 @@ import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 
 const dropdownOpen = ref(false);
 const loggedIn = ref(false);
-const signedIn = ref(false);
-
-const showAuthModal = ref(false);
-const authMode = ref("login"); // "login" or "signup"
+const signedUp = ref(false);
+const showLogin = ref(false);
+const showSignUp = ref(false);
 
 const handleSettings = () => {
   console.log('Navigating to settings...');
@@ -53,21 +55,19 @@ const handleLogout = () => {
 
 const handleLogin = () => {
   console.log('Logging in...');
-  authMode.value = "login";
-  showAuthModal.value = true;
+  showLogin.value = true;
   dropdownOpen.value = false;
 };
 
-const handleSignIn = () => {
-  console.log('Signing in...');
-  authMode.value = "signup";
-  showAuthModal.value = true;
+const handleSignUp = () => {
+  console.log('Signing up...');
+  showSignUp.value = true;
   dropdownOpen.value = false;
 };
 
 const handleSignOut = () => {
   console.log('Signing out...');
-  signedIn.value = false;
+  signedUp.value = false;
   dropdownOpen.value = false;
 };
 
@@ -78,7 +78,13 @@ const handleQuit = () => {
 
 const onClickOutside = (event) => {
   const dropdown = document.querySelector('.dropdown-menu');
-  if (dropdown && !dropdown.contains(event.target)) {
+  const profile = document.querySelector('.profile-container');
+  if (
+    dropdown &&
+    !dropdown.contains(event.target) &&
+    profile &&
+    !profile.contains(event.target)
+  ) {
     dropdownOpen.value = false;
   }
 };

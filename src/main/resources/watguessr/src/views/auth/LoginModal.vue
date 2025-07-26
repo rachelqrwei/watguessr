@@ -25,7 +25,7 @@
         <div class="sign-up">
           <label>Don't have an account?
 <!--            <span class="link" @click="showSignIn = true">Sign Up</span>-->
-            <span @click="$emit('openSignUp')">Sign Up</span>
+            <span class="link" @click="$emit('openSignUp')">Sign Up</span>
           </label>
         </div>
 

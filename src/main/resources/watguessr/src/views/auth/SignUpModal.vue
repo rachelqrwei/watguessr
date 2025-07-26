@@ -23,14 +23,14 @@
           <input type="password" id="confirmPassword" v-model="confirmPassword" />
         </div>
 
-        <div class="sign-up">
-          <label>Already a Watguessr?
-            <span @click="$emit('openLogin')">Login</span>
-          </label>
-        </div>
-
         <button type="submit" class="login-btn">Sign Up</button>
 
+        <div class="sign-up">
+          <label>Already a Watguessr?
+            <span class="link" @click="$emit('openLogin')">Login</span>
+          </label>
+
+        </div>
       </form>
     </div>
   </div>
