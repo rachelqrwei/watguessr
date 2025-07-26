@@ -1,4 +1,3 @@
-// com/gooners/watguessr/dto/GuessDto.java
 package com.gooners.watguessr.dto;
 
 import java.util.UUID;

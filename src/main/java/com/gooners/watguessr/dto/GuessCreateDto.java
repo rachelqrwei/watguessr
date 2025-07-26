@@ -11,7 +11,7 @@ public class GuessCreateDto {
     private UUID buildingId;
     private Integer floor;
     private UUID roundId;
-
+// no points
 
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
