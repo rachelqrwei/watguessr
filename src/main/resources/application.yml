@@ -6,7 +6,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/watguessr?currentSchema=watguessr
+    url: jdbc:postgresql://localhost:5432/watguessr?currentSchema=watguessr
     username: watuser
     password: goon
     driver-class-name: org.postgresql.Driver
