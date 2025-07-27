@@ -88,7 +88,6 @@ body { margin: 0; padding: 0; }
 
 #map {
   position: absolute;
-  top: 100px;
   left: 25px;
   width: calc(100vw - 50px);
   height: calc(100vh - 150px);

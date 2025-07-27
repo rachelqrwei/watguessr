@@ -1,19 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
-import PlayMapView from '@/views/play-components/Play.Map.vue'
-import PlayImageView from '@/views/play-components/Play.Image.vue'
-import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
-import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
-import { RouterLink } from 'vue-router'
-
-const currentView = ref('Map')
-
-const changeView = (nextView) => {
-  currentView.value = nextView
-}
-</script>
-
 <template>
   <div class="logo-container">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
@@ -60,7 +44,66 @@ const changeView = (nextView) => {
 
   <PlayScoreTracker />
 </template>
+<script>
+import { mapGetters, mapActions } from 'vuex';
+import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
+import PlayMapView from '@/views/play-components/Play.Map.vue'
+import PlayImageView from '@/views/play-components/Play.Image.vue'
+import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
+import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
+import { RouterLink } from 'vue-router'
 
+export default {
+  components: {
+    PlayStopwatch,
+    PlayMapView,
+    PlayImageView,
+    PlayScoreTracker,
+    PlaySingleplayerRoundEnd,
+    RouterLink,
+  },
+  data() {
+    return {
+      currentView: 'Map'
+    }
+  },
+  computed: {
+    ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner']),
+    // Add other module getters similarly:
+    ...mapGetters('round', ['scene', 'winner']),
+  },
+  methods: {
+    ...mapActions('game', ['createSingleplayerGame']),
+    ...mapActions('guess', ['submitGuess']),
+
+    changeView(nextView) {
+      this.currentView = nextView;
+    },
+
+    handleSubmit() {
+      const guess = {
+        user: 'player1', // replace with actual user info
+        building: this.scene.building,
+        floor: this.scene.floor,
+      };
+      this.submitGuess(guess).then(() => {
+        this.changeView('RoundEnd');
+      });
+    },
+
+    nextRoundOrEndGame() {
+      if (this.gameStatus === 'ended') {
+        // Handle end game, e.g. route home or reset
+      } else {
+        this.changeView('Map');
+      }
+    }
+  },
+  mounted() {
+    this.createSingleplayerGame();
+  }
+}
+</script>
 <style scoped>
 .game-container {
   position: absolute;
@@ -76,7 +119,7 @@ const changeView = (nextView) => {
 .view-change-button {
   position: absolute;
   top: 30px;
-  left: 25px;
+  left: 40px;
   z-index: 10;
   background: var(--dark-grey);
   padding: 20px;
@@ -92,7 +135,7 @@ const changeView = (nextView) => {
 }
 
 .view-change-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.9);
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
@@ -104,6 +147,10 @@ const changeView = (nextView) => {
   color: #232323;
   width: 220px;
   margin-left: 20px;
+}
+
+.test-end-btn:hover {
+  color: white;
 }
 
 .logo-container {
