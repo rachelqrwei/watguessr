@@ -64,6 +64,7 @@
       @closeSignUp="showSignUp = false"
       @openLogin="() => { showLogin = true; showSignUp = false }"
       @openSignUp="() => { showSignUp = true; showLogin = false }"
+      @submit="signUpUser"
     />
 
     <div
@@ -79,6 +80,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
+// import login api
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
@@ -94,6 +96,20 @@ const navLinks = [
   { path: '/profile', label: 'PROFILE', icon: 'user' },
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
+
+// export default {
+//   methods: {
+//     async signUpUser(payload) {
+//       try {
+//         const res = await loginApi(paylaod);
+//         console.log("Login sucess", res.data);
+//         this.showLogin = false; // close modal
+//       } catch (e) {
+//         throw new Error("Sign up failed", e);
+//       }
+//     }
+//   }
+// }
 
 </script>
 
