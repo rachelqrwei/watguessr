@@ -5,12 +5,12 @@
       <form @submit.prevent="submitLogin" class="login-form">
         <div class="form-group">
           <label for="username">Username</label>
-          <input type="text" id="username" v-model="username" />
+          <input type="text" id="username" v-model="username" placeholder="Geese" />
         </div>
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" v-model="password" />
+          <input type="password" id="password" v-model="password" placeholder="Guack123"/>
         </div>
 
         <button type="submit" class="login-btn">Login</button>

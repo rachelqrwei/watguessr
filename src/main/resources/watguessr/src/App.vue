@@ -95,6 +95,7 @@ const navLinks = [
       @closeSignUp="showSignUp = false"
       @openLogin="() => { showLogin = true; showSignUp = false }"
       @openSignUp="() => { showSignUp = true; showLogin = false }"
+      @submit="signUpUser"
     />
 
     <div
