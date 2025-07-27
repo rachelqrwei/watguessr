@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8-1
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: building
+            columnName: floors
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE building DROP COLUMN IF EXISTS floors;
+              ALTER TABLE building ADD COLUMN floors VARCHAR(255)[];
