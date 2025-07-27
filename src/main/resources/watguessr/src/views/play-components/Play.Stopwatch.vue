@@ -36,7 +36,7 @@ const formattedTimeLeft = computed(() => {
 </script>
 
 <template>
-  <div 
+  <div
     class="stopwatch-container"
     :style="{
       background: `conic-gradient(#FFCB3B ${progressAngle}deg, #2b2b2b ${progressAngle}deg)`
@@ -52,7 +52,7 @@ const formattedTimeLeft = computed(() => {
 
 .stopwatch {
   position: fixed;
-  top: 30px;
+  top: 29px;
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--color-gray-700);
