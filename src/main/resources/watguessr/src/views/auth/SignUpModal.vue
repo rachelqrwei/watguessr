@@ -43,7 +43,6 @@
           </ul>
         </div>
 
-
         <div class="confirm-password floating-label">
           <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="" required/>
           <label for="confirmPassword">CONFIRM PASSWORD</label>
