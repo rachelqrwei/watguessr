@@ -1,5 +1,7 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.LeaderboardUser;
+import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
