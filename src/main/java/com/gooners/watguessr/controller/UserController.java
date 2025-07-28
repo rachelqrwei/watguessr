@@ -3,6 +3,8 @@ package com.gooners.watguessr.controller;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 
+import com.gooners.watguessr.dto.UserDto;
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
@@ -14,6 +16,8 @@ import org.springframework.mail.MailSender;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.mail.javamail.JavaMailSender;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +53,12 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
         userService.signup(dto);
+        return ResponseEntity.ok("Account created");
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
+        userService.signup(dto);  // Handles uniqueness and saving
         return ResponseEntity.ok("Account created");
     }
 

@@ -1,7 +1,5 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.dto.LeaderboardUser;
-import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
@@ -26,9 +24,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final LeaderboardMapper leaderboardMapper;
     private final GameRepository gameRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, LeaderboardMapper leaderboardMapper, GameRepository gameRepository) {
         this.userRepository = userRepository;
@@ -72,10 +70,17 @@ public class UserService {
         return userRepository.findSorted(keyword, sortBy, PageRequest.of(page, pageSize));
     }
 
+
+
+
     public void signup(UserSignupDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new CustomException("Username already taken");
         }
+
+	    if (dto.getUsername().length() < 8) {
+		    throw new CustomException("Username must be at least 8 characters");
+	    }
 
         if (!isValidPassword(dto.getPassword())) {
             throw new CustomException("Not a valid password");
@@ -84,13 +89,7 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
-        try {
-            User savedUser = userRepository.save(user);
-            System.out.println("After save: " + savedUser);
-        } catch (Exception e) {
-            System.err.println("Exception during user save: " + e.getMessage());
-            e.printStackTrace();
-        }
+	    userRepository.save(user);
     }
 
     public void updateStreakAndLastLogin(User user) {
@@ -121,7 +120,7 @@ public class UserService {
         return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
     }
 
-    public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
+	public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
         int actualLimit = limit != null ? limit : 20;
         int actualOffset = offset != null ? offset : 0;

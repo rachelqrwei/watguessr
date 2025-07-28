@@ -72,7 +72,7 @@
       @closeSignUp="showSignUp = false"
       @openLogin="() => { showLogin = true; showSignUp = false }"
       @openSignUp="() => { showSignUp = true; showLogin = false }"
-      @submit="signUpUser"
+      @submit="signUpUserHandler"
     />
 
     <div
@@ -88,7 +88,10 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
+import { useUserStore } from '@/stores/entity/user';
 
+// import login api
+const userStore = useUserStore()
 const route = useRoute()
 const isHoveringHeader = ref(false)
 const showLogin = ref(false) // ✅ reactive state for login modal
@@ -103,6 +106,15 @@ const navLinks = [
   { path: '/profile', label: 'PROFILE', icon: 'user' },
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
+
+const signUpUserHandler = async (payload) => {
+  const { email, username, password } = payload
+  const user = await userStore.signUpUser(email, username, password)
+  if (user) {
+    showSignUp.value = false
+    showLogin.value = true  // or auto-login flow
+  }
+}
 
 </script>
 
