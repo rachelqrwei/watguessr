@@ -20,11 +20,32 @@ import {
   faStar,
   faClipboard,
   faUsers,
-  faImage
+  faImage,
+  faSearch,
+  faExclamationTriangle,
+  faFire,
+  faChevronLeft,
+  faChevronRight
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
-library.add(faPlay, faTrophy, faUser, faCog, faMapMarkerAlt, faChevronDown, faStar, faClipboard, faUsers, faImage)
+library.add(
+  faPlay, 
+  faTrophy, 
+  faUser, 
+  faCog, 
+  faMapMarkerAlt, 
+  faChevronDown, 
+  faStar, 
+  faClipboard, 
+  faUsers, 
+  faImage,
+  faSearch,
+  faExclamationTriangle,
+  faFire,
+  faChevronLeft,
+  faChevronRight
+)
 
 const app = createApp(App)
   .use(store);
