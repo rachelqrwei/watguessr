@@ -17,6 +17,11 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/Play.vue'),
     },
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: () => import('../views/Leaderboard.vue'),
+    },
   ],
 })
 
