@@ -1,7 +1,10 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +34,12 @@ public class UserController {
         this.userService.update(user);
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
+        userService.signup(dto);  // Handles uniqueness and saving
+        return ResponseEntity.ok("Account created");
+    }
+
     @GetMapping(value = "/{id}")
     public User getUser(@PathVariable UUID id) {
         return this.userService.findById(id);
@@ -47,7 +56,7 @@ public class UserController {
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
-        
+
         return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
     }
 
