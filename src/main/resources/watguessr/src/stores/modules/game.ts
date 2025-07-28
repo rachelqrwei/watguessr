@@ -59,13 +59,17 @@ const mutations: MutationTree<GameState> = {
 
 // Define actions with proper typing
 const actions: ActionTree<GameState, RootState> = {
-  createSingleplayerGame({ commit }) {
+  async createSingleplayerGame({ commit, dispatch }) {
     commit('RESET_GAME');
     commit('SET_STATUS', 'loading');
     commit('SET_GAME_MODE', 'Singleplayer');
 
-    const gameId = Date.now().toString();
+    const response = await fetch('http://localhost:5173/api/game/create/singleplayer');
+    const gameId = await response.json();
+    console.log(gameId);
+
     commit('SET_GAME_ID', gameId);
+    dispatch('round/startRound', {gameId: gameId}, {root: true});
     commit('SET_STATUS', 'playing');
   },
 

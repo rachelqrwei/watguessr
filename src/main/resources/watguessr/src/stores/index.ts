@@ -7,6 +7,7 @@ import leaderboardModule from './modules/leaderboard';
 import type { RoundState } from './modules/round';
 import type { GameState } from './modules/game';
 import type { GuessState } from './modules/guess';
+import sceneModule, {type SceneState} from "@/stores/modules/scene.ts";
 
 export interface LeaderboardState {
   leaderboardData: any;
@@ -20,6 +21,7 @@ export interface RootState {
   game: GameState;
   guess: GuessState;
   leaderboard: LeaderboardState;
+  scene: SceneState;
 }
 
 const store = createStore<RootState>({
@@ -28,6 +30,7 @@ const store = createStore<RootState>({
     round: roundModule as Module<RoundState, RootState>,
     guess: guessModule as Module<GuessState, RootState>,
     leaderboard: leaderboardModule as Module<LeaderboardState, RootState>,
+    scene: sceneModule as Module<SceneState, RootState>
   },
 });
 
