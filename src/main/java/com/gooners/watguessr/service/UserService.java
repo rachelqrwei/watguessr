@@ -1,10 +1,11 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.entity.Game;
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.UserRepository;
+import com.gooners.watguessr.utils.CustomException;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +17,11 @@ import java.util.UUID;
 @Transactional
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void update(User user) {
@@ -54,6 +57,29 @@ public class UserService {
 
     public List<User> findSorted(String keyword, String sortBy, int page, int pageSize) {
         return userRepository.findSorted(keyword, sortBy, PageRequest.of(page, pageSize));
+    }
+
+    public void signup(UserSignupDto dto) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new CustomException("Username already exists");
+        }
+
+        if (dto.getUsername().length() < 8) {
+            throw new CustomException("Username must be at least 8 characters");
+        }
+
+        if (!isValidPassword(dto.getPassword())) {
+            throw new CustomException("Password does not meet criteria");
+        }
+
+        String hashedPassword = passwordEncoder.encode(dto.getPassword());
+
+        User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
+        userRepository.save(user);
+    }
+
+    public boolean isValidPassword(String password) {
+        return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
     }
 
     public void clearSession(){

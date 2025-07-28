@@ -1,7 +1,11 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.dto.UserDto;
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -27,6 +31,12 @@ public class UserController {
     public void login(User user) {
         user.setLastLoginAt(OffsetDateTime.now());
         this.userService.update(user);
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
+        userService.signup(dto);  // Handles uniqueness and saving
+        return ResponseEntity.ok("Account created");
     }
 
     @GetMapping(value = "/{id}")

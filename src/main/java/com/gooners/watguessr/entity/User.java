@@ -34,6 +34,14 @@ public class User {
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
 
+    public User() {}
+
+    public User(String email, String username, String password) {
+        this.emailAddress = email;
+        this.username = username;
+        this.password = password;
+    }
+
     public String getUsername() {
         return username;
     }

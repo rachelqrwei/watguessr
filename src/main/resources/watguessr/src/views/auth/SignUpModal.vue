@@ -59,7 +59,7 @@ export default {
       const payload = {
         email: this.email,
         username: this.username,
-        password: thid.password,
+        password: this.password,
         confirmPassword: this.confirmPassword
       };
       await this.$emit('submit', payload);
