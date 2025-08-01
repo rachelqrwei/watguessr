@@ -20,7 +20,7 @@ const actions: ActionTree<GuessState, RootState> = {
 
     const correct =
       scene.building.includes(guess.building) &&
-      scene.floor === guess.floor;
+      scene.floor.includes(guess.floor);
 
     if (correct) {
       dispatch('round/setWinner', user, { root: true });

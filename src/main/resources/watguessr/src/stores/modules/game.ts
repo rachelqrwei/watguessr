@@ -79,7 +79,6 @@ const actions: ActionTree<GameState, RootState> = {
       const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
       //TODO: send api call to set final winner
 
-
       commit('SET_FINAL_WINNER', winner);
     } else {
       commit('INCREMENT_ROUND');
@@ -87,6 +86,26 @@ const actions: ActionTree<GameState, RootState> = {
 
       const newScene = generateNextScene(); // Replace with actual scene logic
       dispatch('round/startRound', newScene, { root: true });
+    }
+  },
+
+  async endGame({state, commit}, gameId: string) {
+    commit('RESET_GAME');
+
+    try {
+      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${gameId}`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: number = await response.json()
+      return result
+    } catch (error) {
+      console.error('Error finishing game:', error)
+      throw error
     }
   }
 };

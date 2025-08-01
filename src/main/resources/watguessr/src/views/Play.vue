@@ -4,7 +4,7 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch :timeLeft="timeLeft" />
+  <PlayStopwatch :timeLeft="timeLeft" @time-up="nextRoundOrEndGame" />
 
   <div class="game-container">
     <div v-if="currentView === 'Map'">
@@ -93,11 +93,11 @@ export default {
   },
   data() {
     return {
-      timeLeft: ref(60000),
+      timeLeft: 60000,
       currentView: 'Map',
-      selectedBuilding: ref(null),
-      selectedFloor: ref(null),
-      nextRoundOrEndGameButtonText: ref('NEXT ROUND'),
+      selectedBuilding: '',
+      selectedFloor: '',
+      nextRoundOrEndGameButtonText: 'NEXT ROUND',
     }
   },
   computed: {
@@ -127,7 +127,7 @@ export default {
     },
 
     nextRoundOrEndGame() {
-      if (this.currentRound === 5) {
+      if (this.currentRound === 4) {
         this.nextRoundOrEndGameButtonText = "END GAME";
       }
       else {

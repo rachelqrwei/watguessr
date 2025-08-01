@@ -5,6 +5,11 @@ const props = defineProps<{
   timeLeft: number
 }>()
 
+const emit = defineEmits<{
+  (e: 'time-up'): void
+}>()
+
+
 const internalTimeLeft = ref(props.timeLeft)
 const totalTime = props.timeLeft
 let interval: number | undefined
@@ -18,6 +23,7 @@ const startTimer = () => {
       internalTimeLeft.value -= 100
     } else {
       clearInterval(interval)
+      emit('time-up') // ✅ Emit time-up event to parent
     }
   }, 100)
 }
