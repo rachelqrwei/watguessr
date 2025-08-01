@@ -36,7 +36,7 @@
 </template>
 
 <script>
-
+import {useUserStore} from "@/stores/entity/index.js";
 export default {
   props: ['visible'],
   data() {
@@ -44,12 +44,20 @@ export default {
       username: '',
       password: '',
       rememberMe: false,
+      useStore: useUserStore()
     };
   },
   methods: {
-    submitLogin() {
-      console.log(`Username: ${this.username}, Password: ${this.password}, Remember: ${this.rememberMe}`);
-      this.$emit('close');
+    async submitLogin() {
+      this.error = '';
+      const { username, password } = this;
+
+      try {
+        await this.useStore.login(username, password);
+        this.$emit('close');
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Login failed';
+      }
     },
     openSignUp() {
       this.showSignIn = true;

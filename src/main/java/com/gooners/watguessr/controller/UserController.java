@@ -1,7 +1,10 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.UserSignupDto;
+import com.gooners.watguessr.dto.UserLoginDto;
+
 import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +21,10 @@ import java.util.UUID;
 public class UserController {
     
     private final UserService userService;
-
-    public UserController(UserService userService) {
+    private final UserMapper userMapper;
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @PostMapping(value = "/register")
@@ -28,11 +32,20 @@ public class UserController {
         this.userService.create(user);
     }
 
-    @PostMapping(value = "/login")
-    public void login(User user) {
-        user.setLastLoginAt(OffsetDateTime.now());
-        this.userService.update(user);
+//    @PostMapping(value = "/login")
+//    public void login(User user) {
+//        user.setLastLoginAt(OffsetDateTime.now());
+//        this.userService.update(user);
+//    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto loginDto) {
+        User user = userService.login(loginDto.getUsername(), loginDto.getPassword());
+//        return ResponseEntity.ok("Logged in! Welcome: " + loginDto.getUsername());
+        return ResponseEntity.ok(userMapper.toDto(user));
+
     }
+
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {

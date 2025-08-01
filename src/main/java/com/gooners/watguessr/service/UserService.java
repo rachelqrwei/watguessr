@@ -84,8 +84,31 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
-        userRepository.save(user);
+        try {
+            User savedUser = userRepository.save(user);
+            System.out.println("After save: " + savedUser);
+        } catch (Exception e) {
+            System.err.println("Exception during user save: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
+    public User login(String username, String rawPassword) {
+        // Check if user exists
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException("User not found"));
+
+        // Validate password
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new CustomException("Invalid password");
+        }
+
+        // Optional: log successful login or update last login timestamp
+        System.out.println("Login successful for user: " + user.getUsername());
+
+        return user;
+    }
+
 
     public boolean isValidPassword(String password) {
         return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
