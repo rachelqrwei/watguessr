@@ -66,7 +66,6 @@ const actions: ActionTree<GameState, RootState> = {
 
     const response = await fetch('http://localhost:5173/api/game/create/singleplayer');
     const gameId = await response.json();
-    console.log(gameId);
 
     commit('SET_GAME_ID', gameId);
     dispatch('round/startRound', {gameId: gameId}, {root: true});
@@ -78,6 +77,9 @@ const actions: ActionTree<GameState, RootState> = {
 
     if (state.currentRound >= state.maxRounds) {
       const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
+      //TODO: send api call to set final winner
+
+
       commit('SET_FINAL_WINNER', winner);
     } else {
       commit('INCREMENT_ROUND');
@@ -86,7 +88,7 @@ const actions: ActionTree<GameState, RootState> = {
       const newScene = generateNextScene(); // Replace with actual scene logic
       dispatch('round/startRound', newScene, { root: true });
     }
-  },
+  }
 };
 
 // Define getters with proper typing
@@ -108,5 +110,6 @@ export const gameModule: Module<GameState, RootState> = {
 
 // Dummy placeholder for now
 function generateNextScene() {
+  //TODO: generating next scene logic
   return {}; // Replace with actual scene generation logic
 }

@@ -19,7 +19,7 @@ const actions: ActionTree<GuessState, RootState> = {
     if (!scene) return;
 
     const correct =
-      scene.building === guess.building &&
+      scene.building.includes(guess.building) &&
       scene.floor === guess.floor;
 
     if (correct) {

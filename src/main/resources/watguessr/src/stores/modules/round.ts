@@ -40,6 +40,8 @@ const mutations: MutationTree<RoundState> = {
 const actions: ActionTree<RoundState, RootState> = {
   setWinner({ commit, dispatch }, winner: string) {
     commit('SET_WINNER', winner);
+    //TODO: send api call to set winner of the round
+
     dispatch('game/recordRoundWinner', winner, { root: true });
   },
 

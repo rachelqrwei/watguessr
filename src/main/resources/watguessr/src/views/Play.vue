@@ -4,7 +4,7 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch />
+  <PlayStopwatch :timeLeft="timeLeft" />
 
   <div class="game-container">
     <div v-if="currentView === 'Map'">
@@ -15,7 +15,22 @@
       <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
         TEST ROUND END
       </button>
-      <PlayMapView />
+
+      <!-- FLOOR SELECT DROPDOWN -->
+      <label class="floor-select-label">
+        Select Floor:
+        <select v-model="selectedFloor" class="floor-select">
+          <option disabled value="">-- Choose a floor --</option>
+          <option>Basement</option>
+          <option>Ground</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </label>
+
+      <span>Current round: {{currentRound}}</span>
+      <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
     <div v-if="currentView === 'Image'">
@@ -25,6 +40,19 @@
       <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
         TEST ROUND END
       </button>
+
+      <!-- FLOOR SELECT DROPDOWN -->
+      <label class="floor-select-label">
+        Select Floor:
+        <select v-model="selectedFloor" class="floor-select">
+          <option disabled value="">-- Choose a floor --</option>
+          <option>Basement</option>
+          <option>Ground</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </label>
       <PlayImageView />
     </div>
 
@@ -36,15 +64,16 @@
     </div>
   </div>
   <div v-if="(currentView === 'Map' || currentView === 'Image')">
-    <button class="submit-button" style="color: var(--yellow);">SUBMIT</button>
+    <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
   </div>
   <div v-else-if="currentView === 'RoundEnd'">
-    <button class="submit-button" style="color: white">NEXT ROUND</button>
+    <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">{{nextRoundOrEndGameButtonText}}</button>
   </div>
 
   <PlayScoreTracker />
 </template>
 <script>
+import { ref } from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
 import PlayMapView from '@/views/play-components/Play.Map.vue'
@@ -64,16 +93,20 @@ export default {
   },
   data() {
     return {
-      currentView: 'Map'
+      timeLeft: ref(60000),
+      currentView: 'Map',
+      selectedBuilding: ref(null),
+      selectedFloor: ref(null),
+      nextRoundOrEndGameButtonText: ref('NEXT ROUND'),
     }
   },
   computed: {
-    ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner']),
+    ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner', 'currentRound']),
     // Add other module getters similarly:
     ...mapGetters('round', ['scene', 'winner']),
   },
   methods: {
-    ...mapActions('game', ['createSingleplayerGame']),
+    ...mapActions('game', ['createSingleplayerGame', 'recordRoundWinner']),
     ...mapActions('guess', ['submitGuess']),
 
     changeView(nextView) {
@@ -83,8 +116,10 @@ export default {
     handleSubmit() {
       const guess = {
         user: 'player1', // replace with actual user info
-        building: this.scene.building,
-        floor: this.scene.floor,
+        building: this.selectedBuilding.building,
+        guessX: this.selectedBuilding.guessX,
+        guessY: this.selectedBuilding.guessY,
+        floor: this.selectedFloor
       };
       this.submitGuess(guess).then(() => {
         this.changeView('RoundEnd');
@@ -92,11 +127,24 @@ export default {
     },
 
     nextRoundOrEndGame() {
-      if (this.gameStatus === 'ended') {
-        // Handle end game, e.g. route home or reset
-      } else {
+      if (this.currentRound === 5) {
+        this.nextRoundOrEndGameButtonText = "END GAME";
+      }
+      else {
+        this.selectedFloor = '';
+        this.resetTimer();
+        this.recordRoundWinner('player1');
+        this.nextRoundOrEndGameButtonText = "NEXT ROUND"
         this.changeView('Map');
       }
+    },
+
+    handleBuildingSelected(payload) {
+      this.selectedBuilding = payload;
+    },
+
+    resetTimer() {
+      this.timeLeft = 60000 // or any other time in ms
     }
   },
   mounted() {

@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/0007-update-guess-table.yml
   - include:
       file: db/changelog/0008-update-floors-datatype-in-building.yml
+  - include:
+      file: db/changelog/0009-update-floors-datatype-in-scene.yml

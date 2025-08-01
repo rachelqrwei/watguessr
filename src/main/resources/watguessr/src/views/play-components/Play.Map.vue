@@ -6,9 +6,10 @@
 <script setup>
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, defineEmits } from 'vue';
 
 const markerCoordinates = ref([]);
+const emit = defineEmits(['building-selected']);
 
 function renderMap() {
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -71,7 +72,13 @@ function renderMap() {
 
       if (labelFeatures.length > 0) {
         const buildingName = labelFeatures[0].properties.name;
-        console.log(buildingName);
+        const selectedData = {
+          building: buildingName,
+          guessX: coords[0],
+          guessY: coords[1]
+        };
+
+        emit('building-selected', selectedData); // ✅ emit to parent
       } else {
         console.log('❌ No label found at this location');
       }

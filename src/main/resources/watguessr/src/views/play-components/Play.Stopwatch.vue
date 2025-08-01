@@ -1,32 +1,49 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 
-const totalTime = 60_000
-const timeLeft = ref(60_000)
+const props = defineProps<{
+  timeLeft: number
+}>()
+
+const internalTimeLeft = ref(props.timeLeft)
+const totalTime = props.timeLeft
 let interval: number | undefined
 
-onMounted(() => {
+const startTimer = () => {
+  clearInterval(interval)
+  internalTimeLeft.value = props.timeLeft
+
   interval = setInterval(() => {
-    if (timeLeft.value > 0) {
-      timeLeft.value -= 100
+    if (internalTimeLeft.value > 0) {
+      internalTimeLeft.value -= 100
     } else {
       clearInterval(interval)
     }
   }, 100)
+}
+
+onMounted(() => {
+  startTimer()
 })
 
 onUnmounted(() => {
   clearInterval(interval)
 })
 
+watch(() => props.timeLeft, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    startTimer()
+  }
+})
+
 const progressAngle = computed(() => {
-  const percent = 1 - timeLeft.value / totalTime
+  const percent = 1 - internalTimeLeft.value / totalTime
   return percent * 360
 })
 
 const formattedTimeLeft = computed(() => {
-  const ms = Math.floor((timeLeft.value % 1000) / 10)
-  const totalSeconds = Math.floor(timeLeft.value / 1000)
+  const ms = Math.floor((internalTimeLeft.value % 1000) / 10)
+  const totalSeconds = Math.floor(internalTimeLeft.value / 1000)
   const s = Math.floor(totalSeconds % 60)
   const m = Math.floor(totalSeconds / 60)
 
