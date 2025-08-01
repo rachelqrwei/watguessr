@@ -87,6 +87,25 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', onClickOutside);
 });
+import { useUserStore } from '@/stores/entity/user.ts';
+import { computed } from 'vue'
+
+const userStore = useUserStore()
+
+const getUserName = computed(() => userStore.userName || 'Guest')
+
+const submitSignUp = async () => {
+  // your logic here
+}
+
+onMounted(async () => {
+  await userStore.fetchUserById()  // fetch and populate user
+  document.addEventListener('click', onClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onClickOutside);
+});
 
 const dropdownOpen = ref(false);
 // const loggedIn = ref(false);
@@ -94,6 +113,7 @@ const signedUp = ref(false);
 const showLogin = ref(false);
 const showSignUp = ref(false);
 const showProfile = ref(false);
+
 
 const handleSettings = () => {
   console.log('Navigating to settings...');

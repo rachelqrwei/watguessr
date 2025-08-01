@@ -76,6 +76,9 @@
           <span v-if="loading">Signing up...</span>
           <span v-else>SIGN UP</span>
         </button>
+        <p v-if="error" class="error-message">{{ error }}</p>
+
+        <button type="submit" class="login-btn">Sign Up</button>
 
         <div class="sign-up">
           <label>Already a Watguessr?
@@ -112,7 +115,9 @@ export default {
       showStatus: false,
       statusType: 'success', // or 'error'
       userStore: useUserStore(),
-      showPassword: false
+      showPassword: false,
+      error: '',
+      userStore: useUserStore()
     };
   },
   methods: {
@@ -167,6 +172,12 @@ export default {
 </script>
 
 <style scoped>
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
 .modal-overlay {
   position: fixed;
   inset: 0;

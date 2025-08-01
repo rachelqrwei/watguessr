@@ -5,6 +5,8 @@ import com.gooners.watguessr.dto.UserLoginDto;
 
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserSignupDto;
+import com.gooners.watguessr.dto.UserLoginDto;
+
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
@@ -55,6 +57,7 @@ public class UserController {
         userService.signup(dto);
         return ResponseEntity.ok("Account created");
     }
+
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
