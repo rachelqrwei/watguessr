@@ -70,15 +70,11 @@ public class UserService {
 
     public void signup(UserSignupDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new CustomException("Username already exists");
-        }
-
-        if (dto.getUsername().length() < 8) {
-            throw new CustomException("Username must be at least 8 characters");
+            throw new CustomException("Username already taken");
         }
 
         if (!isValidPassword(dto.getPassword())) {
-            throw new CustomException("Password does not meet criteria");
+            throw new CustomException("Not a valid password");
         }
 
         String hashedPassword = passwordEncoder.encode(dto.getPassword());

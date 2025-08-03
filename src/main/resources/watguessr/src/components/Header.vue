@@ -14,16 +14,26 @@
       <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
     </div>
 
-        <div v-if="dropdownOpen" class="dropdown-menu">
+     <div v-if="dropdownOpen" class="dropdown-menu">
+        <ul>
           <ul>
-            <li @click="handleSettings">Settings</li>
-            <li @click="handleLogout" v-if="loggedIn">Log Out</li>
-            <li @click="handleLogin" v-if="!loggedIn">Log in</li>
-            <li @click="handleSignOut" v-if="signedUp">Sign Out</li>
-            <li @click="handleSignUp" v-if="!signedUp">Sign in</li>
-            <li @click="handleQuit">Quit Game</li>
+            <template v-if="loggedIn">
+              <li @click="handleProfile">Profile</li>
+              <li @click="handleSettings">Settings</li>
+              <li @click="handleLogout">Log Out</li>
+              <li @click="handleQuit">Quit Game</li>
+            </template>
+            <template v-else>
+              <!--&lt;!&ndash;            ✅ Display ELO, streak, avatar, or other user-specific stats.&ndash;&gt;-->
+              <li @click="handleSettings">Settings</li>
+              <li @click="handleLogin">Log in</li>
+              <li @click="handleSignUp">Sign up</li>
+              <li @click="handleQuit">Quit Game</li>
+            </template>
           </ul>
-        </div>
+
+        </ul>
+      </div>
 
     <AuthModalManager
       :showLogin="showLogin"
@@ -33,6 +43,12 @@
       @openLogin="() => { showLogin = true; showSignUp = false }"
       @openSignUp="() => { showSignUp = true; showLogin = false }"
     />
+
+
+<!--    <Profile -->
+<!--      :showProfile="showProfile"-->
+<!--      -->
+<!--    />-->
   </div>
 </template>
 <script setup>
@@ -40,14 +56,31 @@ import { onMounted, onBeforeUnmount, ref } from "vue";
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 import { useUserStore } from '@/stores/entity/user.ts';
 import { computed } from 'vue'
+import { watch } from "vue";
 
 const userStore = useUserStore()
 
-const getUserName = computed(() => userStore.userName || 'Guest')
+const getUserName = computed(() => userStore.currentUser?.username || 'Guest')
+
+const loggedIn = computed(() => !!userStore.currentUser) // It forces truthy/falsy → true/false:
 
 const submitSignUp = async () => {
   // your logic here
 }
+watch(loggedIn, (newVal) => {
+  console.log('User login status changed:', newVal);
+  // You could also trigger a UI update, analytics event, etc., here
+});
+watch(
+  () => userStore.currentUser,
+  (newUser, oldUser) => {
+    if (newUser && !oldUser) {
+      console.log('✅ User logged in:', newUser.username)
+    } else if (!newUser && oldUser) {
+      console.log('👋 User logged out')
+    }
+  }
+);
 
 onMounted(async () => {
   await userStore.fetchUserById()  // fetch and populate user
@@ -59,21 +92,29 @@ onBeforeUnmount(() => {
 });
 
 const dropdownOpen = ref(false);
-const loggedIn = ref(false);
+// const loggedIn = ref(false);
 const signedUp = ref(false);
 const showLogin = ref(false);
 const showSignUp = ref(false);
-
+const showProfile = ref(false);
 
 const handleSettings = () => {
   console.log('Navigating to settings...');
   dropdownOpen.value = false;
 };
 
+const handleProfile = () => {
+  console.log('Navigating to profile...');
+  showProfile.value = true;
+  dropdownOpen.value = false;
+};
+
 const handleLogout = () => {
   console.log('Logging out...');
-  loggedIn.value = false;
+  //call mutation
+  userStore.logout();
   dropdownOpen.value = false;
+
 };
 
 const handleLogin = () => {
@@ -85,12 +126,6 @@ const handleLogin = () => {
 const handleSignUp = () => {
   console.log('Signing up...');
   showSignUp.value = true;
-  dropdownOpen.value = false;
-};
-
-const handleSignOut = () => {
-  console.log('Signing out...');
-  signedUp.value = false;
   dropdownOpen.value = false;
 };
 

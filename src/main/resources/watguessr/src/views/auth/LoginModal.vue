@@ -53,8 +53,8 @@ export default {
       const { username, password } = this;
 
       try {
-        await this.useStore.login(username, password);
-        this.$emit('close');
+        const response = await this.useStore.login(username, password);
+        if (response.ok) this.$emit('close');
       } catch (err) {
         this.error = err instanceof Error ? err.message : 'Login failed';
       }
