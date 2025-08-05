@@ -24,7 +24,7 @@
             placeholder=" "
             required
           />
-          <label for="password">Password</label>
+          <label for="password">PASSWORD</label>
 
           <span class="toggle-eye" @click="showPassword = !showPassword">
               <font-awesome-icon :icon="showPassword ? 'eye-slash' : 'eye'" />
@@ -135,7 +135,7 @@ export default {
     },
   },
   computed: {
-    passwordChecks() { /// check !!
+    passwordChecks() {
       const lengthValid = this.password.length >= 8;
       const casingValid = /(?=.*[a-z])(?=.*[A-Z])/.test(this.password);
       const specialCharValid = /(?=.*[!@#$%^&*])/.test(this.password);

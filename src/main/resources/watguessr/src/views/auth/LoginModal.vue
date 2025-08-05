@@ -5,17 +5,17 @@
       <form @submit.prevent="submitLogin" class="login-form">
         <div class="form-group floating-label">
           <input type="text" id="username" v-model="username" placeholder="" required/>
-          <label for="username">Username</label>
+          <label for="username">USERNAME</label>
         </div>
 
         <div class="form-group floating-label">
           <input type="password" id="password" v-model="password" placeholder="" required/>
-          <label for="password">Password</label>
+          <label for="password">PASSWORD</label>
         </div>
 
         <p v-if="error" class="error-message">{{ error }}</p>
 
-        <button type="submit" class="login-btn">Login</button>
+        <button type="submit" class="login-btn">LOGIN</button>
 
         <div class="checkbox-wrapper">
           <label>
@@ -26,7 +26,7 @@
 
         <div class="sign-up">
           <label>Don't have an account?
-            <span class="link" @click="$emit('openSignUp')">Sign Up</span>
+            <span class="link" @click="$emit('openSignUp')">SIGN UP</span>
           </label>
         </div>
       </form>
