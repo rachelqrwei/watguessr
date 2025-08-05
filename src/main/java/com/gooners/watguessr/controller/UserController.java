@@ -3,28 +3,17 @@ package com.gooners.watguessr.controller;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 
-import com.gooners.watguessr.dto.UserDto;
-import com.gooners.watguessr.dto.UserSignupDto;
-import com.gooners.watguessr.dto.UserLoginDto;
-
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
 import com.gooners.watguessr.utils.Utility;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
-import com.gooners.watguessr.dto.QueryResults;
-import com.gooners.watguessr.dto.LeaderboardUser;
-import org.springframework.mail.javamail.JavaMailSender;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +50,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
-        userService.signup(dto);  // Handles uniqueness and saving
+        userService.signup(dto);
         return ResponseEntity.ok("Account created");
     }
 
@@ -108,15 +97,5 @@ public class UserController {
 //        // 2. Check expiry
 //        // 3. If valid: mark as verified
 //    }
-
-    @GetMapping(value = "/leaderboard")
-    public QueryResults<LeaderboardUser> getLeaderboard(
-            @RequestParam(required = false) String searchTerm,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "10") Integer limit) {
-
-        return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
-    }
 
 }

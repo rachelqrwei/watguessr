@@ -80,6 +80,7 @@
 
         <button type="submit" class="login-btn">Sign Up</button>
 
+
         <div class="sign-up">
           <label>Already a Watguessr?
             <span class="link" @click="$emit('openLogin')">LOGIN</span>
@@ -115,9 +116,7 @@ export default {
       showStatus: false,
       statusType: 'success', // or 'error'
       userStore: useUserStore(),
-      showPassword: false,
-      error: '',
-      userStore: useUserStore()
+      showPassword: false
     };
   },
   methods: {
@@ -172,12 +171,6 @@ export default {
 </script>
 
 <style scoped>
-.error-message {
-  color: #ff6b6b;
-  font-size: 0.85rem;
-  margin-top: -0.5rem;
-  margin-bottom: 1rem;
-}
 .modal-overlay {
   position: fixed;
   inset: 0;

@@ -1,6 +1,8 @@
 <template>
   <div class="header-container">
     <div class="streak-container flex-container">
+      <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
+      <p>{{ getStreak }}</p>
       <div class="streak-glow">
         <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
       </div>
