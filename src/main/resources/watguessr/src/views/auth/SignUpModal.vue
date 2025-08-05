@@ -6,13 +6,7 @@
       <form @submit.prevent="submitSignUp" class="login-form">
 
         <div class="form-group floating-label">
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            placeholder=" "
-            required
-          />
+          <input type="email" id="email" v-model="email" placeholder=" " required/>
           <label for="email">EMAIL</label>
         </div>
 
