@@ -28,28 +28,19 @@ public class UserController {
     }
 
     @PostMapping(value = "/register")
-    public void register(User user) {
+    public void register(@RequestBody @Valid User user) {
         this.userService.create(user);
     }
 
-//    @PostMapping(value = "/login")
-//    public void login(User user) {
-//        user.setLastLoginAt(OffsetDateTime.now());
-//        this.userService.update(user);
-//    }
-
-    @PostMapping("/login")
+    @PutMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto loginDto) {
         User user = userService.login(loginDto.getUsername(), loginDto.getPassword());
-//        return ResponseEntity.ok("Logged in! Welcome: " + loginDto.getUsername());
         return ResponseEntity.ok(userMapper.toDto(user));
-
     }
-
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
-        userService.signup(dto);  // Handles uniqueness and saving
+        userService.signup(dto);
         return ResponseEntity.ok("Account created");
     }
 

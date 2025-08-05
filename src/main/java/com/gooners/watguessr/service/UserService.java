@@ -13,7 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -89,22 +91,29 @@ public class UserService {
         }
     }
 
+    public void updateStreakAndLastLogin(User user) {
+        LocalDate today = OffsetDateTime.now(ZoneOffset.UTC).toLocalDate();
+        LocalDate lastLogin = user.getLastLoginAt().toLocalDate();
+
+        if (lastLogin.equals(today.minusDays(1))) {
+            user.setStreak(user.getStreak() + 1);
+        } else if (!lastLogin.equals(today)) {
+            user.setStreak(1);
+        }
+
+        user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+    }
+
     public User login(String username, String rawPassword) {
-        // Check if user exists
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException("User not found"));
-
-        // Validate password
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new CustomException("Invalid password");
         }
-
-        // Optional: log successful login or update last login timestamp
+        updateStreakAndLastLogin(user);
         System.out.println("Login successful for user: " + user.getUsername());
-
         return user;
     }
-
 
     public boolean isValidPassword(String password) {
         return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
@@ -175,7 +184,6 @@ public class UserService {
 
     }
 
-    // wip
     public void getMatchHistory() {
 
     }

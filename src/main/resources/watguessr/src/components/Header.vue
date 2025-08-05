@@ -4,7 +4,7 @@
       <div class="streak-glow">
         <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
       </div>
-      <p>1</p>
+      <p>{{ getStreak }}</p>
     </div>
 
     <div class="profile-container flex-container" @click="dropdownOpen = !dropdownOpen">
@@ -16,22 +16,18 @@
 
      <div v-if="dropdownOpen" class="dropdown-menu">
         <ul>
-          <ul>
-            <template v-if="loggedIn">
-              <li @click="handleProfile">Profile</li>
-              <li @click="handleSettings">Settings</li>
-              <li @click="handleLogout">Log Out</li>
-              <li @click="handleQuit">Quit Game</li>
-            </template>
-            <template v-else>
-              <!--&lt;!&ndash;            ✅ Display ELO, streak, avatar, or other user-specific stats.&ndash;&gt;-->
-              <li @click="handleSettings">Settings</li>
-              <li @click="handleLogin">Log in</li>
-              <li @click="handleSignUp">Sign up</li>
-              <li @click="handleQuit">Quit Game</li>
-            </template>
-          </ul>
-
+          <template v-if="loggedIn">
+            <li @click="handleProfile">Profile</li>
+            <li @click="handleSettings">Settings</li>
+            <li @click="handleLogout">Log Out</li>
+            <li @click="handleQuit">Quit Game</li>
+          </template>
+          <template v-else>
+            <li @click="handleSettings">Settings</li>
+            <li @click="handleLogin">Log in</li>
+            <li @click="handleSignUp">Sign up</li>
+            <li @click="handleQuit">Quit Game</li>
+          </template>
         </ul>
       </div>
 
@@ -43,7 +39,6 @@
       @openLogin="() => { showLogin = true; showSignUp = false }"
       @openSignUp="() => { showSignUp = true; showLogin = false }"
     />
-
 
 <!--    <Profile -->
 <!--      :showProfile="showProfile"-->
@@ -61,6 +56,8 @@ import { watch } from "vue";
 const userStore = useUserStore()
 
 const getUserName = computed(() => userStore.currentUser?.username || 'Guest')
+
+const getStreak = computed( () => userStore.currentUser?.streak || 0)
 
 const loggedIn = computed(() => !!userStore.currentUser) // It forces truthy/falsy → true/false:
 

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
+@Table(name = "guess")
 public class Guess {
 
     @Id

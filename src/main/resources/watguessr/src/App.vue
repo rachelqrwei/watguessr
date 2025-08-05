@@ -107,15 +107,6 @@ const navLinks = [
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
 
-// const signUpUserHandler = async (payload) => {
-//   const { email, username, password } = payload
-//   const user = await userStore.signUpUser(email, username, password)
-//   if (user) {
-//     showSignUp.value = false
-//     showLogin.value = true  // or auto-login flow
-//   }
-// }
-
 </script>
 
 <style scoped>

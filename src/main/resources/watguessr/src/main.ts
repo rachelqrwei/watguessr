@@ -20,6 +20,8 @@ import {
   faStar,
   faClipboard,
   faUsers,
+  faEye,
+  faEyeSlash,
   faImage,
   faSearch,
   faExclamationTriangle,
@@ -30,21 +32,23 @@ import {
 
 // Add icons to the library
 library.add(
-  faPlay, 
-  faTrophy, 
-  faUser, 
-  faCog, 
-  faMapMarkerAlt, 
-  faChevronDown, 
-  faStar, 
-  faClipboard, 
-  faUsers, 
+  faPlay,
+  faTrophy,
+  faUser,
+  faCog,
+  faMapMarkerAlt,
+  faChevronDown,
+  faStar,
+  faClipboard,
+  faUsers,
   faImage,
   faSearch,
   faExclamationTriangle,
   faFire,
   faChevronLeft,
-  faChevronRight
+  faChevronRight,
+  faEye,
+  faEyeSlash
 )
 
 const app = createApp(App)
