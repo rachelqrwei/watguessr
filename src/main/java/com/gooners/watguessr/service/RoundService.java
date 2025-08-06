@@ -25,7 +25,7 @@ public class RoundService {
         this.gameRepository = gameRepository;
     }
 
-    public UUID create(UUID gameId) {
+    public Round create(UUID gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found with id: " + gameId));
 
@@ -34,7 +34,7 @@ public class RoundService {
         newRound.setGame(game);
         Round savedRound = roundRepository.save(newRound);
 
-        return savedRound.getId();
+        return savedRound;
     }
 
     public Round update(Round round) {

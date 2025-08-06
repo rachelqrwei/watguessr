@@ -11,12 +11,14 @@ export interface RoundState {
   roundId: string | null;
   scene: Scene | null;
   winner: string | null;
+  scoreChange: number | null;
 }
 
 const getters: GetterTree<RoundState, RootState> = {
   roundId: (state) => state.roundId,
   scene: (state) => state.scene,
-  winner: (state) => state.winner
+  winner: (state) => state.winner,
+  scoreChange: (state) => state.scoreChange
 }
 
 // Define mutations with proper typing
@@ -30,6 +32,9 @@ const mutations: MutationTree<RoundState> = {
   SET_WINNER(state: RoundState, winner: string) {
     state.winner = winner;
   },
+  SET_SCORE_CHANGE(state: RoundState, score: number) {
+    state.scoreChange = score;
+  },
   RESET_ROUND(state: RoundState) {
     state.scene = null;
     state.winner = null;
@@ -38,14 +43,15 @@ const mutations: MutationTree<RoundState> = {
 
 // Define actions with proper typing
 const actions: ActionTree<RoundState, RootState> = {
-  setWinner({ commit, dispatch }, winner: string) {
-    commit('SET_WINNER', winner);
+  setWinner({ commit, dispatch }, payload: {winner: string, score: number}) {
+    commit('SET_WINNER', payload.winner);
+    commit('SET_SCORE_CHANGE', payload.score);
     //TODO: send api call to set winner of the round
 
-    dispatch('game/recordRoundWinner', winner, { root: true });
+    dispatch('game/recordRoundWinner', {winner: payload.winner, score: payload.score}, { root: true });
   },
 
-  async startRound({ rootState }, {gameId}): Promise<string> {
+  async startRound({ commit }, {gameId}): Promise<RoundState> {
     if (!gameId) throw new Error('Game ID not found');
 
     const response = await fetch(`http://localhost:5173/api/round/create?gameId=${gameId}`, {
@@ -56,8 +62,11 @@ const actions: ActionTree<RoundState, RootState> = {
       throw new Error('Failed to create round');
     }
 
-    const roundId: string = await response.json();
-    return roundId;
+    const round: Object = await response.json();
+    commit("SET_SCENE", round?.scene);
+    commit("SET_ROUND_ID", round?.id);
+
+    return round;
   },
 
   resetRound({ commit }) {
@@ -72,6 +81,7 @@ const roundModule: Module<RoundState, RootState> = {
     roundId: null,
     scene: null,
     winner: null,
+    scoreChange: null
   }),
   mutations,
   actions,

@@ -38,11 +38,11 @@ const mutations: MutationTree<GameState> = {
   INCREMENT_ROUND(state) {
     state.currentRound++;
   },
-  ADD_SCORE(state, username: string) {
-    if (!state.scores[username]) {
-      state.scores[username] = 0;
+  ADD_SCORE(state, payload: {username: string, score: number}) {
+    if (!state.scores[payload.username]) {
+      state.scores[payload.username] = 0;
     }
-    state.scores[username]++;
+    state.scores[payload.username] += payload.score;
   },
   SET_FINAL_WINNER(state, winner: string) {
     state.winner = winner;
@@ -72,8 +72,8 @@ const actions: ActionTree<GameState, RootState> = {
     commit('SET_STATUS', 'playing');
   },
 
-  recordRoundWinner({ state, commit, dispatch }, username: string) {
-    commit('ADD_SCORE', username);
+  recordRoundWinner({ state, commit, dispatch }, payload: {username: string, score: number}) {
+    commit('ADD_SCORE', payload);
 
     if (state.currentRound >= state.maxRounds) {
       const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
@@ -113,6 +113,7 @@ const actions: ActionTree<GameState, RootState> = {
 // Define getters with proper typing
 const getters: GetterTree<GameState, RootState> = {
   gameId: (state) => state.gameId,
+  gameMode: (state) => state.gameMode,
   currentRound: (state) => state.currentRound,
   gameStatus: (state) => state.status,
   finalWinner: (state) => state.winner,

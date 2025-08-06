@@ -2,9 +2,12 @@ package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.GuessCreateDto;
 import com.gooners.watguessr.dto.GuessDto;
+import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.entity.Guess;
+import com.gooners.watguessr.service.GameService;
 import com.gooners.watguessr.service.GuessService;
+import com.gooners.watguessr.service.RoundService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,12 @@ public class GuessController {
 
     @Autowired
     private GuessService guessService;
+
+    @Autowired
+    private RoundService roundService;
+
+    @Autowired
+    private GameService gameService;
 
     @Autowired
     private GuessMapper guessMapper;
@@ -44,6 +53,17 @@ public class GuessController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(result);
+    }
+
+    @PostMapping("/calculate-points")
+    public ResponseEntity<Integer> calculatePoints(
+            @RequestParam UUID roundId,
+            @RequestBody Guess guess
+    ) {
+        Round round = roundService.findById(roundId);
+        int points = guessService.calculatePoints(round, guess);
+
+        return ResponseEntity.ok(points);
     }
 
     @GetMapping(value = "/get-all-guess")

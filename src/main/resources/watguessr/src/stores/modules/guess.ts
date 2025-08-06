@@ -1,6 +1,7 @@
 // src/stores/modules/guess.ts
-import type { Module, ActionTree } from 'vuex';
+import type {Module, ActionTree, MutationTree} from 'vuex';
 import type { RootState } from '../index';
+import type {GameState} from "@/stores/modules/game.ts";
 
 interface GuessPayload {
   user: string;
@@ -14,17 +15,41 @@ export interface GuessState {} // No local state yet
 
 // Define actions with proper typing
 const actions: ActionTree<GuessState, RootState> = {
-  submitGuess({ rootState, dispatch }, { user, guess }: GuessPayload) {
+  async submitGuess({ rootState, dispatch, commit}, payload: { user: string, guess: GuessPayload }) {
     const scene = rootState.round.scene;
     if (!scene) return;
 
-    const correct =
-      scene.building.includes(guess.building) &&
-      scene.floor.includes(guess.floor);
+    console.log(payload.guess);
 
-    if (correct) {
-      dispatch('round/setWinner', user, { root: true });
+    try {
+      const response = await fetch(`http://localhost:5173/api/guess/calculate-points?roundId=${rootState.round.roundId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload.guess),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to calculate points');
+      }
+
+      const points = await response.json();
+
+      dispatch('round/setWinner', {winner: payload.user, score: points}, { root: true });
+
+      return points;
+    } catch (error) {
+      console.error('Error calculating points:', error);
+      return null;
     }
+    // const correct =
+    //   scene.building.includes(guess.building) &&
+    //   scene.floor.includes(guess.floor);
+    //
+    // if (correct) {
+    //   dispatch('round/setWinner', user, { root: true });
+    // }
   },
 };
 

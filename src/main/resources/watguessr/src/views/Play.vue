@@ -57,7 +57,7 @@
     </div>
 
     <div v-if="currentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd />
+      <PlaySingleplayerRoundEnd :points="scoreChange" />
       <button class="view-change-button" @click="changeView('Map')">
       BACK TO MAP
       </button>
@@ -103,7 +103,8 @@ export default {
   computed: {
     ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner', 'currentRound']),
     // Add other module getters similarly:
-    ...mapGetters('round', ['scene', 'winner']),
+    ...mapGetters('round', ['scene', 'winner', 'scoreChange']),
+
   },
   methods: {
     ...mapActions('game', ['createSingleplayerGame', 'recordRoundWinner']),
@@ -115,13 +116,14 @@ export default {
 
     handleSubmit() {
       const guess = {
-        user: 'player1', // replace with actual user info
         building: this.selectedBuilding.building,
         guessX: this.selectedBuilding.guessX,
         guessY: this.selectedBuilding.guessY,
         floor: this.selectedFloor
       };
-      this.submitGuess(guess).then(() => {
+      console.log("yo");
+
+      this.submitGuess({user: "user1", guess: guess}).then(() => {
         this.changeView('RoundEnd');
       });
     },
