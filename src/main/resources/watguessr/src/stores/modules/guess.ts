@@ -15,11 +15,11 @@ export interface GuessState {} // No local state yet
 
 // Define actions with proper typing
 const actions: ActionTree<GuessState, RootState> = {
-  async submitGuess({ rootState, dispatch, commit}, payload: { user: string, guess: GuessPayload }) {
+  async submitGuess({ rootState, dispatch, commit}, guess: any) {
     const scene = rootState.round.scene;
     if (!scene) return;
 
-    console.log(payload.guess);
+    console.log(guess);
 
     try {
       const response = await fetch(`http://localhost:5173/api/guess/calculate-points?roundId=${rootState.round.roundId}`, {
@@ -27,7 +27,7 @@ const actions: ActionTree<GuessState, RootState> = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload.guess),
+        body: JSON.stringify(guess),
       });
 
       if (!response.ok) {
@@ -36,7 +36,7 @@ const actions: ActionTree<GuessState, RootState> = {
 
       const points = await response.json();
 
-      dispatch('round/setWinner', {winner: payload.user, score: points}, { root: true });
+      dispatch('round/setWinner', {winner: guess.user, score: points}, { root: true });
 
       return points;
     } catch (error) {

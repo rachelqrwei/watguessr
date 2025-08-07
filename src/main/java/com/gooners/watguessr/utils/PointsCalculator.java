@@ -25,7 +25,7 @@ public class PointsCalculator {
         boolean floorMatch = false;
 
         if (guess.getBuilding() != null && scene.getBuilding() != null) {
-            buildingMatch = guess.getBuilding().getId().equals(scene.getBuilding().getId());
+            buildingMatch = guess.getBuilding().equals(scene.getBuilding().getId());
         }
 
         if (guess.getFloor() != null && scene.getFloor() != null) {

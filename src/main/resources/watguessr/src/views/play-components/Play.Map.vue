@@ -98,5 +98,6 @@ body { margin: 0; padding: 0; }
   left: 25px;
   width: calc(100vw - 50px);
   height: calc(100vh - 150px);
+  z-index: 1;
 }
 </style>

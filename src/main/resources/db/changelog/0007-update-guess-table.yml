@@ -30,3 +30,28 @@ databaseChangeLog:
                   type: int
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 7-2
+      author: LEANNE
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: guess
+        - columnExists:
+            tableName: guess
+            columnName: building_id
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: guess
+            constraintName: fk_guess_building
+        - dropColumn:
+            tableName: guess
+            columnName: building_id
+        - addColumn:
+            tableName: guess
+            columns:
+              - column:
+                  name: building
+                  type: varchar(255)
+                  constraints:
+                    nullable: false

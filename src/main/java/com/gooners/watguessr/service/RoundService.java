@@ -32,6 +32,7 @@ public class RoundService {
         Round newRound = new Round();
         newRound.setScene(sceneService.getRandom());
         newRound.setGame(game);
+
         Round savedRound = roundRepository.save(newRound);
 
         return savedRound;

@@ -25,9 +25,8 @@ public class Guess {
     @Column(name = "guess_y", nullable = false)
     private Double guessY;
 
-    @ManyToOne
-    @JoinColumn(name = "building_id", foreignKey = @ForeignKey(name = "fk_guess_building"))
-    private Building building;
+    @Column(name = "building", nullable = false)
+    private String building;
 
     @Column(name = "floor")
     private Integer floor;
@@ -79,11 +78,11 @@ public class Guess {
         this.guessY = guessY;
     }
 
-    public Building getBuilding() {
+    public String getBuilding() {
         return building;
     }
 
-    public void setBuilding(Building building) {
+    public void setBuilding(String building) {
         this.building = building;
     }
 

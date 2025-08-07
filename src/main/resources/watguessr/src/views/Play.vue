@@ -5,8 +5,29 @@
   </div>
 
   <PlayStopwatch :timeLeft="timeLeft" @time-up="nextRoundOrEndGame" />
+  <div class="selection-display">
+    <span>Current round: {{currentRound}}</span>
+    <div>
+      <p>Selected Building: {{selectedBuilding.building}}</p>
+      <p>Lat: {{selectedBuilding.guessX}}</p>
+      <p>Long: {{selectedBuilding.guessY}}</p>
+    </div>
+    <label class="floor-select-label">
+      Select Floor:
+      <select v-model="selectedFloor" class="floor-select">
+        <option disabled value="">-- Choose a floor --</option>
+        <option>Basement</option>
+        <option>Ground</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+      </select>
+    </label>
+  </div>
+
 
   <div class="game-container">
+    <!-- FLOOR SELECT DROPDOWN -->
     <div v-if="currentView === 'Map'">
       <button class="view-change-button" @click="changeView('Image')">
         <font-awesome-icon icon="image" />
@@ -15,21 +36,6 @@
       <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
         TEST ROUND END
       </button>
-
-      <!-- FLOOR SELECT DROPDOWN -->
-      <label class="floor-select-label">
-        Select Floor:
-        <select v-model="selectedFloor" class="floor-select">
-          <option disabled value="">-- Choose a floor --</option>
-          <option>Basement</option>
-          <option>Ground</option>
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-        </select>
-      </label>
-
-      <span>Current round: {{currentRound}}</span>
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
@@ -40,19 +46,6 @@
       <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
         TEST ROUND END
       </button>
-
-      <!-- FLOOR SELECT DROPDOWN -->
-      <label class="floor-select-label">
-        Select Floor:
-        <select v-model="selectedFloor" class="floor-select">
-          <option disabled value="">-- Choose a floor --</option>
-          <option>Basement</option>
-          <option>Ground</option>
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-        </select>
-      </label>
       <PlayImageView />
     </div>
 
@@ -116,14 +109,17 @@ export default {
 
     handleSubmit() {
       const guess = {
+        user: {
+          id: 'd9ac8cbc-f8f2-4ab5-b30a-ef1b6beb0dad'
+        },
         building: this.selectedBuilding.building,
         guessX: this.selectedBuilding.guessX,
         guessY: this.selectedBuilding.guessY,
-        floor: this.selectedFloor
+        floor: this.selectedFloor,
+        time: 23000
       };
-      console.log("yo");
 
-      this.submitGuess({user: "user1", guess: guess}).then(() => {
+      this.submitGuess(guess).then(() => {
         this.changeView('RoundEnd');
       });
     },
@@ -251,5 +247,12 @@ export default {
 
 .submit-button:hover {
   transform: translateX(-50%) translateY(-2px);
+}
+
+.selection-display {
+  z-index: 999;
+  position: absolute;
+  top: 100px;
+  background: black;
 }
 </style>

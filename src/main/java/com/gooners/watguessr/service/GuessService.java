@@ -68,6 +68,12 @@ public class GuessService {
         return guessRepository.findAllByRoundId(roundId);
     }
 
+    String normalize(String input) {
+        return input.toLowerCase()
+                .replaceAll("[^a-z0-9 ]", "") // remove punctuation
+                .trim();
+    }
+
     public int calculatePoints(Round round, Guess guess) {
         Game game = round.getGame();
         Scene scene = round.getScene();
@@ -83,7 +89,10 @@ public class GuessService {
         boolean floorMatch = false;
 
         if (guess.getBuilding() != null && scene.getBuilding() != null) {
-            buildingMatch = guess.getBuilding().getId().equals(scene.getBuilding().getId());
+            String guessBuilding = normalize(guess.getBuilding());
+            String sceneBuilding = normalize(scene.getBuilding().getName());
+
+            buildingMatch = sceneBuilding.contains(guessBuilding) || guessBuilding.contains(sceneBuilding);
         }
 
         if (guess.getFloor() != null && scene.getFloor() != null) {
