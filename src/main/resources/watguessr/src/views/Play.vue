@@ -6,7 +6,7 @@
 
   <PlayStopwatch :timeLeft="timeLeft" @time-up="nextRoundOrEndGame" />
   <div class="selection-display">
-    <span>Current round: {{currentRound}}</span>
+    <span>Current round: {{getCurrentRound}}</span>
     <div>
       <p>Selected Building: {{selectedBuilding.building}}</p>
       <p>Lat: {{selectedBuilding.guessX}}</p>
@@ -28,7 +28,7 @@
 
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
-    <div v-if="currentView === 'Map'">
+    <div v-if="getCurrentView === 'Map'">
       <button class="view-change-button" @click="changeView('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
@@ -39,7 +39,7 @@
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
-    <div v-if="currentView === 'Image'">
+    <div v-if="getCurrentView === 'Image'">
       <button class="view-change-button" @click="changeView('Map')">
         VIEW MAP
       </button>
@@ -49,17 +49,17 @@
       <PlayImageView />
     </div>
 
-    <div v-if="currentView === 'RoundEnd'">
+    <div v-if="getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd :points="scoreChange" />
       <button class="view-change-button" @click="changeView('Map')">
       BACK TO MAP
       </button>
     </div>
   </div>
-  <div v-if="(currentView === 'Map' || currentView === 'Image')">
+  <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
   </div>
-  <div v-else-if="currentView === 'RoundEnd'">
+  <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">{{nextRoundOrEndGameButtonText}}</button>
   </div>
 
@@ -93,9 +93,17 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('game', ['gameId', 'currentView', 'gameStatus', 'finalWinner', 'currentRound']),
-    // Add other module getters similarly:
-    ...mapGetters('round', ['scene', 'winner', 'scoreChange']),
+    ...mapGetters('game', [
+      'getGameId',
+      'getCurrentView',
+      'getGameStatus',
+      'getFinalWinner',
+      'getCurrentRound']),
+    ...mapGetters('round', [
+      'getScene',
+      'getWinner',
+      'getScoreChange'
+    ]),
 
   },
   methods: {
