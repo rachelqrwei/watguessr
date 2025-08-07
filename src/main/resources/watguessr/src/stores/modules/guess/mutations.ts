@@ -19,7 +19,7 @@ export const mutations: MutationTree<GuessState> = {
   },
   RESET_GUESS(state) {
     //reset everything except user id
-    state.time = null;
+    state.time = 0;
     state.building = null;
     state.guessX = null;
     state.guessY = null;

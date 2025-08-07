@@ -4,7 +4,7 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
   <div class="selection-display">
     <span>Current round: {{getCurrentRound}}</span>
     <div>

@@ -6,6 +6,7 @@ import type { RoundState } from './state';
 export const actions: ActionTree<RoundState, RootState> = {
   async startRound({ commit }, { gameId }): Promise<RoundState> {
     //reset data from prev round (if any)
+    commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
 
     if (!gameId) throw new Error('Game ID not found');
