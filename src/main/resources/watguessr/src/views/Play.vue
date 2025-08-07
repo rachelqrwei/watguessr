@@ -132,7 +132,7 @@ export default {
         time: 23000
       };
 
-      this.submitGuess(guess);
+      this.submitGuess();
     },
 
     nextRoundOrEndGame() {

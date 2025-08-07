@@ -4,9 +4,7 @@ import type { RootState } from '../../index';
 import type { GuessState } from './state';
 
 export const actions: ActionTree<GuessState, RootState> = {
-  async submitGuess({ rootState, dispatch }, guess: any) {
-    console.log("guess submitted");
-
+  async submitGuess({ state, rootState, dispatch }) {
     //answer scene of the round
     const scene = rootState.round.scene;
     if (!scene) return;
@@ -18,7 +16,7 @@ export const actions: ActionTree<GuessState, RootState> = {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(guess),
+          body: JSON.stringify(state),
         }
       );
 
@@ -29,7 +27,7 @@ export const actions: ActionTree<GuessState, RootState> = {
       const points = await response.json();
 
       //end round
-      dispatch('round/endRound', { winner: guess.user, score: points }, { root: true });
+      dispatch('round/endRound', { winner: state.user, score: points }, { root: true });
 
       return points;
     } catch (error) {

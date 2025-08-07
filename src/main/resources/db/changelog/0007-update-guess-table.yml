@@ -55,3 +55,26 @@ databaseChangeLog:
                   type: varchar(255)
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 7-3
+      author: LEANNE
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: guess
+        - columnExists:
+            tableName: guess
+            columnName: floor
+      changes:
+        - dropColumn:
+            tableName: guess
+            columnName: floor
+        - addColumn:
+            tableName: guess
+            columns:
+              - column:
+                  name: floor
+                  type: varchar(31)
+                  constraints:
+                    nullable: false
+

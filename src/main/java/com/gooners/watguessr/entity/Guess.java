@@ -29,7 +29,7 @@ public class Guess {
     private String building;
 
     @Column(name = "floor")
-    private Integer floor;
+    private String floor;
 
     @ManyToOne
     @JoinColumn(name = "round_id")
@@ -86,11 +86,11 @@ public class Guess {
         this.building = building;
     }
 
-    public Integer getFloor() {
+    public String getFloor() {
         return floor;
     }
 
-    public void setFloor(Integer floor) {
+    public void setFloor(String floor) {
         this.floor = floor;
     }
 
