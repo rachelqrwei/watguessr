@@ -19,8 +19,6 @@ const actions: ActionTree<GuessState, RootState> = {
     const scene = rootState.round.scene;
     if (!scene) return;
 
-    console.log(guess);
-
     try {
       const response = await fetch(`http://localhost:5173/api/guess/calculate-points?roundId=${rootState.round.roundId}`, {
         method: 'POST',

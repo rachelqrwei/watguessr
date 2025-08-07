@@ -11,6 +11,7 @@ export interface GameState {
   maxRounds: number;
   scores: Record<string, number>;
   winner: string | null;
+  currentView: string
 }
 
 // Initial State
@@ -22,6 +23,7 @@ const state: GameState = {
   maxRounds: 5,
   scores: {},
   winner: null,
+  currentView: 'Map'
 };
 
 // Define mutations with proper typing
@@ -37,6 +39,9 @@ const mutations: MutationTree<GameState> = {
   },
   INCREMENT_ROUND(state) {
     state.currentRound++;
+  },
+  CHANGE_VIEW(state, nextView: string) {
+    state.currentView = nextView;
   },
   ADD_SCORE(state, payload: {username: string, score: number}) {
     if (!state.scores[payload.username]) {
@@ -74,6 +79,7 @@ const actions: ActionTree<GameState, RootState> = {
 
   recordRoundWinner({ state, commit, dispatch }, payload: {username: string, score: number}) {
     commit('ADD_SCORE', payload);
+    commit('CHANGE_VIEW', 'RoundEnd');
 
     if (state.currentRound >= state.maxRounds) {
       const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
@@ -81,11 +87,11 @@ const actions: ActionTree<GameState, RootState> = {
 
       commit('SET_FINAL_WINNER', winner);
     } else {
-      commit('INCREMENT_ROUND');
       dispatch('round/resetRound', null, { root: true });
 
       const newScene = generateNextScene(); // Replace with actual scene logic
       dispatch('round/startRound', newScene, { root: true });
+      commit('INCREMENT_ROUND');
     }
   },
 
@@ -118,6 +124,7 @@ const getters: GetterTree<GameState, RootState> = {
   gameStatus: (state) => state.status,
   finalWinner: (state) => state.winner,
   scores: (state) => state.scores,
+  currentView: (state) => state.currentView
 };
 
 export const gameModule: Module<GameState, RootState> = {

@@ -67,7 +67,7 @@
 </template>
 <script>
 import { ref } from 'vue';
-import { mapGetters, mapActions } from 'vuex';
+import {mapGetters, mapActions, mapMutations} from 'vuex';
 import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
 import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
@@ -87,14 +87,13 @@ export default {
   data() {
     return {
       timeLeft: 60000,
-      currentView: 'Map',
       selectedBuilding: '',
       selectedFloor: '',
       nextRoundOrEndGameButtonText: 'NEXT ROUND',
     }
   },
   computed: {
-    ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner', 'currentRound']),
+    ...mapGetters('game', ['gameId', 'currentView', 'gameStatus', 'finalWinner', 'currentRound']),
     // Add other module getters similarly:
     ...mapGetters('round', ['scene', 'winner', 'scoreChange']),
 
@@ -102,10 +101,7 @@ export default {
   methods: {
     ...mapActions('game', ['createSingleplayerGame', 'recordRoundWinner']),
     ...mapActions('guess', ['submitGuess']),
-
-    changeView(nextView) {
-      this.currentView = nextView;
-    },
+    ...mapMutations('game', ['CHANGE_VIEW']),
 
     handleSubmit() {
       const guess = {
@@ -119,9 +115,7 @@ export default {
         time: 23000
       };
 
-      this.submitGuess(guess).then(() => {
-        this.changeView('RoundEnd');
-      });
+      this.submitGuess(guess);
     },
 
     nextRoundOrEndGame() {
@@ -131,9 +125,8 @@ export default {
       else {
         this.selectedFloor = '';
         this.resetTimer();
-        this.recordRoundWinner('player1');
-        this.nextRoundOrEndGameButtonText = "NEXT ROUND"
-        this.changeView('Map');
+        this.nextRoundOrEndGameButtonText = "NEXT ROUND";
+        this.CHANGE_VIEW("Map");
       }
     },
 
