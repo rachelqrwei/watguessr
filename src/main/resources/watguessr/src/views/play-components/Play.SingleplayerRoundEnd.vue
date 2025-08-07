@@ -2,7 +2,7 @@
   <div class="round-end-container">
     <div class="round-header">
       <span class="round-label">ROUND</span>
-      <span class="round-number">#{{ currentRound }}</span>
+      <span class="round-number">#{{ getCurrentRound }}</span>
     </div>
 
     <div class="points-section">
@@ -77,7 +77,7 @@ export default {
     displayPoints() {
       return this.points;
     },
-    ...mapGetters("game", ["currentRound"])
+    ...mapGetters("game", ["getCurrentRound"])
   },
   mounted() {
     // You can do things when the component is mounted

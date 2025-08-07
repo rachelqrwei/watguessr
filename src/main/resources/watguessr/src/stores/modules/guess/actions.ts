@@ -5,6 +5,8 @@ import type { GuessState } from './state';
 
 export const actions: ActionTree<GuessState, RootState> = {
   async submitGuess({ rootState, dispatch }, guess: any) {
+    console.log("guess submitted");
+
     //answer scene of the round
     const scene = rootState.round.scene;
     if (!scene) return;

@@ -44,7 +44,7 @@
     </div>
 
     <div v-if="getCurrentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd :points="scoreChange" />
+      <PlaySingleplayerRoundEnd :points="getScoreChange" />
       <button class="view-change-button" @click="changeView('Map')">
       BACK TO MAP
       </button>
@@ -94,7 +94,8 @@ export default {
       'getCurrentView',
       'getGameStatus',
       'getFinalWinner',
-      'getCurrentRound']),
+      'getCurrentRound'
+    ]),
     ...mapGetters('round', [
       'getScene',
       'getWinner',
@@ -107,6 +108,9 @@ export default {
       'createSingleplayerGame',
       'recordRoundWinner',
       'endCurrentRound'
+    ]),
+    ...mapActions('round', [
+      "startRound"
     ]),
     ...mapActions('guess', [
       'submitGuess'
@@ -134,6 +138,7 @@ export default {
     nextRoundOrEndGame() {
       //if still has rounds left
       //reset every UI detail about current round
+      this.selectedBuilding = null;
       this.selectedFloor = '';
       this.resetTimer();
 
