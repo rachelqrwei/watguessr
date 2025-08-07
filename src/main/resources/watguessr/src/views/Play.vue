@@ -62,7 +62,6 @@
   <PlayScoreTracker />
 </template>
 <script>
-import { ref } from 'vue';
 import {mapGetters, mapActions, mapMutations} from 'vuex';
 import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
 import PlayMapView from '@/views/play-components/Play.Map.vue'
