@@ -8,9 +8,9 @@
   <div class="selection-display">
     <span>Current round: {{getCurrentRound}}</span>
     <div>
-      <p>Selected Building: {{selectedBuilding.building}}</p>
-      <p>Lat: {{selectedBuilding.guessX}}</p>
-      <p>Long: {{selectedBuilding.guessY}}</p>
+      <p>Selected Building: {{getGuessBuilding}}</p>
+      <p>Lat: {{getGuessX}}</p>
+      <p>Long: {{getGuessY}}</p>
     </div>
     <label class="floor-select-label">
       Select Floor:
@@ -99,6 +99,12 @@ export default {
       'getScene',
       'getWinner',
       'getScoreChange'
+    ]),
+    ...mapGetters('guess', [
+      'getGuessX',
+      'getGuessY',
+      'getGuessBuilding',
+      'getGuessFloor'
     ]),
 
   },
