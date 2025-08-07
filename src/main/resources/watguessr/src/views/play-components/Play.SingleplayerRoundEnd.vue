@@ -68,8 +68,16 @@ export default {
     };
   },
   computed: {
+    ...mapGetters('guess', [
+      'getGuessTime',
+    ]),
     displayTimeTaken() {
-      return this.timeTaken;
+      const ms = Math.floor((this.getGuessTime % 1000) / 10);
+      const totalSeconds = Math.floor(this.getGuessTime / 1000);
+      const s = Math.floor(totalSeconds % 60);
+      const m = Math.floor(totalSeconds / 60);
+      const pad = (n, z = 2) => String(n).padStart(z, '0');
+      return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
     displayDistance() {
       return this.distance;
@@ -82,7 +90,7 @@ export default {
   mounted() {
     // You can do things when the component is mounted
     console.log('Component mounted');
-    console.log('Time Taken:', this.displayTimeTaken);
+    console.log('Time Taken:', this.getGuessTime);
     console.log('Distance:', this.displayDistance);
     console.log('Points Lost:', this.displayPoints);
   }

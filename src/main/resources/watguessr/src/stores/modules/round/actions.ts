@@ -27,7 +27,7 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     return round;
   },
-  endRound({ commit, dispatch }, payload: { winner: string; score: number }) {
+  endRound({ commit, dispatch }, payload: { winner: string; score: number, time: any, distance: number }) {
     //set winner of the round
     commit('SET_WINNER', payload.winner);
 
