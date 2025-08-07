@@ -4,15 +4,10 @@ import type { RootState } from '../../index';
 import type { RoundState } from './state';
 
 export const actions: ActionTree<RoundState, RootState> = {
-  setWinner({ commit, dispatch }, payload: { winner: string; score: number }) {
-    commit('SET_WINNER', payload.winner);
-    commit('SET_SCORE_CHANGE', payload.score);
-
-    // TODO: send API call to set winner of the round
-    dispatch('game/recordRoundWinner', { winner: payload.winner, score: payload.score }, { root: true });
-  },
-
   async startRound({ commit }, { gameId }): Promise<RoundState> {
+    //reset data from prev round (if any)
+    commit('RESET_ROUND');
+
     if (!gameId) throw new Error('Game ID not found');
 
     const response = await fetch(`http://localhost:5173/api/round/create?gameId=${gameId}`, {
@@ -27,10 +22,18 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('SET_SCENE', round?.scene);
     commit('SET_ROUND_ID', round?.id);
 
+    console.log("Started round", round?.id);
+
     return round;
   },
+  endRound({ commit, dispatch }, payload: { winner: string; score: number }) {
+    //set winner of the round
+    commit('SET_WINNER', payload.winner);
 
-  resetRound({ commit }) {
-    commit('RESET_ROUND');
+    //set score change from round (round-specific score)
+    commit('SET_SCORE_CHANGE_FROM_ROUND', payload.score);
+
+    //end this round in the game store
+    dispatch('game/endCurrentRound', { winner: payload.winner, score: payload.score }, { root: true });
   },
 };

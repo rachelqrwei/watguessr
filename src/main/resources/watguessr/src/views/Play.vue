@@ -33,18 +33,12 @@
         <font-awesome-icon icon="image" />
         VIEW IMAGE
       </button>
-      <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
-        TEST ROUND END
-      </button>
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
     <div v-if="getCurrentView === 'Image'">
       <button class="view-change-button" @click="changeView('Map')">
         VIEW MAP
-      </button>
-      <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
-        TEST ROUND END
       </button>
       <PlayImageView />
     </div>
@@ -60,7 +54,9 @@
     <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
-    <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">{{nextRoundOrEndGameButtonText}}</button>
+    <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">
+      {{ getCurrentRound < 5 ? 'NEXT ROUND' : 'END GAME' }}
+    </button>
   </div>
 
   <PlayScoreTracker />
@@ -107,9 +103,18 @@ export default {
 
   },
   methods: {
-    ...mapActions('game', ['createSingleplayerGame', 'recordRoundWinner']),
-    ...mapActions('guess', ['submitGuess']),
-    ...mapMutations('game', ['CHANGE_VIEW']),
+    ...mapActions('game', [
+      'createSingleplayerGame',
+      'recordRoundWinner',
+      'endCurrentRound'
+    ]),
+    ...mapActions('guess', [
+      'submitGuess'
+    ]),
+    ...mapMutations('game', [
+      'CHANGE_VIEW',
+      'INCREMENT_ROUND'
+    ]),
 
     handleSubmit() {
       const guess = {
@@ -127,15 +132,17 @@ export default {
     },
 
     nextRoundOrEndGame() {
-      if (this.currentRound === 4) {
-        this.nextRoundOrEndGameButtonText = "END GAME";
-      }
-      else {
-        this.selectedFloor = '';
-        this.resetTimer();
-        this.nextRoundOrEndGameButtonText = "NEXT ROUND";
-        this.CHANGE_VIEW("Map");
-      }
+      //if still has rounds left
+      //reset every UI detail about current round
+      this.selectedFloor = '';
+      this.resetTimer();
+
+      //start next round
+      this.startRound({gameId: this.getGameId});
+      this.INCREMENT_ROUND();
+
+      //change view to map again
+      this.CHANGE_VIEW("Map");
     },
 
     handleBuildingSelected(payload) {

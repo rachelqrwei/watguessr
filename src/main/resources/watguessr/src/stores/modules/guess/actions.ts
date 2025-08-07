@@ -5,9 +5,11 @@ import type { GuessState } from './state';
 
 export const actions: ActionTree<GuessState, RootState> = {
   async submitGuess({ rootState, dispatch }, guess: any) {
+    //answer scene of the round
     const scene = rootState.round.scene;
     if (!scene) return;
 
+    //calculate points from the round
     try {
       const response = await fetch(
         `http://localhost:5173/api/guess/calculate-points?roundId=${rootState.round.roundId}`,
@@ -23,7 +25,9 @@ export const actions: ActionTree<GuessState, RootState> = {
       }
 
       const points = await response.json();
-      dispatch('round/setWinner', { winner: guess.user, score: points }, { root: true });
+
+      //end round
+      dispatch('round/endRound', { winner: guess.user, score: points }, { root: true });
 
       return points;
     } catch (error) {

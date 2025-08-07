@@ -17,26 +17,36 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('SET_STATUS', 'playing');
   },
 
-  recordRoundWinner({ state, commit, dispatch }, payload: { username: string; score: number }) {
+  endCurrentRound({ state, commit, dispatch }, payload: { username: string; score: number }) {
+    //add score to user side (in-game score)
     commit('ADD_SCORE', payload);
+
+    //change the game view to "round end"
     commit('CHANGE_VIEW', 'RoundEnd');
 
     if (state.currentRound >= state.maxRounds) {
-      const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
-      // TODO: send API call to set final winner
-      commit('SET_FINAL_WINNER', winner);
+      //if current round is the last round
+      //multiplayer: check who the winner is by comparing scores
+      // const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
+      // // TODO: send API call to set final winner
+      // commit('SET_FINAL_WINNER', winner);
+
+      //singleplayer: just end the game (no need to find final winner)
+      dispatch('endGame', {gameId: state.gameId});
     } else {
-      dispatch('round/resetRound', null, { root: true });
-      const newScene = generateNextScene(); // Replace with actual logic
-      dispatch('round/startRound', newScene, { root: true });
-      commit('INCREMENT_ROUND');
+      //if we still have rounds left
+      //increment round number
     }
   },
 
-  async endGame({ commit }, gameId: string) {
+  async endGame({ commit }, payload: {gameId: string}) {
+    //reset game data
     commit('RESET_GAME');
+
+    //send api request to the backend to finish the singleplayer game
+    //TODO: add multiplayer game end logic
     try {
-      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${gameId}`, {
+      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${payload.gameId}`, {
         method: 'POST'
       });
 
@@ -51,9 +61,3 @@ export const actions: ActionTree<GameState, RootState> = {
     }
   }
 };
-
-// Dummy placeholder
-function generateNextScene() {
-  // TODO: replace with real logic
-  return {};
-}
