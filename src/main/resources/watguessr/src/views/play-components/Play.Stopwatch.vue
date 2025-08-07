@@ -10,48 +10,34 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
+import {mapActions, mapGetters, mapMutations} from 'vuex';
+
 export default {
   name: 'Stopwatch',
 
-  props: {
-    timeLeft: {
-      type: Number,
-      required: true,
-    },
-  },
-
-  emits: ['time-up'],
-
   data() {
     return {
-      internalTimeLeft: this.timeLeft,
-      interval: null as number | null,
-      totalTime: this.timeLeft,
+      interval: null,
+      totalTime: 10000, // 60 seconds
     };
   },
 
   computed: {
-    progressAngle(): number {
-      const percent = 1 - this.internalTimeLeft / this.totalTime;
+    ...mapGetters('guess', ['getGuessTime']),
+
+    progressAngle() {
+      const percent = this.getGuessTime / this.totalTime;
       return percent * 360;
     },
 
-    formattedTimeLeft(): string {
-      const ms = Math.floor((this.internalTimeLeft % 1000) / 10);
-      const totalSeconds = Math.floor(this.internalTimeLeft / 1000);
+    formattedTimeLeft() {
+      const ms = Math.floor((this.getGuessTime % 1000) / 10);
+      const totalSeconds = Math.floor(this.getGuessTime / 1000);
       const s = Math.floor(totalSeconds % 60);
       const m = Math.floor(totalSeconds / 60);
-      const pad = (n: number, z = 2) => String(n).padStart(z, '0');
+      const pad = (n, z = 2) => String(n).padStart(z, '0');
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
-    },
-  },
-
-  watch: {
-    timeLeft(newVal: number, oldVal: number) {
-      if (newVal !== oldVal) {
-        this.startTimer();
-      }
     },
   },
 
@@ -64,16 +50,29 @@ export default {
   },
 
   methods: {
+    ...mapMutations('guess', [
+      'SET_TIME'
+    ]),
+    ...mapActions('round', [
+      "endRound"
+    ]),
+    ...mapMutations('game', [
+      'CHANGE_VIEW',
+      'INCREMENT_ROUND'
+    ]),
     startTimer() {
       this.clearTimer();
-      this.internalTimeLeft = this.timeLeft;
+
+      this.SET_TIME(0);
 
       this.interval = setInterval(() => {
-        if (this.internalTimeLeft > 0) {
-          this.internalTimeLeft -= 100;
+        if (this.getGuessTime < this.totalTime) {
+          this.SET_TIME(this.getGuessTime + 100); // increase by 100ms
         } else {
+          // when 60s reached
           this.clearTimer();
-          this.$emit('time-up');
+          this.CHANGE_VIEW('RoundEnd');
+          this.endRound({winner: null, score: 0});
         }
       }, 100);
     },

@@ -4,7 +4,7 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch :timeLeft="timeLeft" @time-up="nextRoundOrEndGame" />
+  <PlayStopwatch />
   <div class="selection-display">
     <span>Current round: {{getCurrentRound}}</span>
     <div>
@@ -126,17 +126,6 @@ export default {
     ]),
 
     handleSubmit() {
-      const guess = {
-        user: {
-          id: 'd9ac8cbc-f8f2-4ab5-b30a-ef1b6beb0dad'
-        },
-        building: this.selectedBuilding.building,
-        guessX: this.selectedBuilding.guessX,
-        guessY: this.selectedBuilding.guessY,
-        floor: this.selectedFloor,
-        time: 23000
-      };
-
       this.submitGuess();
     },
 
