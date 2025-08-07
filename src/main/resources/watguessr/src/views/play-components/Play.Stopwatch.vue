@@ -1,63 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-
-const props = defineProps<{
-  timeLeft: number
-}>()
-
-const emit = defineEmits<{
-  (e: 'time-up'): void
-}>()
-
-
-const internalTimeLeft = ref(props.timeLeft)
-const totalTime = props.timeLeft
-let interval: number | undefined
-
-const startTimer = () => {
-  clearInterval(interval)
-  internalTimeLeft.value = props.timeLeft
-
-  interval = setInterval(() => {
-    if (internalTimeLeft.value > 0) {
-      internalTimeLeft.value -= 100
-    } else {
-      clearInterval(interval)
-      emit('time-up') // ✅ Emit time-up event to parent
-    }
-  }, 100)
-}
-
-onMounted(() => {
-  startTimer()
-})
-
-onUnmounted(() => {
-  clearInterval(interval)
-})
-
-watch(() => props.timeLeft, (newVal, oldVal) => {
-  if (newVal !== oldVal) {
-    startTimer()
-  }
-})
-
-const progressAngle = computed(() => {
-  const percent = 1 - internalTimeLeft.value / totalTime
-  return percent * 360
-})
-
-const formattedTimeLeft = computed(() => {
-  const ms = Math.floor((internalTimeLeft.value % 1000) / 10)
-  const totalSeconds = Math.floor(internalTimeLeft.value / 1000)
-  const s = Math.floor(totalSeconds % 60)
-  const m = Math.floor(totalSeconds / 60)
-
-  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  return `${pad(m)}:${pad(s)}.${pad(ms)}`
-})
-</script>
-
 <template>
   <div
     class="stopwatch-container"
@@ -69,6 +9,84 @@ const formattedTimeLeft = computed(() => {
     <div>{{ formattedTimeLeft }}</div>
   </div>
 </template>
+
+<script lang="ts">
+export default {
+  name: 'Stopwatch',
+
+  props: {
+    timeLeft: {
+      type: Number,
+      required: true,
+    },
+  },
+
+  emits: ['time-up'],
+
+  data() {
+    return {
+      internalTimeLeft: this.timeLeft,
+      interval: null as number | null,
+      totalTime: this.timeLeft,
+    };
+  },
+
+  computed: {
+    progressAngle(): number {
+      const percent = 1 - this.internalTimeLeft / this.totalTime;
+      return percent * 360;
+    },
+
+    formattedTimeLeft(): string {
+      const ms = Math.floor((this.internalTimeLeft % 1000) / 10);
+      const totalSeconds = Math.floor(this.internalTimeLeft / 1000);
+      const s = Math.floor(totalSeconds % 60);
+      const m = Math.floor(totalSeconds / 60);
+      const pad = (n: number, z = 2) => String(n).padStart(z, '0');
+      return `${pad(m)}:${pad(s)}.${pad(ms)}`;
+    },
+  },
+
+  watch: {
+    timeLeft(newVal: number, oldVal: number) {
+      if (newVal !== oldVal) {
+        this.startTimer();
+      }
+    },
+  },
+
+  mounted() {
+    this.startTimer();
+  },
+
+  beforeUnmount() {
+    this.clearTimer();
+  },
+
+  methods: {
+    startTimer() {
+      this.clearTimer();
+      this.internalTimeLeft = this.timeLeft;
+
+      this.interval = setInterval(() => {
+        if (this.internalTimeLeft > 0) {
+          this.internalTimeLeft -= 100;
+        } else {
+          this.clearTimer();
+          this.$emit('time-up');
+        }
+      }, 100);
+    },
+
+    clearTimer() {
+      if (this.interval !== null) {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
+    },
+  },
+};
+</script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&display=swap');
