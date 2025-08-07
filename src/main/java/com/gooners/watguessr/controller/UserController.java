@@ -6,8 +6,10 @@ import com.gooners.watguessr.dto.UserLoginDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
+import com.gooners.watguessr.utils.Utility;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +24,11 @@ public class UserController {
     
     private final UserService userService;
     private final UserMapper userMapper;
-    public UserController(UserService userService, UserMapper userMapper) {
+    private final Utility utility;
+    public UserController(UserService userService, UserMapper userMapper, Utility utility) {
         this.userService = userService;
         this.userMapper = userMapper;
+        this.utility = utility;
     }
 
     @PostMapping(value = "/register")
@@ -52,6 +56,11 @@ public class UserController {
     @GetMapping(value = "/all")
     public List<User> getSorted(String keyword, String sortBy, int page, int pageSize) {
         return this.userService.findSorted(keyword, sortBy, page, pageSize);
+    }
+
+    @PostMapping(value = "/send-email")
+    public void sendEmail() {
+        utility.sendEmail("youremail@example.com", "Test Subject", "Hello from WatGuessr!");
     }
 
     @GetMapping(value = "/leaderboard")

@@ -10,6 +10,18 @@ spring:
     username: watuser
     password: goon
     driver-class-name: org.postgresql.Driver
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: wukenny0126@gmail.com
+    password: xmnx qipn evhq dydu
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 
   jpa:
     hibernate:
@@ -25,3 +37,4 @@ spring:
     contexts: default
     default-schema: watguessr
     liquibase-schema: watguessr
+
