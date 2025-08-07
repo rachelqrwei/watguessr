@@ -37,4 +37,3 @@ spring:
     contexts: default
     default-schema: watguessr
     liquibase-schema: watguessr
-

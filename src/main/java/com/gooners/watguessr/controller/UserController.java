@@ -9,7 +9,6 @@ import com.gooners.watguessr.service.UserService;
 import com.gooners.watguessr.utils.Utility;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +63,11 @@ public class UserController {
         return this.userService.findSorted(keyword, sortBy, page, pageSize);
     }
 
+    @PostMapping(value = "/send-email")
+    public void sendEmail() {
+        utility.sendEmail("youremail@example.com", "Test Subject", "Hello from WatGuessr!");
+    }
+
     @GetMapping(value = "/leaderboard")
     public QueryResults<LeaderboardUser> getLeaderboard(
             @RequestParam(required = false) String searchTerm,
@@ -72,11 +76,6 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
 
         return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
-    }
-
-    @PostMapping(value = "/send-email")
-    public void sendEmail() {
-        utility.sendEmail("wukenny0126@gmail.com", "Test Subject", "Hello from WatGuessr!");
     }
 
     @PostMapping("/send-otp")
