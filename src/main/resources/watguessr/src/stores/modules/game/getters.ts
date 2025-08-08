@@ -7,6 +7,7 @@ export const getters: GetterTree<GameState, RootState> = {
   getGameId: (state) => state.gameId,
   getGameMode: (state) => state.gameMode,
   getCurrentRound: (state) => state.currentRound,
+  getMaxRounds: (state) => state.maxRounds,
   getGameStatus: (state) => state.status,
   getFinalWinner: (state) => state.finalWinner,
   getScores: (state) => state.scores,
