@@ -132,8 +132,6 @@ export default {
     },
 
     nextRoundOrEndGame() {
-      console.log(this.getCurrentRound);
-      console.log(this.getMaxRounds);
       if (this.getCurrentRound >= this.getMaxRounds) {
 
         // Go to game end screen

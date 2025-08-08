@@ -37,10 +37,10 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "GameEnd",
   computed: {
-    ...mapGetters("game", ["getFinalWinner", "getCurrentRound"]),
+    ...mapGetters("game", ["getScores", "getCurrentRound"]),
     ...mapGetters("round", ["getRoundResult"]),
     finalScore() {
-      return this.getFinalWinner?.score ?? 0;
+      return this.getScores['undefined'] ?? 0;
     },
     totalRounds() {
       return this.getCurrentRound ?? 0;

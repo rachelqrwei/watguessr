@@ -8,9 +8,11 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('RESET_GAME');
     commit('SET_STATUS', 'loading');
     commit('SET_GAME_MODE', 'Singleplayer');
+    commit('CHANGE_VIEW', 'Map');
 
     const response = await fetch('http://localhost:5173/api/game/create/singleplayer');
     const gameId = await response.json();
+
 
     commit('SET_GAME_ID', gameId);
     dispatch('round/startRound', { gameId }, { root: true });
@@ -25,7 +27,6 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('CHANGE_VIEW', 'RoundEnd');
 
     if (state.currentRound >= state.maxRounds) {
-      console.log("yo")
       //if current round is the last round
       //multiplayer: check who the winner is by comparing scores
       // const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
@@ -53,6 +54,8 @@ export const actions: ActionTree<GameState, RootState> = {
       }
 
       const data = await response.json();
+
+      console.log("ended game!");
     } catch (error) {
       console.error('Error finishing game:', error);
       throw error;
