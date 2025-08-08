@@ -8,12 +8,18 @@ export interface RoundState {
   roundId: string | null;
   scene: Scene | null;
   winner: string | null;
-  scoreChange: number | null;
+  roundResult: {
+    points: number | null;
+    distance: number | null;
+  } | null;
 }
 
 export const state = (): RoundState => ({
   roundId: null,
   scene: null,
   winner: null,
-  scoreChange: null
+  roundResult: {
+    points: 0,
+    distance: 0
+  }
 });

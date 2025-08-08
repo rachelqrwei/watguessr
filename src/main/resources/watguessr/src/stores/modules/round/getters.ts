@@ -7,5 +7,5 @@ export const getters: GetterTree<RoundState, RootState> = {
   getRoundId: (state) => state.roundId,
   getScene: (state) => state.scene,
   getWinner: (state) => state.winner,
-  getScoreChange: (state) => state.scoreChange
+  getRoundResult: (state) => state.roundResult
 };

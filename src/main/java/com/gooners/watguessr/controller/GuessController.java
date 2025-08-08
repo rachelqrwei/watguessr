@@ -2,6 +2,7 @@ package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.GuessCreateDto;
 import com.gooners.watguessr.dto.GuessDto;
+import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.entity.Guess;
@@ -56,14 +57,14 @@ public class GuessController {
     }
 
     @PostMapping("/calculate-points")
-    public ResponseEntity<Integer> calculatePoints(
+    public ResponseEntity<RoundResult> calculatePoints(
             @RequestParam UUID roundId,
             @RequestBody Guess guess
     ) {
         Round round = roundService.findById(roundId);
-        int points = guessService.calculatePoints(round, guess);
+        RoundResult result = guessService.createGameResult(round, guess);
 
-        return ResponseEntity.ok(points);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(value = "/get-all-guess")

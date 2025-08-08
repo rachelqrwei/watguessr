@@ -17,7 +17,7 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('SET_STATUS', 'playing');
   },
 
-  endCurrentRound({ state, commit, dispatch }, payload: { username: string; score: number }) {
+  endCurrentRound({ state, commit, dispatch }, payload: { username: string; roundResult: {points: number, distance: number} }) {
     //add score to user side (in-game score)
     commit('ADD_SCORE', payload);
 

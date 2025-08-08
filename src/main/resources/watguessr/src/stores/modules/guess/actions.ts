@@ -24,10 +24,9 @@ export const actions: ActionTree<GuessState, RootState> = {
         throw new Error('Failed to calculate points');
       }
 
-      const points = await response.json();
-
+      const roundResult = await response.json();
       //end round
-      dispatch('round/endRound', { winner: state.user, score: points }, { root: true });
+      dispatch('round/endRound', { winner: state.user, roundResult: roundResult }, { root: true });
 
       return points;
     } catch (error) {

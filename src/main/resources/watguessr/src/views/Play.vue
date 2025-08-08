@@ -44,7 +44,7 @@
     </div>
 
     <div v-if="getCurrentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd :points="getScoreChange" />
+      <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
       <button class="view-change-button" @click="changeView('Map')">
       BACK TO MAP
       </button>
@@ -98,9 +98,10 @@ export default {
     ...mapGetters('round', [
       'getScene',
       'getWinner',
-      'getScoreChange'
+      'getRoundResult'
     ]),
     ...mapGetters('guess', [
+      'getGuessTime',
       'getGuessX',
       'getGuessY',
       'getGuessBuilding',

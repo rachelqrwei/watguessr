@@ -1,5 +1,6 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GuessRepository;
 import jakarta.transaction.Transactional;
@@ -74,7 +75,7 @@ public class GuessService {
                 .trim();
     }
 
-    public int calculatePoints(Round round, Guess guess) {
+    public RoundResult createGameResult(Round round, Guess guess) {
         Game game = round.getGame();
         Scene scene = round.getScene();
 
@@ -100,12 +101,12 @@ public class GuessService {
         }
 
         if (game.getGameMode().equals("Singleplayer")) {
-            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game);
+            return createSingleplayerResult(distance, buildingMatch, floorMatch, game);
         } else if (game.getGameMode().equals("Multiplayer") || game.getGameMode().equals("Ranked")) {
-            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
+//            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
         }
 
-        return 0;
+        return null;
     }
 
     /**
@@ -168,44 +169,37 @@ public class GuessService {
      * Calculate points for singleplayer mode
      * Players start at 1000 points and lose points based on inaccuracy
      */
-    private int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game) {
-        // Check if this is the first round of the game
+    private RoundResult createSingleplayerResult(
+            double distance,
+            boolean buildingMatch,
+            boolean floorMatch,
+            Game game
+    ) {
         boolean isFirstRound = isFirstRoundOfGame(game);
 
         if (!isFirstRound) {
-            // If not first round, calculate as normal multiplayer points
-            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
+            int points = calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
+            return new RoundResult(points, distance);
         }
 
         int startingPoints = 1000;
         int penalty = 0;
 
-        // Distance-based penalty with less steep falloff
         if (distance > 0) {
-            // Maximum reasonable distance on campus: ~2km (2000 meters)
-            double maxDistance = 2000.0; // meters
+            double maxDistance = 2000.0;
             double normalizedDistance = Math.min(distance / maxDistance, 1.0);
-
-            // Exponential penalty that's less harsh:
-            // penalty = 850 * (1 - e^(-1.2 * normalizedDistance))
-            // This gives:
-            // - 100m away: ~49 point penalty
-            // - 250m away: ~179 point penalty
-            // - 500m away: ~328 point penalty
-            // - 1000m away: ~567 point penalty
-            // - 2000m+ away: ~850 point penalty
             penalty = (int) (850 * (1 - Math.exp(-1.2 * normalizedDistance)));
         }
 
-        // Reduce penalty for correct building/floor
         if (buildingMatch) {
-            penalty = (int) (penalty * 0.4); // 60% penalty reduction for correct building
+            penalty = (int) (penalty * 0.4);
             if (floorMatch) {
-                penalty = (int) (penalty * 0.6); // Additional 40% reduction for correct floor
+                penalty = (int) (penalty * 0.6);
             }
         }
 
-        return Math.max(startingPoints - penalty, 50); // Minimum 50 points, ensure non-negative points
+        int finalPoints = Math.max(startingPoints - penalty, 50);
+        return new RoundResult(finalPoints, distance);
     }
 
     /**

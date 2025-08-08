@@ -27,14 +27,14 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     return round;
   },
-  endRound({ commit, dispatch }, payload: { winner: string; score: number, time: any, distance: number }) {
+  endRound({ commit, dispatch }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     //set winner of the round
     commit('SET_WINNER', payload.winner);
 
-    //set score change from round (round-specific score)
-    commit('SET_SCORE_CHANGE_FROM_ROUND', payload.score);
+    //set round result from round (round-specific score)
+    commit('SET_ROUND_RESULT_FROM_ROUND', payload.roundResult);
 
     //end this round in the game store
-    dispatch('game/endCurrentRound', { winner: payload.winner, score: payload.score }, { root: true });
+    dispatch('game/endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
   },
 };

@@ -12,13 +12,16 @@ export const mutations: MutationTree<RoundState> = {
   SET_WINNER(state, winner: string) {
     state.winner = winner;
   },
-  SET_SCORE_CHANGE_FROM_ROUND(state, score: number) {
-    state.scoreChange = score;
+  SET_ROUND_RESULT_FROM_ROUND(state, roundResult: {points: number, distance: number}) {
+    state.roundResult = {
+      points: roundResult.points,
+      distance: roundResult.distance
+    };
   },
   RESET_ROUND(state) {
     state.roundId = null;
     state.scene = null;
     state.winner = null;
-    state.scoreChange = null;
+    state.roundResult = null;
   },
 };

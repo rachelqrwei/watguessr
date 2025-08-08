@@ -18,11 +18,11 @@ export const mutations: MutationTree<GameState> = {
   CHANGE_VIEW(state, nextView: string) {
     state.currentView = nextView;
   },
-  ADD_SCORE(state, payload: { username: string; score: number }) {
+  ADD_SCORE(state, payload: { username: string; roundResult: {points: number, distance: number} }) {
     if (!state.scores[payload.username]) {
       state.scores[payload.username] = 0;
     }
-    state.scores[payload.username] += payload.score;
+    state.scores[payload.username] += payload.roundResult.points;
   },
   SET_FINAL_WINNER(state, winner: string) {
     state.winner = winner;

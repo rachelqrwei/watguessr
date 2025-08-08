@@ -54,22 +54,17 @@ export default {
       type: Number,
       required: true
     },
-    timeTaken: {
-      type: String,
-      required: true
-    },
     distance: {
-      type: String,
+      type: Number,
       required: true
     }
-  },
-  data() {
-    return {
-    };
   },
   computed: {
     ...mapGetters('guess', [
       'getGuessTime',
+    ]),
+    ...mapGetters('round', [
+      'getRoundResult',
     ]),
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
