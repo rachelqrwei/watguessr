@@ -22,6 +22,9 @@ export const mutations: MutationTree<RoundState> = {
     state.roundId = null;
     state.scene = null;
     state.winner = null;
-    state.roundResult = null;
+    state.roundResult = {
+      points: 0,
+      distance: 0
+    };
   },
 };

@@ -9,8 +9,8 @@ export interface RoundState {
   scene: Scene | null;
   winner: string | null;
   roundResult: {
-    points: number | null;
-    distance: number | null;
+    points: number;
+    distance: number;
   } | null;
 }
 
