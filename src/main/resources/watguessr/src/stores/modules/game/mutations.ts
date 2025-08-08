@@ -24,8 +24,8 @@ export const mutations: MutationTree<GameState> = {
     }
     state.scores[payload.username] += payload.roundResult.points;
   },
-  SET_FINAL_WINNER(state, winner: string) {
-    state.winner = winner;
+  SET_FINAL_WINNER(state, finalWinner: string) {
+    state.finalWinner = finalWinner;
     state.status = 'ended';
   },
   RESET_GAME(state) {
@@ -33,6 +33,6 @@ export const mutations: MutationTree<GameState> = {
     state.status = 'idle';
     state.currentRound = 1;
     state.scores = {};
-    state.winner = null;
+    state.finalWinner = null;
   },
 };

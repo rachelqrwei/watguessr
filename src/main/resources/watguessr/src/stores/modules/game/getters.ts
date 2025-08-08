@@ -8,7 +8,7 @@ export const getters: GetterTree<GameState, RootState> = {
   getGameMode: (state) => state.gameMode,
   getCurrentRound: (state) => state.currentRound,
   getGameStatus: (state) => state.status,
-  getFinalWinner: (state) => state.winner,
+  getFinalWinner: (state) => state.finalWinner,
   getScores: (state) => state.scores,
   getCurrentView: (state) => state.currentView
 };
