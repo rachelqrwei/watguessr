@@ -29,7 +29,7 @@
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
     <div v-if="getCurrentView === 'Map'">
-      <button class="view-change-button" @click="changeView('Image')">
+      <button class="view-change-button" @click="CHANGE_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
       </button>
@@ -37,7 +37,7 @@
     </div>
 
     <div v-if="getCurrentView === 'Image'">
-      <button class="view-change-button" @click="changeView('Map')">
+      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
         VIEW MAP
       </button>
       <PlayImageView />
@@ -45,7 +45,7 @@
 
     <div v-if="getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <button class="view-change-button" @click="changeView('Map')">
+      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
       BACK TO MAP
       </button>
     </div>
