@@ -82,13 +82,6 @@ export default {
     },
     ...mapGetters("game", ["getCurrentRound"])
   },
-  mounted() {
-    // You can do things when the component is mounted
-    console.log('Component mounted');
-    console.log('Time Taken:', this.getGuessTime);
-    console.log('Distance:', this.displayDistance);
-    console.log('Points Lost:', this.displayPoints);
-  }
 };
 </script>
 

@@ -73,9 +73,6 @@ export default {
         (this.player1Score + this.player2Score)
       );
     }
-  },
-  mounted() {
-    console.log("PlayerScoreTracker mounted");
   }
 };
 </script>

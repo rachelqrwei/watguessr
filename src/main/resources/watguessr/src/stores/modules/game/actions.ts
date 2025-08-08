@@ -25,6 +25,7 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('CHANGE_VIEW', 'RoundEnd');
 
     if (state.currentRound >= state.maxRounds) {
+      console.log("yo")
       //if current round is the last round
       //multiplayer: check who the winner is by comparing scores
       // const winner = Object.entries(state.scores).sort((a, b) => b[1] - a[1])[0][0];
@@ -32,21 +33,18 @@ export const actions: ActionTree<GameState, RootState> = {
       // commit('SET_FINAL_WINNER', winner);
 
       //singleplayer: just end the game (no need to find final winner)
-      dispatch('endGame', {gameId: state.gameId});
+      dispatch('endGame');
     } else {
       //if we still have rounds left
       //increment round number
     }
   },
 
-  async endGame({ commit }, payload: {gameId: string}) {
-    //reset game data
-    commit('RESET_GAME');
-
+  async endGame({ state, commit }) {
     //send api request to the backend to finish the singleplayer game
     //TODO: add multiplayer game end logic
     try {
-      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${payload.gameId}`, {
+      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${state.gameId}`, {
         method: 'POST'
       });
 
@@ -54,10 +52,11 @@ export const actions: ActionTree<GameState, RootState> = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
     } catch (error) {
       console.error('Error finishing game:', error);
       throw error;
     }
+
   }
 };

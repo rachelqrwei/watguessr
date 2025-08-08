@@ -55,7 +55,7 @@
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">
-      {{ getCurrentRound < 5 ? 'NEXT ROUND' : 'END GAME' }}
+      {{ getCurrentRound < getMaxRounds ? 'NEXT ROUND' : 'END GAME' }}
     </button>
   </div>
 
@@ -68,7 +68,7 @@ import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
 import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 export default {
   components: {
@@ -93,7 +93,8 @@ export default {
       'getCurrentView',
       'getGameStatus',
       'getFinalWinner',
-      'getCurrentRound'
+      'getCurrentRound',
+      'getMaxRounds'
     ]),
     ...mapGetters('round', [
       'getScene',
@@ -131,6 +132,12 @@ export default {
     },
 
     nextRoundOrEndGame() {
+      if (this.getCurrentRound >= this.getMaxRounds) {
+        // Go to game end screen
+        this.$router.push('/singleplayer-game-end')
+        return;
+      }
+
       //if still has rounds left
       //reset every UI detail about current round
       this.selectedBuilding = null;

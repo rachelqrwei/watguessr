@@ -22,9 +22,6 @@ export const actions: ActionTree<RoundState, RootState> = {
     const round: any = await response.json();
     commit('SET_SCENE', round?.scene);
     commit('SET_ROUND_ID', round?.id);
-
-    console.log("Started round", round?.id);
-
     return round;
   },
   endRound({ commit, dispatch }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
