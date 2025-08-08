@@ -2,22 +2,20 @@ package com.gooners.watguessr.entity;
 
 import jakarta.persistence.*;
 
-import java.security.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "email_verification")
-public class EmailVerfication {
+public class EmailVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
-    @OneToOne
-    @Column(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_email_verification_user"))
     private User user;
 
     @Column(name = "code")

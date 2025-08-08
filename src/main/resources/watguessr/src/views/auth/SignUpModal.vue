@@ -59,18 +59,6 @@
 <!--        </button>-->
 <!--        -->
 
-        <button :disabled="loading || !passwordChecks.allValid" class="login-btn">
-          <span v-if="loading">Signing up...</span>
-          <span v-else>SIGN UP</span>
-        </button>
-
-
-        <div class="sign-up">
-          <label>Already a Watguessr?
-            <span class="link" @click="$emit('openLogin')">LOGIN</span>
-          </label>
-        </div>
-
         <StatusModal
           v-if="showStatus"
           :message="statusMessage"
@@ -78,6 +66,23 @@
           @close="showStatus = false"
         />
 
+        <OptModal
+          :visible="showOtpModal"
+          :email="userEmail"
+          @close="showOtpModal = false"
+          @verified="handleOtpVerified"
+        />
+
+        <button :disabled="loading || !passwordChecks.allValid" class="login-btn">
+          <span v-if="loading">Signing up...</span>
+          <span v-else>SIGN UP</span>
+        </button>
+
+        <div class="sign-up">
+          <label>Already a Watguessr?
+            <span class="link" @click="$emit('openLogin')">LOGIN</span>
+          </label>
+        </div>
       </form>
     </div>
   </div>
@@ -86,9 +91,14 @@
 <script>
 import { useUserStore } from '@/stores/entity/user.ts';
 import StatusModal from "@/views/auth/StatusModal.vue";
+import OptModal from "@/views/auth/OptModal.vue";
 
 export default {
   props: ['visible'],
+  components: {
+    OptModal,
+    StatusModal,
+  },
   data() {
     return {
       email: '',

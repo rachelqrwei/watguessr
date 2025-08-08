@@ -22,5 +22,12 @@ public class Utility {
         mailSender.send(msg);
     }
 
+    public void sendOtpEmail(String to) {
+        String otp = generateOTP();
+        String subject = "Your WatGuessr Verification Code";
+        String body = "Your one time password is: " + otp + "\nIt will expire in 5 minutes.";
+
+        sendEmail(to, subject, body);
+    }
 
 }
