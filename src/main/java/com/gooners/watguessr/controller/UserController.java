@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 
@@ -8,7 +9,10 @@ import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
 import com.gooners.watguessr.utils.Utility;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.javamail.JavaMailSender;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -46,13 +50,6 @@ public class UserController {
         return ResponseEntity.ok("Account created");
     }
 
-
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
-        userService.signup(dto);
-        return ResponseEntity.ok("Account created");
-    }
-
     @GetMapping(value = "/{id}")
     public User getUser(@PathVariable UUID id) {
         return this.userService.findById(id);
@@ -65,8 +62,27 @@ public class UserController {
 
     @PostMapping(value = "/send-email")
     public void sendEmail() {
-        utility.sendEmail("youremail@example.com", "Test Subject", "Hello from WatGuessr!");
+        utility.sendEmail("wukenny0126@gmail.com", "Test Subject", "Hello from WatGuessr!");
     }
+
+    @PostMapping("/send-otp")
+    public String sendOtp(@RequestParam String to) {
+        utility.sendOtpEmail(to);
+        return "OTP sent to " + to;
+    }
+//    @PostMapping("/request-verification-code")
+//    public ResponseEntity<?> sendCode(@RequestParam String email) {
+//        // 1. Generate OTP
+//        // 2. Save OTP and expiry to user/email_verification table
+//        // 3. Send email
+//    }
+//
+//    @PostMapping("/verify-code")
+//    public ResponseEntity<?> verifyCode(@RequestBody CodeDto dto) {
+//        // 1. Lookup code from DB
+//        // 2. Check expiry
+//        // 3. If valid: mark as verified
+//    }
 
     @GetMapping(value = "/leaderboard")
     public QueryResults<LeaderboardUser> getLeaderboard(
@@ -78,11 +94,6 @@ public class UserController {
         return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
     }
 
-    @PostMapping("/send-otp")
-    public String sendOtp(@RequestParam String to) {
-        utility.sendOtpEmail(to);
-        return "OTP sent to " + to;
-    }
 //    @PostMapping("/request-verification-code")
 //    public ResponseEntity<?> sendCode(@RequestParam String email) {
 //        // 1. Generate OTP

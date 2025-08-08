@@ -80,7 +80,6 @@
 
         <button type="submit" class="login-btn">Sign Up</button>
 
-
         <div class="sign-up">
           <label>Already a Watguessr?
             <span class="link" @click="$emit('openLogin')">LOGIN</span>
