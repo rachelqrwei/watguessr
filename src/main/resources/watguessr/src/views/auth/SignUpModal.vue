@@ -91,12 +91,12 @@
 <script>
 import { useUserStore } from '@/stores/entity/user.ts';
 import StatusModal from "@/views/auth/StatusModal.vue";
-import OptModal from "@/views/auth/OptModal.vue";
+import OtpModal from "@/views/auth/OtpModal.vue";
 
 export default {
   props: ['visible'],
   components: {
-    OptModal,
+    OptModal: OtpModal,
     StatusModal,
   },
   data() {
