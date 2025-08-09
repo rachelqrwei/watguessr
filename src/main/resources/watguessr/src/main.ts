@@ -22,7 +22,6 @@ import {
   faUsers,
   faEye,
   faEyeSlash,
-  faUsers,
   faImage,
   faSearch,
   faExclamationTriangle,
@@ -34,8 +33,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
-library.add(faPlay, faTrophy, faUser, faCog, faMapMarkerAlt, faChevronDown, faStar, faClipboard, faUsers, faEye, faEyeSlash,)
-library.add(faPlay, faTrophy, faUser, faCog, faMapMarkerAlt, faChevronDown, faStar, faClipboard, faUsers,faEye, faEyeSlash,)
 library.add(
   faPlay,
   faTrophy,
@@ -46,6 +43,8 @@ library.add(
   faStar,
   faClipboard,
   faUsers,
+  faEye,
+  faEyeSlash,
   faImage,
   faSearch,
   faExclamationTriangle,
