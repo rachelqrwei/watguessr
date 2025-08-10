@@ -23,17 +23,15 @@ import java.util.UUID;
 @RequestMapping("api/guess")
 public class GuessController {
 
-    @Autowired
-    private GuessService guessService;
+    private final GuessService guessService;
+    private final RoundService roundService;
+    private final GuessMapper guessMapper;
 
-    @Autowired
-    private RoundService roundService;
-
-    @Autowired
-    private GameService gameService;
-
-    @Autowired
-    private GuessMapper guessMapper;
+    public GuessController(GuessService guessService, RoundService roundService, GuessMapper guessMapper) {
+        this.guessService = guessService;
+        this.roundService = roundService;
+        this.guessMapper = guessMapper;
+    }
 //    @PostMapping
 //    public void guess(@RequestBody GuessDto guessDto) {
 //        guessService.create(guessDto);
