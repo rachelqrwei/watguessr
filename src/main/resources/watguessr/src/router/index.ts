@@ -27,6 +27,11 @@ const router = createRouter({
       name: 'singleplayerGameEnd',
       component: () => import('../views/game-end-components/SingleplayerGameEnd.vue'),
     },
+    {
+      path: '/multiplayer-game-end',
+      name: 'multiplayerGameEnd',
+      component: () => import('../views/game-end-components/MultiplayerGameEnd.vue'),
+    },
   ],
 })
 
