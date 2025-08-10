@@ -6,9 +6,11 @@ export interface GameState {
   status: 'idle' | 'loading' | 'playing' | 'ended';
   currentRound: number;
   maxRounds: number;
-  scores: Record<string, number>;
+  scores: any;
   finalWinner: string | null;
   currentView: string;
+  players: any[];
+  playersCompletionStatus: any;
 }
 
 export const state = (): GameState => ({
@@ -18,7 +20,20 @@ export const state = (): GameState => ({
   status: 'idle',
   currentRound: 1,
   maxRounds: 5,
-  scores: {},
   finalWinner: null,
-  currentView: 'Map'
+  currentView: 'Map',
+  players: [
+    { id: 'player1', name: 'Alice' },
+    { id: 'player2', name: 'Bob' },
+    { id: 'player3', name: 'Charlie' },
+    { id: 'player4', name: 'Dana' }
+  ],
+  playersCompletionStatus: {
+    player1: true,   // Alice completed
+    player2: false,  // Bob not completed
+    player3: true,   // Charlie completed
+    player4: false   // Dana not completed
+  },
+  scores: {
+  }
 });

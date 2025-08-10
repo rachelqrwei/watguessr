@@ -11,5 +11,7 @@ export const getters: GetterTree<GameState, RootState> = {
   getGameStatus: (state) => state.status,
   getFinalWinner: (state) => state.finalWinner,
   getScores: (state) => state.scores,
-  getCurrentView: (state) => state.currentView
+  getCurrentView: (state) => state.currentView,
+  getPlayers: (state) => state.players,
+  getPlayersCompletionStatus: (state) => state.playersCompletionStatus,
 };

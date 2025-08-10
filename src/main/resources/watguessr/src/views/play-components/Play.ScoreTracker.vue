@@ -1,5 +1,6 @@
 <template>
   <div class="player-score-tracker-container">
+    <!-- Player 1 (fixed on left) -->
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
         <span class="player-name">{{ player1Name }}</span>
@@ -16,64 +17,95 @@
       </div>
     </div>
 
-    <div class="player-score-tracker-2" v-if="getGameMode === 'Multiplayer'">
-      <div class="player-score-text-container">
-        <span class="player-points">{{ player2Score }} PTS</span>
-        <span class="player-name">{{ player2Name }}</span>
-      </div>
-      <div class="player-score-progress-container">
-        <div
-          class="player-score-progress-bar"
-          :style="{
-            width: player2ScorePercentage + '%',
-            background: 'var(--player-2-gradient)'
-          }"
-        />
+    <!-- Other players on the right -->
+    <div class="player-score-tracker-others" v-if="getGameMode === 'Singleplayer'">
+      <div
+        class="other-player"
+        v-for="player in otherPlayers"
+        :key="player.id"
+      >
+        <div class="player-score-text-container">
+          <span class="player-points">{{ getScores[player.id] ?? 0 }} PTS</span>
+          <span class="player-name">{{ player.name }}</span>
+          <span v-if="completionStatus[player.id]" class="checkmark">✔️</span>
+        </div>
+        <div class="player-score-progress-container">
+          <div
+            class="player-score-progress-bar"
+            :style="{
+              width: getScorePercentage(player.id) + '%',
+              background: player.gradient
+            }"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   name: "PlayerScoreTracker",
   data() {
     return {
-      // TODO: connect player info to backend
-      player1Name: "NAME 1",
-      player2Name: "NAME 2",
-      player1Score: 180,
-      player2Score: 300
+      player1Name: "NAME 1",  // keep this as is
+      getScores: {
+        undefined: 450,
+        player2: 300,
+        player3: 510,
+        player4: 270,
+      }
     };
   },
   computed: {
-    ...mapGetters('game', [
-      'getScores',
-      'getGameMode'
+    ...mapGetters("game", [
+      "getGameMode",
+      "getPlayerId",
+      "getPlayers",
+      "getPlayersCompletionStatus",
     ]),
+
     player1ScorePercentage() {
       if (this.getGameMode == "Singleplayer") {
         return Math.floor(
-          (this.getScores['undefined'] * 100) / 5000
+          (this.getScores["undefined"] * 100) / 10000
         );
-      }
-      else {
+      } else {
         return Math.floor(
           (this.getScores[0] * 100) /
           (this.getScores[0] + this.getScores[1])
         );
       }
-
     },
-    player2ScorePercentage() {
-      return Math.floor(
-        (this.player2Score * 100) /
-        (this.player1Score + this.player2Score)
-      );
-    }
-  }
+
+    otherPlayers() {
+      // Exclude player 1 from the list of players
+      const player1Id = this.getPlayers?.[0]?.id; // assuming player1 is first in getPlayers
+      return (this.getPlayers || [])
+        .filter((p) => p.id !== player1Id)
+        .map((player, index) => ({
+          ...player,
+          gradient:
+            index % 2 === 0
+              ? "var(--player-2-gradient)"
+              : "var(--player-3-gradient)", // extend as needed for more players
+        }));
+    },
+
+    completionStatus() {
+      return this.getPlayersCompletionStatus || {};
+    },
+  },
+  methods: {
+    getScorePercentage(playerId) {
+      const scores = Object.values(this.getScores || {});
+      const total = scores.reduce((acc, val) => acc + val, 0) || 1;
+      const playerScore = this.getScores[playerId] || 0;
+      return Math.floor((playerScore * 100) / total);
+    },
+  },
 };
 </script>
 
@@ -90,51 +122,78 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 12px;
 }
 
-.player-score-tracker-1,
-.player-score-tracker-2 {
+.player-score-tracker-1 {
   display: flex;
   flex-direction: column;
+  max-width: 45%;
+}
+
+.player-score-tracker-others {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 45%;
+  align-items: flex-end;
+}
+
+.other-player {
+  width: 100%;
 }
 
 .player-score-text-container {
   background: var(--dark-grey);
   padding: 12px 25px 0 25px;
   display: flex;
-  gap: 28px;
   align-items: center;
-  width: fit-content;
+  justify-content: flex-end;
+  gap: 8px;
   box-shadow: none !important;
   filter: none;
+  border-radius: 25px 25px 0 0;
 }
 
-.player-score-tracker-1 .player-score-text-container {
-  border-radius: 25px 25px 0 0px;
+.player-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
 }
 
-.player-score-tracker-2 .player-score-text-container {
-  border-radius: 25px 25px 0px 0;
-  margin-left: auto;
+.player-points {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--light-grey);
+  white-space: nowrap;
+}
+
+.checkmark {
+  font-size: 18px;
+  color: var(--yellow);
+  margin-left: 8px;
+  white-space: nowrap;
 }
 
 .player-score-progress-container {
   background: var(--dark-grey);
   padding: 12px 12px 15px 25px;
-  width: 400px;
+  width: 100%;
   height: 40px;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
   position: relative;
+  border-radius: 0 0 25px 25px;
 }
 
 .player-score-progress-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 12px;
   left: 25px;
   right: 12px;
   bottom: 15px;
-  background: #474F54;
+  background: #474f54;
   border-radius: 12px;
 }
 
@@ -144,26 +203,5 @@ export default {
   transition: width 0.3s ease;
   position: relative;
   z-index: 1;
-}
-
-.player-score-tracker-1 .player-score-progress-container {
-  border-radius: 0 25px 25px 25px;
-}
-
-.player-score-tracker-2 .player-score-progress-container {
-  border-radius: 25px 0 25px 25px;
-  direction: rtl;
-}
-
-.player-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--white);
-}
-
-.player-points {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--light-grey);
 }
 </style>
