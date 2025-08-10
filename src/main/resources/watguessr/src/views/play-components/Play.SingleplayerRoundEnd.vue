@@ -2,25 +2,25 @@
   <div class="round-end-container">
     <div class="round-header">
       <span class="round-label">ROUND</span>
-      <span class="round-number">#{{ roundNumber }}</span>
+      <span class="round-number">#{{ getCurrentRound }}</span>
     </div>
-    
+
     <div class="points-section">
-      <span class="points-label">POINTS LOST</span>
-      <span class="points-value">{{ pointsLost }}</span>
+      <span class="points-label">POINTS</span>
+      <span class="points-value">{{ displayPoints }}</span>
     </div>
-    
+
     <div class="stats-section">
       <div class="stat-item">
         <span class="stat-label">TIME TAKEN</span>
-        <span class="stat-value">{{ timeTaken }}</span>
+        <span class="stat-value">{{ displayTimeTaken }}</span>
       </div>
       <div class="stat-item">
         <span class="stat-label">DISTANCE</span>
-        <span class="stat-value">{{ distance }}</span>
+        <span class="stat-value">{{ displayDistance }}</span>
       </div>
     </div>
-    
+
     <div class="map-section">
       <svg width="100%" height="220" viewBox="0 0 400 220">
         <defs>
@@ -45,14 +45,44 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-// Placeholder props/data
-const roundNumber = 2
-const pointsLost = 37
-const timeTaken = '00:23.45'
-const distance = '142m'
+<script>
+import {mapGetters} from "vuex";
 
+export default {
+  props: {
+    points: {
+      type: Number,
+      required: true
+    },
+    distance: {
+      type: Number,
+      required: true
+    }
+  },
+  computed: {
+    ...mapGetters('guess', [
+      'getGuessTime',
+    ]),
+    ...mapGetters('round', [
+      'getRoundResult',
+    ]),
+    displayTimeTaken() {
+      const ms = Math.floor((this.getGuessTime % 1000) / 10);
+      const totalSeconds = Math.floor(this.getGuessTime / 1000);
+      const s = Math.floor(totalSeconds % 60);
+      const m = Math.floor(totalSeconds / 60);
+      const pad = (n, z = 2) => String(n).padStart(z, '0');
+      return `${pad(m)}:${pad(s)}.${pad(ms)}`;
+    },
+    displayDistance() {
+      return this.distance;
+    },
+    displayPoints() {
+      return this.points;
+    },
+    ...mapGetters("game", ["getCurrentRound"])
+  },
+};
 </script>
 
 <style scoped>
@@ -152,4 +182,4 @@ const distance = '142m'
   border-radius: 15px;
   padding: 15px;
 }
-</style> 
+</style>

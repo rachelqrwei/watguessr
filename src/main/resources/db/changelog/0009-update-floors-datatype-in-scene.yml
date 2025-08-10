@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9-1
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: scene
+            columnName: floor
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE scene DROP COLUMN IF EXISTS floor;
+              ALTER TABLE scene ADD COLUMN floor VARCHAR(255);
+  - changeSet:
+      id: 9-4
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: scene
+            columnName: location_x
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE scene DROP COLUMN IF EXISTS location_x;
+              ALTER TABLE scene ADD COLUMN location_x DOUBLE PRECISION NULL;
+  - changeSet:
+      id: 9-5
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: scene
+            columnName: location_y
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE scene DROP COLUMN IF EXISTS location_y;
+              ALTER TABLE scene ADD COLUMN location_y DOUBLE PRECISION NULL;

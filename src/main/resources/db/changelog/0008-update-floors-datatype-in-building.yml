@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8-1
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: building
+            columnName: floors
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE building DROP COLUMN IF EXISTS floors;
+              ALTER TABLE building ADD COLUMN floors VARCHAR(255)[];
+  - changeSet:
+      id: 8-2
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: building
+            columnName: longitude
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE building DROP COLUMN IF EXISTS longitude;
+              ALTER TABLE building ADD COLUMN longitude decimal(9,6);
+  - changeSet:
+      id: 8-3
+      author: LEANNE
+      preConditions:
+        - columnExists:
+            tableName: building
+            columnName: longitude
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE building DROP COLUMN IF EXISTS latitude;
+              ALTER TABLE building ADD COLUMN latitude decimal(9,6);

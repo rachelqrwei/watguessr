@@ -4,54 +4,71 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
+  <div class="selection-display">
+    <span>Current round: {{getCurrentRound}}</span>
+    <div>
+      <p>Selected Building: {{getGuessBuilding}}</p>
+      <p>Lat: {{getGuessX}}</p>
+      <p>Long: {{getGuessY}}</p>
+    </div>
+    <label class="floor-select-label">
+      Select Floor:
+      <select v-model="selectedFloor" class="floor-select">
+        <option disabled value="">-- Choose a floor --</option>
+        <option>Basement</option>
+        <option>Ground</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+      </select>
+    </label>
+  </div>
+
 
   <div class="game-container">
-    <div v-if="currentView === 'Map'">
-      <button class="view-change-button" @click="changeView('Image')">
+    <!-- FLOOR SELECT DROPDOWN -->
+    <div v-if="getCurrentView === 'Map'">
+      <button class="view-change-button" @click="CHANGE_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
       </button>
-      <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
-        TEST ROUND END
-      </button>
-      <PlayMapView />
+      <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
-    <div v-if="currentView === 'Image'">
-      <button class="view-change-button" @click="changeView('Map')">
+    <div v-if="getCurrentView === 'Image'">
+      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
         VIEW MAP
-      </button>
-      <button class="view-change-button test-end-btn" @click="changeView('RoundEnd')">
-        TEST ROUND END
       </button>
       <PlayImageView />
     </div>
 
-    <div v-if="currentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd />
-      <button class="view-change-button" @click="changeView('Map')">
+    <div v-if="getCurrentView === 'RoundEnd'">
+      <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
       BACK TO MAP
       </button>
     </div>
   </div>
-  <div v-if="(currentView === 'Map' || currentView === 'Image')">
-    <button class="submit-button" style="color: var(--yellow);">SUBMIT</button>
+  <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
+    <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
   </div>
-  <div v-else-if="currentView === 'RoundEnd'">
-    <button class="submit-button" style="color: white">NEXT ROUND</button>
+  <div v-else-if="getCurrentView === 'RoundEnd'">
+    <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">
+      {{ getCurrentRound < getMaxRounds ? 'NEXT ROUND' : 'END GAME' }}
+    </button>
   </div>
 
   <PlayScoreTracker />
 </template>
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import {mapGetters, mapActions, mapMutations} from 'vuex';
 import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
 import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
 import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 export default {
   components: {
@@ -64,39 +81,84 @@ export default {
   },
   data() {
     return {
-      currentView: 'Map'
+      timeLeft: 60000,
+      selectedBuilding: '',
+      selectedFloor: '',
+      nextRoundOrEndGameButtonText: 'NEXT ROUND',
     }
   },
   computed: {
-    ...mapGetters('game', ['gameId', 'gameStatus', 'finalWinner']),
-    // Add other module getters similarly:
-    ...mapGetters('round', ['scene', 'winner']),
+    ...mapGetters('game', [
+      'getGameId',
+      'getCurrentView',
+      'getGameStatus',
+      'getFinalWinner',
+      'getCurrentRound',
+      'getMaxRounds'
+    ]),
+    ...mapGetters('round', [
+      'getScene',
+      'getWinner',
+      'getRoundResult'
+    ]),
+    ...mapGetters('guess', [
+      'getGuessTime',
+      'getGuessX',
+      'getGuessY',
+      'getGuessBuilding',
+      'getGuessFloor'
+    ]),
+
   },
   methods: {
-    ...mapActions('game', ['createSingleplayerGame']),
-    ...mapActions('guess', ['submitGuess']),
-
-    changeView(nextView) {
-      this.currentView = nextView;
-    },
+    ...mapActions('game', [
+      'createSingleplayerGame',
+      'recordRoundWinner',
+      'endCurrentRound'
+    ]),
+    ...mapActions('round', [
+      "startRound"
+    ]),
+    ...mapActions('guess', [
+      'submitGuess'
+    ]),
+    ...mapMutations('game', [
+      'CHANGE_VIEW',
+      'INCREMENT_ROUND'
+    ]),
 
     handleSubmit() {
-      const guess = {
-        user: 'player1', // replace with actual user info
-        building: this.scene.building,
-        floor: this.scene.floor,
-      };
-      this.submitGuess(guess).then(() => {
-        this.changeView('RoundEnd');
-      });
+      this.submitGuess();
     },
 
     nextRoundOrEndGame() {
-      if (this.gameStatus === 'ended') {
-        // Handle end game, e.g. route home or reset
-      } else {
-        this.changeView('Map');
+      if (this.getCurrentRound >= this.getMaxRounds) {
+
+        // Go to game end screen
+        this.$router.push('/singleplayer-game-end')
+        return;
       }
+
+      //if still has rounds left
+      //reset every UI detail about current round
+      this.selectedBuilding = null;
+      this.selectedFloor = '';
+      this.resetTimer();
+
+      //start next round
+      this.startRound({gameId: this.getGameId});
+      this.INCREMENT_ROUND();
+
+      //change view to map again
+      this.CHANGE_VIEW("Map");
+    },
+
+    handleBuildingSelected(payload) {
+      this.selectedBuilding = payload;
+    },
+
+    resetTimer() {
+      this.timeLeft = 60000 // or any other time in ms
     }
   },
   mounted() {
@@ -201,5 +263,12 @@ export default {
 
 .submit-button:hover {
   transform: translateX(-50%) translateY(-2px);
+}
+
+.selection-display {
+  z-index: 999;
+  position: absolute;
+  top: 100px;
+  background: black;
 }
 </style>

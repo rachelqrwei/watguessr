@@ -21,7 +21,7 @@ public class Scene {
     private Double locationY;
 
     @Column(name = "floor")
-    private Integer floor;
+    private String floor;
 
     @ManyToOne
     @JoinColumn(name = "building_id", foreignKey = @ForeignKey(name = "fk_scene_building"))
@@ -43,11 +43,11 @@ public class Scene {
         this.id = id;
     }
 
-    public Integer getFloor() {
+    public String getFloor() {
         return floor;
     }
 
-    public void setFloor(Integer floor) {
+    public void setFloor(String floor) {
         this.floor = floor;
     }
 

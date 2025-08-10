@@ -1,56 +1,81 @@
-<script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
-
-//TODO: connect player info to backend
-const player1Name = "NAME 1";
-const player2Name = "NAME 2";
-
-const player1Score = 180;
-const player2Score = 300;
-
-const player1ScorePercentage = computed(() => {
-  return Math.floor((player1Score * 100) / (player1Score + player2Score))
-})
-
-const player2ScorePercentage = computed(() => {
-  return Math.floor((player2Score * 100) / (player1Score + player2Score))
-})
-</script>
-
 <template>
   <div class="player-score-tracker-container">
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
         <span class="player-name">{{ player1Name }}</span>
-        <span class="player-points">{{ player1Score }} PTS</span>
+        <span class="player-points">{{ getScores['undefined'] }} PTS</span>
       </div>
       <div class="player-score-progress-container">
-        <div class="player-score-progress-bar"
-             :style="{
-               width: player1ScorePercentage + '%',
-               background: 'var(--player-1-gradient)'
-             }"
+        <div
+          class="player-score-progress-bar"
+          :style="{
+            width: player1ScorePercentage + '%',
+            background: 'var(--player-1-gradient)'
+          }"
         />
       </div>
     </div>
 
-    <div class="player-score-tracker-2">
+    <div class="player-score-tracker-2" v-if="getGameMode === 'Multiplayer'">
       <div class="player-score-text-container">
-              <span class="player-points">{{ player2Score }} PTS</span>
+        <span class="player-points">{{ player2Score }} PTS</span>
         <span class="player-name">{{ player2Name }}</span>
-
       </div>
       <div class="player-score-progress-container">
-        <div class="player-score-progress-bar"
-             :style="{
-               width: player2ScorePercentage + '%',
-               background: 'var(--player-2-gradient)'
-             }"
+        <div
+          class="player-score-progress-bar"
+          :style="{
+            width: player2ScorePercentage + '%',
+            background: 'var(--player-2-gradient)'
+          }"
         />
       </div>
     </div>
   </div>
 </template>
+
+<script>
+import {mapGetters} from "vuex";
+
+export default {
+  name: "PlayerScoreTracker",
+  data() {
+    return {
+      // TODO: connect player info to backend
+      player1Name: "NAME 1",
+      player2Name: "NAME 2",
+      player1Score: 180,
+      player2Score: 300
+    };
+  },
+  computed: {
+    ...mapGetters('game', [
+      'getScores',
+      'getGameMode'
+    ]),
+    player1ScorePercentage() {
+      if (this.getGameMode == "Singleplayer") {
+        return Math.floor(
+          (this.getScores['undefined'] * 100) / 5000
+        );
+      }
+      else {
+        return Math.floor(
+          (this.getScores[0] * 100) /
+          (this.getScores[0] + this.getScores[1])
+        );
+      }
+
+    },
+    player2ScorePercentage() {
+      return Math.floor(
+        (this.player2Score * 100) /
+        (this.player1Score + this.player2Score)
+      );
+    }
+  }
+};
+</script>
 
 <style scoped>
 .player-score-tracker-container {

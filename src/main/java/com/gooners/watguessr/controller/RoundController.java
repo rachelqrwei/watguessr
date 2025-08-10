@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.service.RoundService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,8 @@ public class RoundController {
     }
 
     @GetMapping(value = "/create")
-    public UUID createRound(@RequestParam UUID gameId) {
+    public Round createRound(@RequestParam UUID gameId) {
         return roundService.create(gameId);
     }
+
 }

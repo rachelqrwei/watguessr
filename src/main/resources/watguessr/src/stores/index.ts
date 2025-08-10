@@ -1,12 +1,12 @@
 import { createStore } from 'vuex';
 import type { Module } from 'vuex';
-import { gameModule } from './modules/game';
-import roundModule from './modules/round';
-import guessModule from './modules/guess';
+import { gameModule } from './modules/game/index';
+import roundModule from './modules/round/index';
+import guessModule from './modules/guess/index';
 import leaderboardModule from './modules/leaderboard';
-import type { RoundState } from './modules/round';
-import type { GameState } from './modules/game';
-import type { GuessState } from './modules/guess';
+import type { RoundState } from './modules/round/state';
+import type { GameState } from './modules/game/state';
+import type { GuessState } from './modules/guess/state';
 
 export interface LeaderboardState {
   leaderboardData: any;
