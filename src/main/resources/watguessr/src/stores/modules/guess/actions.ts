@@ -12,7 +12,7 @@ export const actions: ActionTree<GuessState, RootState> = {
     //calculate points from the round
     try {
       const response = await fetch(
-        `http://localhost:5173/api/guess/calculate-points?roundId=${rootState.round.roundId}`,
+        `http://localhost:5173/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -54,8 +54,8 @@ public class GuessController {
                 .body(result);
     }
 
-    @PostMapping("/calculate-points")
-    public ResponseEntity<RoundResult> calculatePoints(
+    @PostMapping("/evaluate-guess")
+    public ResponseEntity<RoundResult> evaluateGuess(
             @RequestParam UUID roundId,
             @RequestBody Guess guess
     ) {
