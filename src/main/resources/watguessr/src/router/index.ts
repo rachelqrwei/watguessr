@@ -25,7 +25,7 @@ const router = createRouter({
     {
       path: '/singleplayer-game-end',
       name: 'singleplayerGameEnd',
-      component: () => import('../views/SingleplayerGameEnd.vue'),
+      component: () => import('../views/game-end-components/SingleplayerGameEnd.vue'),
     },
   ],
 })
