@@ -17,24 +17,36 @@ onMounted(() => {
 
 <template>
   <div class="home-container">
-    <HeroSection :isLoaded="isLoaded" />
-    <GameModesSection :isLoaded="isLoaded" />
-    <FeaturesSection :isLoaded="isLoaded" />
-    <LeaderboardSection :isLoaded="isLoaded" />
-    <TestimonialsSection :isLoaded="isLoaded" />
+    <div class="home-content-scale">
+      <HeroSection :isLoaded="isLoaded" />
+      <GameModesSection :isLoaded="isLoaded" />
+      <FeaturesSection :isLoaded="isLoaded" />
+      <LeaderboardSection :isLoaded="isLoaded" />
+      <TestimonialsSection :isLoaded="isLoaded" />
+    </div>
   </div>
 </template>
 
 <style scoped>
 .home-container {
   min-height: 100vh;
-  background: var(--dark-grey);
+  background: url('/HomePage.png') center top / 100% auto no-repeat, var(--dark-grey);
   padding-top: 100px;
+}
+
+.home-content-scale {
+  transform: none;
+  transform-origin: top center;
 }
 
 @media (max-width: 768px) {
   .home-container {
     padding-top: 80px;
+    background: url('/HomePage.png') center top / 100% auto no-repeat, var(--dark-grey);
+  }
+
+  .home-content-scale {
+    transform: none;
   }
 }
 </style>

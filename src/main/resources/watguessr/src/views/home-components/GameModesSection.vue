@@ -1,33 +1,37 @@
 <template>
   <section class="play-section" :class="{ loaded: isLoaded }">
     <div class="play-content">
-      <div class="section-header">
-        <h2>PLAY WATGUESSR</h2>
-      </div>
-      
-      <div class="game-modes">
-        <div class="player-1-trapezoid">
-          <div class="play-option-container">
-            <h3>SOLO</h3>
-            <p>PLAY BY YOURSELF UNTIL YOUR POINTS RUN OUT!</p>
-          </div>
+      <div class="game-modes-wrapper">
+        <div class="section-header">
+          <h2>PLAY WATGUESSR</h2>
         </div>
 
-        <div class="player-2-trapezoid">
-          <div class="play-option-container">
-            <h3>DUELS</h3>
-            <p>PLAY AGAINST A FRIEND AND COMPETE FOR POINTS!</p>
-          </div>
-        </div>
-
-        <div class="daily-mini-button">
-          <div class="daily-mini-content">
-            <div class="daily-mini-progress">
-              <img src="/DailyMini.png" alt="Daily Mini Progress" class="daily-mini-image" />
+        <div class="game-modes">
+          <div class="trapezoid-pair">
+            <div class="player-1-trapezoid">
+              <div class="play-option-container">
+                <h3>SOLO</h3>
+                <p>PLAY BY YOURSELF UNTIL YOUR POINTS RUN OUT!</p>
+              </div>
             </div>
-            <div class="daily-mini-text">
-              <h3>DAILY</h3>
-              <h3>MINI</h3>
+
+            <div class="player-2-trapezoid">
+              <div class="play-option-container">
+                <h3>DUELS</h3>
+                <p>PLAY AGAINST A FRIEND AND COMPETE FOR POINTS!</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="daily-mini-button">
+            <div class="daily-mini-content">
+              <div class="daily-mini-progress">
+                <img src="/DailyMini.png" alt="Daily Mini Progress" class="daily-mini-image" />
+              </div>
+              <div class="daily-mini-text">
+                <h3>DAILY</h3>
+                <h3>MINI</h3>
+              </div>
             </div>
           </div>
         </div>
@@ -47,12 +51,12 @@ defineProps({
 
 <style scoped>
 .play-section {
-  padding: 20px 40px 40px;
+  padding: 18px 36px 36px;
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-delay: 0.2s;
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -62,21 +66,25 @@ defineProps({
 }
 
 .play-content {
-  max-width: 1200px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.game-modes-wrapper {
+  width: fit-content;
   margin: 0 auto;
 }
 
 .section-header {
   text-align: left;
   margin-bottom: 15px;
-  margin-left: calc(50% - 455px);
 }
 
 .section-header h2 {
-  font-size: 0.9rem;
+  font-size: 0.81rem;
   font-weight: 600;
-  color: var(--light-grey);
-  margin-bottom: 8px;
+  color: var(--white);
+  margin-bottom: 7px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   text-shadow: none;
@@ -86,23 +94,45 @@ defineProps({
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+}
+
+.trapezoid-pair {
+  position: relative;
+  width: 576px; /* scaled from 640 */
+  height: 162px; /* scaled from 180 */
+}
+
+.player-1-trapezoid,
+.player-2-trapezoid {
+  position: absolute;
+  top: 0;
+  width: 324px; /* scaled from 360 */
+  height: 162px; /* scaled from 180 */
+  border-radius: 10px 5px 20px 10px;
+  padding: 27px; /* scaled from 30 */
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
 }
 
 .player-1-trapezoid {
-  position: relative;
-  width: 360px;
-  height: 180px;
-  clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%);
-  border-radius: 10px 5px 20px 10px;
-  padding: 30px;
-  overflow: hidden;
+  left: 0;
   z-index: 2;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%);
 }
 
-.player-1-trapezoid::before {
+.player-2-trapezoid {
+  left: 252px; /* scaled from 280 */
+  z-index: 1;
+  padding-left: 90px; /* scaled from 100 */
+  clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+.player-1-trapezoid::before,
+.player-2-trapezoid::before {
   content: "";
   position: absolute;
   top: 0;
@@ -115,48 +145,21 @@ defineProps({
   transition: opacity 0.3s ease;
 }
 
-.player-1-trapezoid:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.player-1-trapezoid:hover::before {
-  opacity: 1;
-}
-
-.player-2-trapezoid {
-  position: relative;
-  width: 360px;
-  height: 180px;
-  left: -80px;
-  clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
-  border-radius: 10px 5px 20px 10px;
-  padding: 30px;
-  padding-left: 100px;
-  overflow: hidden;
-  z-index: 1;
-  transition: all 0.3s ease;
-  cursor: pointer;
+.player-1-trapezoid::before {
+  background-image: var(--player-1-gradient);
 }
 
 .player-2-trapezoid::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background-image: var(--player-2-gradient);
-  opacity: 0.8;
-  z-index: -1;
-  transition: opacity 0.3s ease;
 }
 
+.player-1-trapezoid:hover,
 .player-2-trapezoid:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
+.player-1-trapezoid:hover::before,
 .player-2-trapezoid:hover::before {
   opacity: 1;
 }
@@ -173,7 +176,7 @@ defineProps({
   font-size: 38px;
   color: var(--white);
   margin-bottom: 12px;
-  text-shadow: 
+  text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.5),
     0 0 20px rgba(255, 255, 255, 0.2);
   letter-spacing: -1px;
@@ -192,9 +195,9 @@ defineProps({
 
 .daily-mini-button {
   position: relative;
-  width: 250px;
-  height: 180px;
-  border-radius: 20px;
+  width: 225px; /* scaled down from 250 */
+  height: 162px; /* scaled down from 180 */
+  border-radius: 18px;
   padding: 0;
   overflow: hidden;
   z-index: 0;
@@ -202,10 +205,11 @@ defineProps({
   cursor: pointer;
   display: flex;
   align-items: center;
-  background: #4A4A4C;
+  background: rgba(74, 74, 76, 0.65);
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  margin-left: -70px;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin-left: 0;
 }
 
 .daily-mini-button::before {
@@ -219,7 +223,7 @@ defineProps({
   opacity: 0;
   z-index: -1;
   transition: opacity 0.3s ease;
-  border-radius: 20px;
+  border-radius: inherit;
 }
 
 .daily-mini-button:hover {
@@ -236,15 +240,15 @@ defineProps({
   height: 100%;
   display: flex;
   align-items: center;
-  padding: 0 20px 0 0;
+  padding: 0 18px 0 0;
   gap: 0;
   z-index: 1;
 }
 
 .daily-mini-progress {
   flex-shrink: 0;
-  width: 140px;
-  height: 180px;
+  width: 126px; /* 140 * 0.9 */
+  height: 162px; /* match container height */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -268,16 +272,16 @@ defineProps({
   justify-content: flex-start;
   gap: -5px;
   padding-left: 0;
-  padding-top: 10px;
-  padding-bottom: 55px;
-  padding-right: 20px;
+  padding-top: 9px;
+  padding-bottom: 50px;
+  padding-right: 18px;
 }
 
 .daily-mini-text h3 {
   font-weight: 900;
-  font-size: 32px;
+  font-size: 28.8px; /* 32 * 0.9 */
   color: var(--white);
-  text-shadow: 
+  text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.5),
     0 0 20px rgba(255, 255, 255, 0.2);
   letter-spacing: -0.5px;
@@ -290,51 +294,61 @@ defineProps({
   .section-header h2 {
     font-size: 1.8rem;
   }
-  
+
   .game-modes {
     flex-direction: column;
     gap: 15px;
   }
-  
+
+  .trapezoid-pair {
+    position: static;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
   .player-1-trapezoid,
   .player-2-trapezoid {
+    position: static;
     width: 280px;
     height: 130px;
-    left: 0;
     padding: 20px;
   }
-  
+
   .player-2-trapezoid {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
     padding-left: 20px;
   }
-  
+
   .play-option-container h3 {
     font-size: 28px;
   }
-  
+
   .play-option-container p {
     font-size: 12px;
   }
-  
+
   .daily-mini-button {
     width: 240px;
     height: 140px;
     margin-left: 0;
   }
-  
+
   .daily-mini-content {
     padding: 15px 15px 15px 0;
     gap: 15px;
   }
-  
+
   .daily-mini-progress {
     width: 100px;
     height: 100px;
   }
-  
+
   .daily-mini-text h3 {
     font-size: 20px;
   }
 }
-</style> 
+</style>

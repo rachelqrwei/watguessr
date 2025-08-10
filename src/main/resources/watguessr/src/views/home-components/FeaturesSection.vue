@@ -39,7 +39,7 @@ defineProps({
 
 <style scoped>
 .features-section {
-  padding: 80px 40px;
+  padding: 40px 28px;
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -53,19 +53,23 @@ defineProps({
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
-  max-width: 1000px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 4px;
+  max-width: 960px;
   margin: 0 auto;
+  justify-items: center;
 }
 
 .feature-card {
   text-align: center;
-  padding: 40px 20px;
+  padding: 26px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
+  width: 100%;
+  max-width: 280px;
 }
 
 .feature-card:hover {
@@ -74,9 +78,9 @@ defineProps({
 }
 
 .feature-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 20px;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,10 +90,10 @@ defineProps({
 }
 
 .feature-card h4 {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--white);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.3px;
 }
@@ -104,6 +108,7 @@ defineProps({
 @media (max-width: 768px) {
   .features-grid {
     grid-template-columns: 1fr;
+    max-width: 100%;
   }
 }
 </style> 

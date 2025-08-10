@@ -46,12 +46,11 @@ defineProps({
 
 <style scoped>
 .testimonials-section {
-  padding: 80px 40px;
+  padding: 72px 36px;
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-delay: 1.2s;
-  background: var(--dark-grey);
 }
 
 .testimonials-section.loaded {
@@ -60,16 +59,16 @@ defineProps({
 }
 
 .testimonials-content {
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
   text-align: center;
 }
 
 .testimonials-content h2 {
-  font-size: 1.8rem;
+  font-size: 1.62rem;
   font-weight: 800;
   color: var(--white);
-  margin-bottom: 30px;
+  margin-bottom: 27px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -78,7 +77,7 @@ defineProps({
 .testimonials-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
+  gap: 27px;
   justify-items: center;
 }
 
@@ -86,8 +85,9 @@ defineProps({
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 25px 20px;
+  padding: 23px 18px;
   text-align: center;
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
 }
 
@@ -97,21 +97,21 @@ defineProps({
 }
 
 .testimonial-text {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--light-grey);
   line-height: 1.6;
   font-weight: 500;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 .testimonial-author {
   text-align: left;
-  margin-top: 15px;
+  margin-top: 14px;
 }
 
 .author-name {
-  font-size: 0.9rem;
+  font-size: 0.81rem;
   font-weight: 700;
   color: var(--white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -119,7 +119,7 @@ defineProps({
 }
 
 .author-program {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--light-grey);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-top: 5px;

@@ -24,7 +24,7 @@ const navLinks = [
 <template>
   <Header />
 
-  <div class="layout">
+  <div class="layout" :class="{ 'layout-with-sidebar': showHeader }">
     <div
       class="sidebar-trigger"
       @mouseenter="isHoveringHeader = true"
@@ -74,9 +74,17 @@ const navLinks = [
       </div>
     </aside>
 
-    <main class="main-content" :class="{ 'content-with-sidebar': showHeader, 'content-expanded': !showHeader }">
-      <div class="content-wrapper">
+    <main class="main-content" :class="{ 'content-expanded': !showHeader }">
+      <div class="content-wrapper" :class="{ 'content-wrapper-home': isHomePage }">
         <RouterView />
+        <footer class="site-footer">
+          Made with <span class="heart" aria-label="love" role="img">❤️</span> by
+          <a href="https://www.linkedin.com/in/rachelqrwei/" target="_blank" rel="noopener">Rachel Wei</a>,
+          <a href="https://www.linkedin.com/in/sooyeunleanne/" target="_blank" rel="noopener">Leanne Kim</a>,
+          <a href="https://www.linkedin.com/in/kenny-wu-79a975293/" target="_blank" rel="noopener">Kenny Wu</a>
+          and
+          <a href="https://www.linkedin.com/in/stanley-wng/" target="_blank" rel="noopener">Stanley Wang</a>
+        </footer>
       </div>
     </main>
 
@@ -102,6 +110,11 @@ const navLinks = [
   display: flex;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+}
+
+.layout-with-sidebar {
+  padding-left: 270px; /* reserve space for fixed sidebar */
 }
 
 .sidebar-trigger {
@@ -138,7 +151,7 @@ const navLinks = [
 }
 
 .logo-section {
-  padding: 16px;
+  padding: 24px 16px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, rgba(255, 203, 59, 0.1) 0%, rgba(255, 203, 59, 0.05) 100%);
 }
@@ -323,22 +336,21 @@ const navLinks = [
 
 .main-content {
   flex: 1;
-  margin-left: 0;
+  width: 100%;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.content-expanded {
-  margin-left: 0;
-}
-
-.content-with-sidebar {
-  margin-left: 200px; /* Adjust based on sidebar width */
 }
 
 .content-wrapper {
   padding: 40px;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.content-wrapper-home {
+  padding: 0;
+  max-width: none;
+  width: 100%;
+  margin: 0;
 }
 
 .backdrop {
@@ -369,8 +381,8 @@ const navLinks = [
     width: 30px;
   }
 
-  .main-content {
-    margin-left: 0;
+  .layout-with-sidebar {
+    padding-left: 0;
   }
 
   .content-wrapper {
@@ -439,5 +451,29 @@ const navLinks = [
 }
 .link:hover {
   text-decoration: none;
+}
+
+.site-footer {
+  margin-top: 40px;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--light-grey);
+  text-align: center;
+  font-size: 12px;
+}
+
+.site-footer a {
+  color: var(--yellow);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+.site-footer .heart {
+  display: inline-block;
+  margin: 0 4px;
 }
 </style>

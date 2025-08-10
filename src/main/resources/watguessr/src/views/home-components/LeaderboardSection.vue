@@ -60,12 +60,11 @@ defineProps({
 
 <style scoped>
 .leaderboard-preview {
-  padding: 80px 40px;
+  padding: 72px 36px;
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-delay: 1s;
-  background: var(--dark-grey);
 }
 
 .leaderboard-preview.loaded {
@@ -74,16 +73,16 @@ defineProps({
 }
 
 .leaderboard-content {
-  max-width: 1200px;
+  max-width: 1080px;
   margin: 0 auto;
   text-align: center;
 }
 
 .leaderboard-content h2 {
-  font-size: 1.8rem;
+  font-size: 1.62rem;
   font-weight: 800;
   color: var(--white);
-  margin-bottom: 30px;
+  margin-bottom: 27px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -91,26 +90,54 @@ defineProps({
 
 .leaderboard-list {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 18px;
+  margin-bottom: 27px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-bottom: 6px; /* space for scrollbar */
+  /* hide scrollbar cross-browser */
+  -ms-overflow-style: none; /* IE and old Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.leaderboard-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 10px 20px;
+  padding: 9px 18px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
+  flex: 0 0 auto; /* prevent shrinking so items stay in one row */
 }
 
 .leaderboard-item:hover {
   transform: translateY(-3px);
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* Optional: subtle scrollbar styling */
+.leaderboard-list::-webkit-scrollbar {
+  height: 6px;
+}
+.leaderboard-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 203, 59, 0.4);
+  border-radius: 3px;
 }
 
 .rank-1 {
@@ -132,18 +159,19 @@ defineProps({
 }
 
 .rank-badge {
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   font-weight: 900;
   color: var(--white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 .player-info {
@@ -160,7 +188,7 @@ defineProps({
 }
 
 .player-score {
-  font-size: 1.1rem;
+  font-size: 0.99rem;
   font-weight: 900;
   color: var(--yellow);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -168,28 +196,28 @@ defineProps({
 }
 
 .player-medal {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   color: var(--yellow);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .leaderboard-cta {
-  margin-top: 30px;
+  margin-top: 27px;
 }
 
 .view-full-leaderboard {
   background: var(--yellow);
   color: var(--dark-grey);
-  padding: 12px 25px;
-  border-radius: 10px;
-  font-size: 1rem;
+  padding: 11px 23px;
+  border-radius: 9px;
+  font-size: 0.9rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 203, 59, 0.3);
+  box-shadow: 0 4px 13px rgba(255, 203, 59, 0.27);
 }
 
 .view-full-leaderboard:hover {
