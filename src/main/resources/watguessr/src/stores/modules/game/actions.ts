@@ -10,7 +10,7 @@ export const actions: ActionTree<GameState, RootState> = {
     commit('SET_GAME_MODE', 'Singleplayer');
     commit('CHANGE_VIEW', 'Map');
 
-    const response = await fetch('http://localhost:5173/api/game/create/singleplayer');
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`);
     const gameId = await response.json();
 
 
@@ -45,7 +45,7 @@ export const actions: ActionTree<GameState, RootState> = {
     //send api request to the backend to finish the singleplayer game
     //TODO: add multiplayer game end logic
     try {
-      const response = await fetch(`http://localhost:5173/api/game/finish/singleplayer?gameId=${state.gameId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/singleplayer?gameId=${state.gameId}`, {
         method: 'POST'
       });
 

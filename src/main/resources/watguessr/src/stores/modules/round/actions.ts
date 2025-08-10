@@ -11,7 +11,7 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     if (!gameId) throw new Error('Game ID not found');
 
-    const response = await fetch(`http://localhost:5173/api/round/create?gameId=${gameId}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/create?gameId=${gameId}`, {
       method: 'GET',
     });
 
