@@ -75,7 +75,7 @@ public class GuessService {
                 .trim();
     }
 
-    public RoundResult createGameResult(Round round, Guess guess) {
+    public RoundResult evaluateGuess(Round round, Guess guess) {
         Game game = round.getGame();
         Scene scene = round.getScene();
 

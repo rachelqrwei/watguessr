@@ -60,7 +60,7 @@ public class GuessController {
             @RequestBody Guess guess
     ) {
         Round round = roundService.findById(roundId);
-        RoundResult result = guessService.createGameResult(round, guess);
+        RoundResult result = guessService.evaluateGuess(round, guess);
 
         return ResponseEntity.ok(result);
     }
