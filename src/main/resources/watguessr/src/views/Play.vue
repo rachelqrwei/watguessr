@@ -50,6 +50,11 @@
       </button>
     </div>
   </div>
+
+  <div v-if="errorMessage" class="error-banner">
+    {{ errorMessage }}
+  </div>
+
   <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
   </div>
@@ -85,6 +90,7 @@ export default {
       selectedBuilding: '',
       selectedFloor: '',
       nextRoundOrEndGameButtonText: 'NEXT ROUND',
+      errorMessage: ''
     }
   },
   computed: {
@@ -128,12 +134,21 @@ export default {
     ]),
 
     handleSubmit() {
+      if (!this.getGuessBuilding) {
+        this.errorMessage = "Please select a building.";
+        return;
+      }
+      if (!this.selectedFloor) {
+        this.errorMessage = "Please select a floor.";
+        return;
+      }
+      this.errorMessage = ""; // clear any previous error
+
       this.submitGuess();
     },
 
     nextRoundOrEndGame() {
       if (this.getCurrentRound >= this.getMaxRounds) {
-
         // Go to game end screen
         this.$router.push('/singleplayer-game-end')
         return;
@@ -270,5 +285,20 @@ export default {
   position: absolute;
   top: 100px;
   background: black;
+}
+
+.error-banner {
+  position: fixed;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff4d4d;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 </style>
