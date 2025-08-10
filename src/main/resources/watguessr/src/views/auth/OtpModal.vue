@@ -1,79 +1,167 @@
 <template>
-  <div v-if="visible" class="modal-overlay">
-    <div class="modal-content">
-      <button class="close-btn" @click="$emit('close')">×</button>
-      <h2>Enter Verification Code</h2>
-      <input
-        type="text"
-        v-model="otp"
-        maxlength="6"
-        placeholder="Enter 6-digit code"
-      />
-      <button class="verify-btn" @click="submitOtp">Verify</button>
+  <div v-if="visible" class="modal-overlay" @click.self="$emit('close')">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="otp-title">
+      <button class="close-btn" @click="$emit('close')" aria-label="Close">×</button>
+
+      <h2 id="otp-title" class="title">Enter Verification Code</h2>
+      <p class="subtitle">We sent a 6‑digit code to <strong>{{ email }}</strong>.</p>
+
+      <div class="form-row">
+        <input
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          v-model="otp"
+          maxlength="6"
+          placeholder="123456"
+          class="otp-input"
+          @keyup.enter="submitOtp"
+          autofocus
+        />
+        <button class="verify-btn" :disabled="submitting || otp.length !== 6" @click="submitOtp">
+          {{ submitting ? 'Verifying…' : 'Verify' }}
+        </button>
+      </div>
+
+      <div class="helper-row">
+        <button class="link-btn" :disabled="cooldown>0" @click="$emit('resend')">
+          {{ cooldown>0 ? `Resend in ${cooldown}s` : 'Resend code' }}
+        </button>
+      </div>
+
       <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="success" class="success">Verified! Redirecting…</p>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useUserStore } from '@/stores/entity/user.ts';
+<script>
+import { useUserStore } from '@/stores/entity/index.js'
 
-const props = defineProps({
-  visible: Boolean,
-  email: String
-})
-
-const emit = defineEmits(['close', 'verified'])
-
-const otp = ref('')
-const error = ref(null)
-
-const submitOtp = async () => {
-  error.value = null
-  try {
-    const res = await fetch('/api/email/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: props.email, code: otp.value })
-    })
-    const text = await res.text()
-    if (text.includes('verified')) {
-      emit('verified')
-      emit('close')
-    } else {
-      error.value = text
+export default {
+  name: 'OtpModal',
+  props: {
+    visible: { type: Boolean, default: false },
+    email:   { type: String, required: true }
+  },
+  data() {
+    return {
+      otp: '',
+      error: null,
+      success: false,
+      submitting: false,
+      cooldown: 0,
+      userStore: useUserStore()
     }
-  } catch (err) {
-    error.value = 'Verification failed.'
-  }
+  },
+  methods: {
+    async submitOtp() {
+      if (this.submitting) return
+      this.error = null
+      this.submitting = true
+      try {
+        const res = await this.userStore.verifyOtp(this.email, this.otp);
+
+        if (res === "verified") {
+          this.success = true
+          this.$emit('verified')
+          setTimeout(() => this.$emit('close'), 600)
+        } else {
+          this.error = res || 'Verification failed.'
+        }
+      } catch (e) {
+        this.error = 'Network error. Try again.'
+      } finally {
+        this.submitting = false
+      }
+    }
+  },
+  mounted() {
+    // optional resend cooldown display (e.g., 30s)
+    const T = 30; this.cooldown = T
+    this._iv = setInterval(() => { if (this.cooldown>0) this.cooldown-- }, 1000)
+  },
+  beforeUnmount() { clearInterval(this._iv) }
 }
 </script>
 
 <style scoped>
+/* overlay */
 .modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(2px);
+  display: grid; place-items: center;
+  padding: 16px;
+  z-index: 1000;
 }
 
+/* card */
 .modal-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  width: 100%;
+  max-width: 420px;
+  background: #1f1f1f;
+  color: #f5f5f5;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  position: relative;
+}
+
+/* header */
+.title {
+  margin: 6px 0 4px;
+  font-size: 1.25rem; font-weight: 700;
   text-align: center;
 }
+.subtitle {
+  margin: 0 0 16px;
+  opacity: .8; text-align: center; font-size: .95rem;
+}
+
+/* close */
+.close-btn {
+  position: absolute; top: 10px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 0; background: transparent; color: #cfcfcf;
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.close-btn:hover { color: #fff; }
+
+/* form */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.otp-input {
+  height: 44px; padding: 0 14px; border-radius: 10px;
+  border: 1px solid #3a3a3a; background: #2a2a2a; color: #fff;
+  font-size: 1.05rem; letter-spacing: .12em; text-align: center;
+  outline: none; transition: border-color .15s;
+}
+.otp-input:focus { border-color: #00d8ff; }
 
 .verify-btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
+  height: 44px; padding: 0 16px;
+  border: 0; border-radius: 10px; cursor: pointer;
+  background: #00d8ff; color: #111; font-weight: 700;
+  transition: transform .06s ease, filter .2s ease;
 }
+.verify-btn:disabled { opacity: .6; cursor: not-allowed; }
+.verify-btn:active { transform: translateY(1px); }
 
-.error {
-  color: red;
-  margin-top: 0.5rem;
+/* helpers */
+.helper-row { margin-top: 10px; text-align: center; }
+.link-btn {
+  background: transparent; border: 0; color: #9ad7ff;
+  cursor: pointer; font-size: .95rem; padding: 6px 8px;
 }
+.link-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* messages */
+.error   { margin-top: 12px; color: #ff6b6b; text-align: center; }
+.success { margin-top: 12px; color: #4ade80; text-align: center; }
 </style>

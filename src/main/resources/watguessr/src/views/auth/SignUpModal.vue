@@ -52,7 +52,7 @@
 
         <p v-if="showSuccess" class="success-message">{{ successMessage }}</p>
 
-<!--        <button :disabled="loading" class="login-btn">-->
+<!--        <button :disabled="loading" class="login-btn">-->　
 <!--          <span v-if="loading">Signing up...</span>-->
 <!--          <span v-else>Sign Up</span>-->
 <!--        </button>-->
@@ -65,20 +65,18 @@
           @close="showStatus = false"
         />
 
-        <OptModal
+        <OtpModal
           :visible="showOtpModal"
           :email="userEmail"
           @close="showOtpModal = false"
           @verified="handleOtpVerified"
+          @resend="resendOtp"
         />
 
         <button :disabled="loading || !passwordChecks.allValid" class="login-btn">
           <span v-if="loading">Signing up...</span>
           <span v-else>SIGN UP</span>
         </button>
-        <p v-if="error" class="error-message">{{ error }}</p>
-
-        <button type="submit" class="login-btn">Sign Up</button>
 
         <div class="sign-up">
           <label>Already a Watguessr?
@@ -98,6 +96,7 @@ import OtpModal from "@/views/auth/OtpModal.vue";
 export default {
   props: ['visible'],
   components: {
+    OtpModal,
     OptModal: OtpModal,
     StatusModal,
   },
@@ -115,7 +114,9 @@ export default {
       showStatus: false,
       statusType: 'success', // or 'error'
       userStore: useUserStore(),
-      showPassword: false
+      showPassword: false,
+      showOtpModal: false,
+      userEmail: ''
     };
   },
   methods: {
@@ -138,13 +139,25 @@ export default {
         this.successMessage = result;
         this.showSuccess = true;
 
-        this.$emit('openLogin');
-        this.$emit('close');
+        // call OTP Modal
+        this.userEmail = email;
+        await this.userStore.sendOtp(email);
+        this.showOtpModal = true;
 
+        // this.$emit('openLogin');
+        // this.$emit('close');
       } catch (err) {
         this.error = err instanceof Error ? err.message : 'Signup failed';
       }
     },
+    handleOtpVerified() {
+      this.showOtpModal = false;
+      // optionally log them in or open login modal
+      this.$emit('openLogin');
+    },
+    async resendOtp() {
+      await this.userStore.sendOtp(this.userEmail);
+    }
   },
   computed: {
     passwordChecks() {

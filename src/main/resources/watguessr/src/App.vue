@@ -330,8 +330,7 @@ const navLinks = [
   font-size: 12px;
   font-weight: 700;
   color: var(--white);
-  margin-bottom: 6px;
-  letter-spacing: 0.5px;
+  acing: 0.5px;
   text-transform: uppercase;
 }
 

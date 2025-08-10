@@ -1,8 +1,6 @@
 <template>
   <div class="header-container">
     <div class="streak-container flex-container">
-      <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
-      <p>{{ getStreak }}</p>
       <div class="streak-glow">
         <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
       </div>
@@ -89,16 +87,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', onClickOutside);
 });
-import { useUserStore } from '@/stores/entity/user.ts';
-import { computed } from 'vue'
-
-const userStore = useUserStore()
-
-const getUserName = computed(() => userStore.userName || 'Guest')
-
-const submitSignUp = async () => {
-  // your logic here
-}
 
 onMounted(async () => {
   await userStore.fetchUserById()  // fetch and populate user

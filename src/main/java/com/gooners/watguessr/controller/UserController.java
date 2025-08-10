@@ -1,18 +1,15 @@
 package com.gooners.watguessr.controller;
 
-import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.UserService;
-import com.gooners.watguessr.utils.Utility;
+import com.gooners.watguessr.service.EmailVerificationService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.javamail.JavaMailSender;
+
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +23,11 @@ public class UserController {
     
     private final UserService userService;
     private final UserMapper userMapper;
-    private final Utility utility;
-    public UserController(UserService userService, UserMapper userMapper, Utility utility) {
+    private final EmailVerificationService emailVerificationService;
+    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService) {
         this.userService = userService;
         this.userMapper = userMapper;
-        this.utility = utility;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @PostMapping(value = "/register")
@@ -62,27 +59,14 @@ public class UserController {
 
     @PostMapping(value = "/send-email")
     public void sendEmail() {
-        utility.sendEmail("wukenny0126@gmail.com", "Test Subject", "Hello from WatGuessr!");
+        emailVerificationService.sendEmail("wukenny0126@gmail.com", "Test Subject", "Hello from WatGuessr!");
     }
 
     @PostMapping("/send-otp")
     public String sendOtp(@RequestParam String to) {
-        utility.sendOtpEmail(to);
+        emailVerificationService.prepareToSendEmail(to);
         return "OTP sent to " + to;
     }
-//    @PostMapping("/request-verification-code")
-//    public ResponseEntity<?> sendCode(@RequestParam String email) {
-//        // 1. Generate OTP
-//        // 2. Save OTP and expiry to user/email_verification table
-//        // 3. Send email
-//    }
-//
-//    @PostMapping("/verify-code")
-//    public ResponseEntity<?> verifyCode(@RequestBody CodeDto dto) {
-//        // 1. Lookup code from DB
-//        // 2. Check expiry
-//        // 3. If valid: mark as verified
-//    }
 
     @GetMapping(value = "/leaderboard")
     public QueryResults<LeaderboardUser> getLeaderboard(
@@ -94,18 +78,13 @@ public class UserController {
         return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
     }
 
-//    @PostMapping("/request-verification-code")
-//    public ResponseEntity<?> sendCode(@RequestParam String email) {
-//        // 1. Generate OTP
-//        // 2. Save OTP and expiry to user/email_verification table
-//        // 3. Send email
-//    }
-//
-//    @PostMapping("/verify-code")
-//    public ResponseEntity<?> verifyCode(@RequestBody CodeDto dto) {
-//        // 1. Lookup code from DB
-//        // 2. Check expiry
-//        // 3. If valid: mark as verified
-//    }
-
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Void> verifyOtp(@RequestParam String email, @RequestParam String submittedOtp) {
+        var success = emailVerificationService.verify(email, submittedOtp); // checks + side effects. String email, String submittedCode
+        if (success) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+    }
 }

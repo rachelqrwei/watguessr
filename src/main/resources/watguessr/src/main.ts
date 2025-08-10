@@ -28,8 +28,6 @@ import {
   faFire,
   faChevronLeft,
   faChevronRight,
-  faEye,
-  faEyeSlash,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
@@ -51,8 +49,6 @@ library.add(
   faFire,
   faChevronLeft,
   faChevronRight,
-  faEye,
-  faEyeSlash,
 )
 
 const app = createApp(App)
