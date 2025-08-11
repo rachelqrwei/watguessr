@@ -7,3 +7,125 @@
 .none {
   display: none;
 }
+
+/* Shared: Logo styles (used in sidebar and play view) */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--white);
+}
+.logo-text {
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--white);
+  outline: none;
+}
+.logo-text:focus {
+  outline: none;
+}
+
+/* Shared: Modal styles (used by Login and SignUp modals) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal-content {
+  background: rgba(42, 42, 44, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1.5rem;
+  border-radius: 16px;
+  width: 320px;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.close-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.7rem;
+  font-size: 1.2rem;
+  border: none;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+}
+.login-form .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+.login-form label {
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  color: #ccc;
+}
+.login-form input,
+.login-form input[type="text"],
+.login-form input[type="password"],
+.login-form input[type="email"] {
+  padding: 0.6rem;
+  font-size: 1rem;
+  background-color: #3a3a3a;
+  border: 1px solid #555;
+  color: #eee;
+  border-radius: 6px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.login-form input:focus {
+  outline: none;
+  border-color: #00d8ff;
+  background-color: #444;
+}
+
+/* Shared: Primary auth buttons (Login / Sign Up) */
+.login-btn {
+  padding: 0.75rem 1.25rem;
+  background-color: var(--yellow);
+  color: var(--dark-grey);
+  font-weight: 800;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.03);
+}
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+.login-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* Shared: Links */
+.link {
+  color: var(--yellow);
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}

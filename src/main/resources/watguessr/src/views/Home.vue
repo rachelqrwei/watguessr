@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import HeroSection from '@/views/home-components/HeroSection.vue'
 import GameModesSection from '@/views/home-components/GameModesSection.vue'
 import FeaturesSection from '@/views/home-components/FeaturesSection.vue'
@@ -7,11 +7,32 @@ import LeaderboardSection from '@/views/home-components/LeaderboardSection.vue'
 import TestimonialsSection from '@/views/home-components/TestimonialsSection.vue'
 
 const isLoaded = ref(false)
+const showGeese = ref(true)
+
+function evaluateGeeseVisibility() {
+  const w = window.innerWidth
+  const h = window.innerHeight
+  const ratio = w / Math.max(h, 1)
+
+  const tooWide = ratio >= 1.9
+  const tooShort = h <= 720
+  const ultraWide = w >= 1800 && ratio >= 1.7
+  const extremeZoomOut = w >= 1600 && h <= 850
+
+  showGeese.value = !(tooWide || tooShort || ultraWide || extremeZoomOut)
+}
 
 onMounted(() => {
   setTimeout(() => {
     isLoaded.value = true
   }, 100)
+
+  evaluateGeeseVisibility()
+  window.addEventListener('resize', evaluateGeeseVisibility)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', evaluateGeeseVisibility)
 })
 </script>
 
@@ -21,8 +42,28 @@ onMounted(() => {
       <HeroSection :isLoaded="isLoaded" />
       <GameModesSection :isLoaded="isLoaded" />
       <FeaturesSection :isLoaded="isLoaded" />
-      <LeaderboardSection :isLoaded="isLoaded" />
-      <TestimonialsSection :isLoaded="isLoaded" />
+      
+      <div class="section-with-goose goose1-wrapper">
+        <LeaderboardSection :isLoaded="isLoaded" />
+        <img
+          class="goose-decor goose1"
+          src="/Goose1.png"
+          alt=""
+          aria-hidden="true"
+          v-if="showGeese"
+        />
+      </div>
+
+      <div class="section-with-goose goose2-wrapper">
+        <TestimonialsSection :isLoaded="isLoaded" />
+        <img
+          class="goose-decor goose2"
+          src="/Goose2.png"
+          alt=""
+          aria-hidden="true"
+          v-if="showGeese"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +80,53 @@ onMounted(() => {
   transform-origin: top center;
 }
 
+.section-with-goose {
+  position: relative;
+}
+
+/* Ensure the section content stacks above the decorative image */
+.section-with-goose > :first-child {
+  position: relative;
+  z-index: 1;
+}
+
+.goose-decor {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
+  z-index: 0; 
+}
+
+.goose1-wrapper {
+  overflow: visible;
+}
+.goose1 {
+  width: 24vw;
+  top: -150px;
+  right: 0px; 
+}
+
+
+.goose2-wrapper {
+  overflow: visible;
+}
+.goose2 {
+  width: 16vw;
+  top: -10px;
+  left: 0px;
+}
+
+@media (max-width: 1200px) {
+  .goose1 { width: 220px; right: 0; }
+  .goose2 { width: 160px; left: 0; }
+}
+
+@media (max-width: 992px) {
+  .goose1 { width: 180px; right: 0; }
+  .goose2 { width: 130px; left: 0; }
+}
+
 @media (max-width: 768px) {
   .home-container {
     padding-top: 80px;
@@ -47,6 +135,11 @@ onMounted(() => {
 
   .home-content-scale {
     transform: none;
+  }
+
+  /* Hide decorative geese on small screens for cleanliness */
+  .goose-decor {
+    display: none;
   }
 }
 </style>

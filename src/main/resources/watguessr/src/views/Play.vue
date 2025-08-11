@@ -1,4 +1,5 @@
 <template>
+  <div class="play-background" aria-hidden="true"></div>
   <div class="logo-container">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
@@ -28,7 +29,7 @@
 
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
-    <div v-if="getCurrentView === 'Map'">
+    <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="CHANGE_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
@@ -36,7 +37,7 @@
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
-    <div v-if="getCurrentView === 'Image'">
+    <div v-if="getCurrentView === 'Image'" class="view-pane">
       <button class="view-change-button" @click="CHANGE_VIEW('Map')">
         VIEW MAP
       </button>
@@ -182,6 +183,21 @@ export default {
 }
 </script>
 <style scoped>
+.play-background {
+  position: fixed;
+  inset: 0;
+  background: var(--dark-grey);
+  z-index: -1;
+}
+.play-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/GamePage.png') center bottom / cover no-repeat;
+  opacity: 0.8; 
+  pointer-events: none;
+}
+
 .game-container {
   position: absolute;
   top: 50%;
@@ -191,6 +207,7 @@ export default {
   height: 78vh;
   border-radius: 15px;
   overflow: hidden;
+  z-index: 1;
 }
 
 .view-change-button {
@@ -235,24 +252,6 @@ export default {
   top: 4%;
   left: 3%;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--white);
-}
-
-.logo-text {
-  text-decoration: none;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: var(--white);
-  outline: none;
 }
 
 .submit-button {
@@ -300,5 +299,10 @@ export default {
   z-index: 1000;
   text-align: center;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.view-pane {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 </style>

@@ -75,9 +75,9 @@ const navLinks = [
     </aside>
 
     <main class="main-content" :class="{ 'content-expanded': !showHeader }">
-      <div class="content-wrapper" :class="{ 'content-wrapper-home': isHomePage }">
+      <div class="content-wrapper" :class="{ 'content-wrapper-home': isHomePage, 'content-wrapper-play': isPlayPage }">
         <RouterView />
-        <footer class="site-footer">
+        <footer v-if="isHomePage" class="site-footer">
           Made with <span class="heart" aria-label="love" role="img">❤️</span> by
           <a href="https://www.linkedin.com/in/rachelqrwei/" target="_blank" rel="noopener">Rachel Wei</a>,
           <a href="https://www.linkedin.com/in/sooyeunleanne/" target="_blank" rel="noopener">Leanne Kim</a>,
@@ -174,10 +174,6 @@ const navLinks = [
   font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--white);
-  outline: none;
-}
-
-.logo-text:focus {
   outline: none;
 }
 
@@ -353,6 +349,13 @@ const navLinks = [
   margin: 0;
 }
 
+.content-wrapper-play {
+  padding: 0;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
 .backdrop {
   position: fixed;
   top: 0;
@@ -438,19 +441,6 @@ const navLinks = [
 .nav-item:focus {
   outline: 2px solid var(--yellow);
   outline-offset: 2px;
-}
-
-.logo-text:focus {
-  outline: none;
-}
-
-.link {
-  color: #00d8ff;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.link:hover {
-  text-decoration: none;
 }
 
 .site-footer {
