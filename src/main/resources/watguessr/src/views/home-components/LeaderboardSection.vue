@@ -43,13 +43,17 @@
         </div>
       </div>
       <div class="leaderboard-cta">
-        <button class="view-full-leaderboard">View Full Leaderboard</button>
+        <button class="view-full-leaderboard" @click="router.push({ name: 'leaderboard' })">View Full Leaderboard</button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 defineProps({
   isLoaded: {
     type: Boolean,
@@ -221,7 +225,7 @@ defineProps({
 }
 
 .view-full-leaderboard:hover {
-  background: var(--dark-yellow);
+  background: var(--yellow);
   box-shadow: 0 6px 20px rgba(255, 203, 59, 0.4);
 }
 

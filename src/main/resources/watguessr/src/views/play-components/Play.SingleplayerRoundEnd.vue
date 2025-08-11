@@ -1,46 +1,48 @@
 <template>
   <div class="round-end-container">
-    <div class="round-header">
-      <span class="round-label">ROUND</span>
-      <span class="round-number">#{{ getCurrentRound }}</span>
-    </div>
-
-    <div class="points-section">
-      <span class="points-label">POINTS</span>
-      <span class="points-value">{{ displayPoints }}</span>
-    </div>
-
-    <div class="stats-section">
-      <div class="stat-item">
-        <span class="stat-label">TIME TAKEN</span>
-        <span class="stat-value">{{ displayTimeTaken }}</span>
+    <div class="round-end-panel">
+      <div class="round-header">
+        <span class="round-label">ROUND</span>
+        <span class="round-number">#{{ getCurrentRound }}</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-label">DISTANCE</span>
-        <span class="stat-value">{{ displayDistance }}</span>
-      </div>
-    </div>
 
-    <div class="map-section">
-      <svg width="100%" height="220" viewBox="0 0 400 220">
-        <defs>
-          <radialGradient id="guessGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ff4136" stop-opacity="0.7"/>
-            <stop offset="100%" stop-color="#ff4136" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="actualGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/>
-            <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <line x1="80" y1="110" x2="320" y2="170" stroke="#ffe066" stroke-width="6" stroke-dasharray="10,8" />
-        <circle cx="80" cy="110" r="22" fill="url(#actualGlow)" />
-        <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
-        <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
-        <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
-        <circle cx="320" cy="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
-        <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
-      </svg>
+      <div class="points-section">
+        <span class="points-label">POINTS</span>
+        <span class="points-value">{{ displayPoints }}</span>
+      </div>
+
+      <div class="stats-section">
+        <div class="stat-item">
+          <span class="stat-label">TIME TAKEN</span>
+          <span class="stat-value">{{ displayTimeTaken }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">DISTANCE</span>
+          <span class="stat-value">{{ displayDistance }}</span>
+        </div>
+      </div>
+
+      <div class="map-section">
+        <svg width="100%" height="220" viewBox="0 0 400 220">
+          <defs>
+            <radialGradient id="guessGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ff4136" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#ff4136" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="actualGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <line x1="80" y1="110" x2="320" y2="170" stroke="#ffe066" stroke-width="6" stroke-dasharray="10,8" />
+          <circle cx="80" cy="110" r="22" fill="url(#actualGlow)" />
+          <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
+          <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
+          <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
+          <circle cx="320" cy="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
+          <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
+        </svg>
+      </div>
     </div>
   </div>
 </template>
@@ -92,14 +94,28 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #1a1a1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  z-index: 1;
+}
+
+.round-end-panel {
+  width: 95%;
+  max-width: 740px;
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  z-index: 1;
+  gap: 12px;
+  padding: 24px 24px 20px;
+  border-radius: 16px;
+  background: var(--dark-grey);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .round-header {
@@ -127,7 +143,6 @@ export default {
 .points-section {
   text-align: center;
   padding: 5px 28px;
-  background: transparent;
 }
 
 .points-label {
@@ -176,10 +191,9 @@ export default {
 }
 
 .map-section {
-  width: 90%;
-  max-width: 600px;
+  width: 100%;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 15px;
+  border-radius: 12px;
+  padding: 12px;
 }
 </style>

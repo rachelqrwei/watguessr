@@ -8,14 +8,14 @@
 
         <div class="game-modes">
           <div class="trapezoid-pair">
-            <div class="player-1-trapezoid">
+            <div class="player-1-trapezoid" @click="goSolo">
               <div class="play-option-container">
                 <h3>SOLO</h3>
                 <p>PLAY BY YOURSELF UNTIL YOUR POINTS RUN OUT!</p>
               </div>
             </div>
 
-            <div class="player-2-trapezoid">
+            <div class="player-2-trapezoid" @click="goDuels">
               <div class="play-option-container">
                 <h3>DUELS</h3>
                 <p>PLAY AGAINST A FRIEND AND COMPETE FOR POINTS!</p>
@@ -23,14 +23,13 @@
             </div>
           </div>
 
-          <div class="daily-mini-button">
-            <div class="daily-mini-content">
-              <div class="daily-mini-progress">
-                <img src="/DailyMini.png" alt="Daily Mini Progress" class="daily-mini-image" />
+          <div class="ranked-button" @click="goRanked">
+            <div class="ranked-content">
+              <div class="ranked-progress">
+                <img src="/Ranked.png" alt="Ranked Progress" class="ranked-image" />
               </div>
-              <div class="daily-mini-text">
-                <h3>DAILY</h3>
-                <h3>MINI</h3>
+              <div class="ranked-text">
+                <h3>Rank Up</h3>
               </div>
             </div>
           </div>
@@ -41,6 +40,22 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function goSolo() {
+  router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } })
+}
+
+function goDuels() {
+  router.push({ name: 'lobby', query: { gameMode: 'multiplayer' } })
+}
+
+function goRanked() {
+  router.push({ name: 'lobby', query: { gameMode: 'ranked' } })
+}
+
 defineProps({
   isLoaded: {
     type: Boolean,
@@ -193,7 +208,7 @@ defineProps({
   margin-bottom: 10px;
 }
 
-.daily-mini-button {
+.ranked-button {
   position: relative;
   width: 225px; /* scaled down from 250 */
   height: 162px; /* scaled down from 180 */
@@ -212,7 +227,7 @@ defineProps({
   margin-left: 0;
 }
 
-.daily-mini-button::before {
+.ranked-button::before {
   content: "";
   position: absolute;
   top: 0;
@@ -226,16 +241,16 @@ defineProps({
   border-radius: inherit;
 }
 
-.daily-mini-button:hover {
+.ranked-button:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-.daily-mini-button:hover::before {
+.ranked-button:hover::before {
   opacity: 1;
 }
 
-.daily-mini-content {
+.ranked-content {
   width: 100%;
   height: 100%;
   display: flex;
@@ -245,7 +260,7 @@ defineProps({
   z-index: 1;
 }
 
-.daily-mini-progress {
+.ranked-progress {
   flex-shrink: 0;
   width: 126px; /* 140 * 0.9 */
   height: 162px; /* match container height */
@@ -257,27 +272,25 @@ defineProps({
   border: none;
 }
 
-.daily-mini-image {
+.ranked-image {
   width: 80%;
   height: 80%;
   object-fit: contain;
   margin-left: -0.7vw;
 }
 
-.daily-mini-text {
+.ranked-text {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: flex-start;
-  gap: -5px;
-  padding-left: 0;
-  padding-top: 9px;
-  padding-bottom: 50px;
-  padding-right: 18px;
+  justify-content: center;
+  gap: 0;
+  padding: 0 18px 0 0;
+  transform: translateY(-16px);
 }
 
-.daily-mini-text h3 {
+.ranked-text h3 {
   font-weight: 900;
   font-size: 28.8px; /* 32 * 0.9 */
   color: var(--white);
@@ -287,7 +300,8 @@ defineProps({
   letter-spacing: -0.5px;
   text-transform: uppercase;
   margin: 0;
-  line-height: 0.8;
+  line-height: 1.1;
+  text-align: right;
 }
 
 @media (max-width: 768px) {
@@ -331,24 +345,27 @@ defineProps({
     font-size: 12px;
   }
 
-  .daily-mini-button {
+  .ranked-button {
     width: 240px;
     height: 140px;
     margin-left: 0;
   }
 
-  .daily-mini-content {
+  .ranked-content {
     padding: 15px 15px 15px 0;
     gap: 15px;
   }
 
-  .daily-mini-progress {
+  .ranked-progress {
     width: 100px;
     height: 100px;
   }
 
-  .daily-mini-text h3 {
+  .ranked-text h3 {
     font-size: 20px;
+  }
+  .ranked-text {
+    transform: translateY(-4px);
   }
 }
 </style>

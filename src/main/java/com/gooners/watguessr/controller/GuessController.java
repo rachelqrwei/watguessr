@@ -41,13 +41,10 @@ public class GuessController {
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto
     ) {
-        // 1. DTO → Entity
         Guess toSave = guessMapper.toEntity(createDto);
 
-        // 2. persist
         Guess saved  = guessService.create(toSave);
 
-        // 3. Entity → full DTO (with generated id + points)
         GuessDto result = guessMapper.toDto(saved);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
