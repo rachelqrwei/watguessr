@@ -65,14 +65,6 @@
           @close="showStatus = false"
         />
 
-        <OtpModal
-          :visible="showOtpModal"
-          :email="userEmail"
-          @close="showOtpModal = false"
-          @verified="handleOtpVerified"
-          @resend="resendOtp"
-        />
-
         <button :disabled="loading || !passwordChecks.allValid" class="login-btn">
           <span v-if="loading">Signing up...</span>
           <span v-else>SIGN UP</span>
@@ -84,6 +76,14 @@
           </label>
         </div>
       </form>
+      
+      <OtpModal
+        :visible="showOtpModal"
+        :email="userEmail"
+        @close="showOtpModal = false"
+        @verified="handleOtpVerified"
+        @resend="resendOtp"
+      />
     </div>
   </div>
 </template>
