@@ -1,26 +1,3 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import Header from './components/Header.vue'
-import AuthModalManager from "@/views/auth/AuthModalManager.vue";
-
-const route = useRoute()
-const isHoveringHeader = ref(false)
-const showLogin = ref(false) // ✅ reactive state for login modal
-const showSignUp = ref(false);
-
-const isHomePage = computed(() => route.path === '/')
-const isPlayPage = computed(() => route.path === '/play')
-const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
-
-const navLinks = [
-  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
-  { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
-  { path: '/profile', label: 'PROFILE', icon: 'user' },
-  { path: '/settings', label: 'SETTINGS', icon: 'cog' }
-]
-</script>
-
 <template>
   <Header />
 
@@ -104,6 +81,59 @@ const navLinks = [
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import Header from './components/Header.vue'
+import AuthModalManager from "@/views/auth/AuthModalManager.vue";
+import { useUserStore } from '@/stores/entity/user';
+
+// import login api
+const userStore = useUserStore()
+const route = useRoute()
+const isHoveringHeader = ref(false)
+const showLogin = ref(false) // ✅ reactive state for login modal
+const showSignUp = ref(false);
+
+const isHomePage = computed(() => route.path === '/')
+const showHeader = computed(() => isHomePage.value || isHoveringHeader.value)
+
+const navLinks = [
+  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
+  { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
+  { path: '/profile', label: 'PROFILE', icon: 'user' },
+  { path: '/settings', label: 'SETTINGS', icon: 'cog' }
+]
+
+</script>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import Header from './components/Header.vue'
+import AuthModalManager from "@/views/auth/AuthModalManager.vue";
+import { useUserStore } from '@/stores/entity/user';
+
+// import login api
+const userStore = useUserStore()
+const route = useRoute()
+const isHoveringHeader = ref(false)
+const showLogin = ref(false) // ✅ reactive state for login modal
+const showSignUp = ref(false);
+
+const isHomePage = computed(() => route.path === '/')
+const isPlayPage = computed(() => route.path === '/play')
+const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
+
+const navLinks = [
+  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
+  { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
+  { path: '/profile', label: 'PROFILE', icon: 'user' },
+  { path: '/settings', label: 'SETTINGS', icon: 'cog' }
+]
+
+</script>
 
 <style scoped>
 .layout {
@@ -300,8 +330,7 @@ const navLinks = [
   font-size: 12px;
   font-weight: 700;
   color: var(--white);
-  margin-bottom: 6px;
-  letter-spacing: 0.5px;
+  acing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -334,6 +363,14 @@ const navLinks = [
   flex: 1;
   width: 100%;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.content-expanded {
+  margin-left: 0;
+}
+
+.content-with-sidebar {
+  margin-left: 200px; /* Adjust based on sidebar width */
 }
 
 .content-wrapper {

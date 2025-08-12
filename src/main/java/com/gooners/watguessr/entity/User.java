@@ -1,11 +1,13 @@
 package com.gooners.watguessr.entity;
 
 import jakarta.persistence.*;
-
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Entity
+@Table(name = "user")
 public class User {
 
     @Id
@@ -13,7 +15,8 @@ public class User {
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
-    @Column(name = "created_at")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
     @Column(name = "username")
@@ -33,6 +36,17 @@ public class User {
 
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
+
+    public User() {}
+
+    public User(String email, String username, String hashedPassword) {
+        this.emailAddress = email;
+        this.username = username;
+        this.password = hashedPassword;
+        this.elo = 150;
+        this.streak = 0;
+        this.lastLoginAt = OffsetDateTime.now(ZoneId.of("America/Toronto"));
+    }
 
     public String getUsername() {
         return username;

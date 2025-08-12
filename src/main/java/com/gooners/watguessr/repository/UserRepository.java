@@ -30,4 +30,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findSorted(@Param("keyword") String keyword,
             @Param("sortBy") String sortBy,
             Pageable pageable);
+
+    User findByEmailAddress(String to);
 }
