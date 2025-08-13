@@ -6,6 +6,9 @@
 <script>
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
+import * as turf from '@turf/turf';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { point, polygon } from '@turf/helpers';
 import { mapMutations } from 'vuex';
 
 export default {
@@ -98,50 +101,51 @@ export default {
             .setLngLat(coords)
             .addTo(map);
 
-          // Query building polygons at click
-          const buildingFeatures = map.queryRenderedFeatures(e.point, {
-            layers: ['building'],
+          // Query building polygon features at click point
+          const buildingFeatures = map.queryRenderedFeatures(e.point, { layers: ['building'] });
+
+          if (buildingFeatures.length === 0) {
+            // fallback: no building here
+            return;
+          }
+
+          // Pick the first building polygon feature
+          const buildingFeature = buildingFeatures[0];
+
+          // Construct turf polygon GeoJSON from feature geometry
+          const buildingPolygon = polygon(buildingFeature.geometry.coordinates);
+
+          // Query label features in viewport or a bounding box around building polygon
+          const bbox = turf.bbox(buildingPolygon); // get bounding box [minX, minY, maxX, maxY]
+
+          // Convert bbox to screen points for queryRenderedFeatures
+          const sw = map.project([bbox[0], bbox[1]]);
+          const ne = map.project([bbox[2], bbox[3]]);
+          const queryBox = [[sw.x, ne.y], [ne.x, sw.y]]; // top-left, bottom-right in screen pixels
+
+          // Get candidate labels in bbox
+          const labelFeatures = map.queryRenderedFeatures(queryBox, { layers: labelLayerIds });
+
+          // Filter labels whose point lies inside building polygon
+          const labelsInside = labelFeatures.filter(labelFeature => {
+            const labelPoint = point(labelFeature.geometry.coordinates);
+            return booleanPointInPolygon(labelPoint, buildingPolygon);
           });
 
-          let buildingName;
+          if (labelsInside.length > 0) {
+            // Use the first label inside building polygon (or pick best by other criteria)
+            // Find the first label that has a non-empty name property
+            const labelWithName = labelsInside.find(label => label.properties && label.properties.name && label.properties.name.trim() !== '');
 
-          if (buildingFeatures.length > 0) {
-            const props = buildingFeatures[0].properties;
-            buildingName = props.name || null;
-          }
+            const labelName = labelWithName ? labelWithName.properties.name : 'Unnamed Place';
 
-          // If buildingName is null or generic, try finding closest label nearby
-          if (!buildingName) {
-            // Search a small bbox around click point for poi-label or place-label layers
-            const bbox = [
-              [e.point.x - 10, e.point.y - 10],
-              [e.point.x + 10, e.point.y + 10]
-            ];
-
-            const nearbyLabels = map.queryRenderedFeatures(bbox, {
-              layers: labelLayerIds
-            });
-
-            if (nearbyLabels.length > 0) {
-              // Find closest feature by distance in screen pixels
-              nearbyLabels.sort((a, b) => {
-                const distA = this.distanceToPoint(a.geometry.coordinates, e.point, map);
-                const distB = this.distanceToPoint(b.geometry.coordinates, e.point, map);
-                return distA - distB;
-              });
-
-              const bestLabel = nearbyLabels[0];
-              buildingName = bestLabel.properties.name || 'Unnamed Place';
-            }
-          }
-
-          // Final fallback: reverse geocode
-          if (!buildingName) {
-            buildingName = await this.reverseGeocode(coords[0], coords[1]);
+            console.log(labelName);
+          } else {
+            console.log('No label found inside building polygon');
           }
 
           const selectedData = {
-            building: buildingName,
+            building: labelName,
             guessX: coords[0],
             guessY: coords[1],
           };
