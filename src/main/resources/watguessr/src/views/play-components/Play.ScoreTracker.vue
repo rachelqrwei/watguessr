@@ -49,7 +49,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('singleplayer', [
+    ...mapGetters('singleplayerGame', [
       'singleplayerGame_getScores',
       'singleplayerGame_getGameMode',
       'singleplayerGame_getSingleplayerDisplayedScore',

@@ -91,7 +91,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('singleplayer', [
+    ...mapGetters('singleplayerGame', [
       'singleplayerGame_getGameId',
       'singleplayerGame_getCurrentView',
       'singleplayerGame_getGameStatus',
@@ -144,7 +144,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('singleplayer', [
+    ...mapActions('singleplayerGame', [
       'singleplayerGame_createSingleplayerGame',
       'singleplayerGame_endCurrentRound',
       'singleplayerGame_checkSingleplayerState'
@@ -158,7 +158,7 @@ export default {
     ...mapActions('building', [
       'fetchAllBuildings'
     ]),
-    ...mapMutations('singleplayer', [
+    ...mapMutations('singleplayerGame', [
       'SG_CHANGE_VIEW',
       'SG_INCREMENT_ROUND'
     ]),
