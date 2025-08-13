@@ -43,7 +43,6 @@ export default {
           return 'Unknown Building';
         }
       } catch (error) {
-        console.error('Reverse geocoding failed:', error);
         return 'Unknown Building';
       }
     },
