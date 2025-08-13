@@ -6,6 +6,9 @@
 <script>
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
+import * as turf from '@turf/turf';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { point, polygon } from '@turf/helpers';
 import { mapMutations } from 'vuex';
 
 export default {
@@ -40,11 +43,16 @@ export default {
           return 'Unknown Building';
         }
       } catch (error) {
-        console.error('Reverse geocoding failed:', error);
         return 'Unknown Building';
       }
     },
-
+    // Helper function to calculate screen pixel distance between a feature and a mouse click point
+    distanceToPoint(coord, point, map) {
+      const pixel = map.project(coord);
+      const dx = pixel.x - point.x;
+      const dy = pixel.y - point.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    },
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -82,41 +90,95 @@ export default {
         map.on('click', async (e) => {
           const coords = [e.lngLat.lng, e.lngLat.lat];
 
-          // ✅ Remove previous marker if it exists
-          if (this.marker) {
-            this.marker.remove();
-          }
+          // Remove old marker
+          if (this.marker) this.marker.remove();
 
-          // ✅ Add new marker
+          // Add new marker
           this.marker = new mapboxgl.Marker({ anchor: 'bottom' })
             .setLngLat(coords)
             .addTo(map);
 
-          // Try to get label from map
-          const labelFeatures = map.queryRenderedFeatures(e.point, {
-            layers: labelLayerIds,
-          });
+          const buildingFeatures = map.queryRenderedFeatures(e.point, { layers: ['building'] });
+          let buildingName = null;
 
-          let buildingName;
+          if (buildingFeatures.length > 0) {
+            const props = buildingFeatures[0].properties;
+            buildingName = props?.name?.trim() || null;
 
-          if (labelFeatures.length > 0 && labelFeatures[0].properties.name) {
-            buildingName = labelFeatures[0].properties.name;
-          } else {
-            // ❌ No building label on map —> use reverse geocoding
+            const geom = buildingFeatures[0].geometry;
+            if (geom && Array.isArray(geom.coordinates)) {
+              let buildingPolygon;
+              if (geom.type === 'Polygon') {
+                buildingPolygon = polygon(geom.coordinates);
+              } else if (geom.type === 'MultiPolygon') {
+                buildingPolygon = multiPolygon(geom.coordinates);
+              }
+
+              if (buildingPolygon) {
+                const bbox = turf.bbox(buildingPolygon);
+                const sw = map.project([bbox[0], bbox[1]]);
+                const ne = map.project([bbox[2], bbox[3]]);
+                const queryBox = [[sw.x, ne.y], [ne.x, sw.y]];
+
+                const labelFeatures = map.queryRenderedFeatures(queryBox, { layers: labelLayerIds });
+                const labelsInside = labelFeatures.filter(lf => {
+                  let coords = lf.geometry?.coordinates;
+
+                  // If it's a MultiPoint (array of arrays), take the first point
+                  if (Array.isArray(coords) && Array.isArray(coords[0])) {
+                    coords = coords[0];
+                  }
+
+                  // Validate coordinate format
+                  if (
+                    !Array.isArray(coords) ||
+                    coords.length < 2 ||
+                    typeof coords[0] !== 'number' ||
+                    typeof coords[1] !== 'number'
+                  ) {
+                    return false;
+                  }
+
+                  return booleanPointInPolygon(point(coords), buildingPolygon);
+                });
+
+                const labelWithName = labelsInside.find(l => l.properties?.name?.trim());
+                if (labelWithName) buildingName = labelWithName.properties.name;
+              }
+            }
+          }
+
+          // Nearby label fallback
+          if (!buildingName) {
+            const searchBox = [
+              [e.point.x - 10, e.point.y - 10],
+              [e.point.x + 10, e.point.y + 10]
+            ];
+            const nearbyLabels = map.queryRenderedFeatures(searchBox, { layers: labelLayerIds });
+            if (nearbyLabels.length > 0) {
+              nearbyLabels.sort((a, b) => {
+                const distA = this.distanceToPoint(a.geometry.coordinates, e.point, map);
+                const distB = this.distanceToPoint(b.geometry.coordinates, e.point, map);
+                return distA - distB;
+              });
+              buildingName = nearbyLabels[0].properties?.name?.trim() || 'Unnamed Place';
+            }
+          }
+
+          // Reverse geocode fallback
+          if (!buildingName) {
             buildingName = await this.reverseGeocode(coords[0], coords[1]);
           }
 
-          const selectedData = {
+          this.SET_BUILDING_AND_LOCATIONS({
             building: buildingName,
             guessX: coords[0],
             guessY: coords[1],
-          };
-
-          this.SET_BUILDING_AND_LOCATIONS(selectedData);
+          });
         });
       });
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>

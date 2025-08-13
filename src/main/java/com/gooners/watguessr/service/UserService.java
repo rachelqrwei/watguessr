@@ -150,7 +150,7 @@ public class UserService {
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 
-        Integer gamesPlayed = gameRepository.countGamesPlayedByUser(user.getId());
+        Integer gamesPlayed = gameRepository.countNonSingleplayerGamesPlayedByUser(user.getId());
         Integer gamesWon = gameRepository.countGamesWonByUser(user.getId());
 
         gamesPlayed = gamesPlayed != null ? gamesPlayed : 0;

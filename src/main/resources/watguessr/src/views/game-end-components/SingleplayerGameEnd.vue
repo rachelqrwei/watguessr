@@ -6,20 +6,11 @@
       </div>
 
       <div class="final-points-section">
-        <span class="final-points-label">FINAL SCORE</span>
-        <span class="final-points-value">{{ finalScore }}</span>
+        <span class="final-points-label">ROUNDS SURVIVED</span>
+        <span class="final-points-value">{{ totalRounds }}</span>
       </div>
 
-      <div class="final-stats-section">
-        <div class="stat-item">
-          <span class="stat-label">ROUNDS PLAYED</span>
-          <span class="stat-value">{{ totalRounds }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">BEST ROUND</span>
-          <span class="stat-value">{{ bestRoundPoints }}</span>
-        </div>
-      </div>
+      <!-- Additional stats removed for singleplayer minimal display -->
 
       <div class="button-section">
         <button class="btn restart-btn" @click="restartGame">
@@ -39,24 +30,15 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "GameEnd",
   computed: {
-    ...mapGetters("game", ["getScores", "getCurrentRound"]),
-    ...mapGetters("round", ["getRoundResult"]),
-    finalScore() {
-      return this.getScores['undefined'] ?? 0;
-    },
+    ...mapGetters("singleplayer", ["singleplayerGame_getCurrentRound"]),
     totalRounds() {
-      return this.getCurrentRound ?? 0;
+      return this.singleplayerGame_getCurrentRound ?? 0;
     },
-    bestRoundPoints() {
-      // Example: you might pull from a stats module
-      return this.getFinalWinner?.bestRound ?? "-";
-    }
   },
   methods: {
-    ...mapActions("game", ["endGame"]),
-    restartGame() {
-      this.endGame();
-
+    ...mapActions("singleplayer", { doRestartGame: "singleplayerGame_restartGame" }),
+    async restartGame() {
+      await this.doRestartGame();
       this.$router.push('/play');
     },
     goHome() {

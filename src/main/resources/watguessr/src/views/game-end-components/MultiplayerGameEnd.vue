@@ -56,7 +56,7 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "MultiplayerGameEnd",
   computed: {
-    ...mapGetters("game", ["getPlayers", "getScores", "getCurrentRound"]),
+    ...mapGetters("singleplayer", ["singleplayerGame_getScores", "singleplayerGame_getCurrentRound"]),
     myPlayerId() {
       return this.$store.state.playerId;
     },
@@ -67,21 +67,21 @@ export default {
       //   .map(p => ({
       //     id: p.id,
       //     name: p.name,
-      //     totalPoints: this.getScores[p.id] ?? 0
+      //     totalPoints: this.singleplayerGame_getScores[p.id] ?? 0
       //   }))
       //   .sort((a, b) => b.totalPoints - a.totalPoints);
     },
     totalRounds() {
-      return this.getCurrentRound ?? 0;
+      return this.singleplayerGame_getCurrentRound ?? 0;
     },
     bestRoundPoints() {
       // Replace with actual best round logic if stored
-      const myScores = Object.values(this.getScores || {});
+      const myScores = Object.values(this.singleplayerGame_getScores || {});
       return myScores.length ? Math.max(...myScores) : "-";
     }
   },
   methods: {
-    ...mapActions("game", ["endGame"]),
+    ...mapActions("singleplayer", ["endGame"]),
     restartGame() {
       this.endGame();
       this.$router.push("/play");
