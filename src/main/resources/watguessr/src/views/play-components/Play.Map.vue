@@ -91,70 +91,95 @@ export default {
         map.on('click', async (e) => {
           const coords = [e.lngLat.lng, e.lngLat.lat];
 
-          // ✅ Remove previous marker if it exists
-          if (this.marker) {
-            this.marker.remove();
-          }
+          // Remove old marker
+          if (this.marker) this.marker.remove();
 
-          // ✅ Add new marker
+          // Add new marker
           this.marker = new mapboxgl.Marker({ anchor: 'bottom' })
             .setLngLat(coords)
             .addTo(map);
 
-          // Query building polygon features at click point
           const buildingFeatures = map.queryRenderedFeatures(e.point, { layers: ['building'] });
+          let buildingName = null;
 
-          if (buildingFeatures.length === 0) {
-            // fallback: no building here
-            return;
+          if (buildingFeatures.length > 0) {
+            const props = buildingFeatures[0].properties;
+            buildingName = props?.name?.trim() || null;
+
+            const geom = buildingFeatures[0].geometry;
+            if (geom && Array.isArray(geom.coordinates)) {
+              let buildingPolygon;
+              if (geom.type === 'Polygon') {
+                buildingPolygon = polygon(geom.coordinates);
+              } else if (geom.type === 'MultiPolygon') {
+                buildingPolygon = multiPolygon(geom.coordinates);
+              }
+
+              if (buildingPolygon) {
+                const bbox = turf.bbox(buildingPolygon);
+                const sw = map.project([bbox[0], bbox[1]]);
+                const ne = map.project([bbox[2], bbox[3]]);
+                const queryBox = [[sw.x, ne.y], [ne.x, sw.y]];
+
+                const labelFeatures = map.queryRenderedFeatures(queryBox, { layers: labelLayerIds });
+                const labelsInside = labelFeatures.filter(lf => {
+                  let coords = lf.geometry?.coordinates;
+
+                  // If it's a MultiPoint (array of arrays), take the first point
+                  if (Array.isArray(coords) && Array.isArray(coords[0])) {
+                    coords = coords[0];
+                  }
+
+                  // Validate coordinate format
+                  if (
+                    !Array.isArray(coords) ||
+                    coords.length < 2 ||
+                    typeof coords[0] !== 'number' ||
+                    typeof coords[1] !== 'number'
+                  ) {
+                    return false;
+                  }
+
+                  return booleanPointInPolygon(point(coords), buildingPolygon);
+                });
+
+                const labelWithName = labelsInside.find(l => l.properties?.name?.trim());
+                if (labelWithName) buildingName = labelWithName.properties.name;
+              }
+            }
           }
 
-          // Pick the first building polygon feature
-          const buildingFeature = buildingFeatures[0];
-
-          // Construct turf polygon GeoJSON from feature geometry
-          const buildingPolygon = polygon(buildingFeature.geometry.coordinates);
-
-          // Query label features in viewport or a bounding box around building polygon
-          const bbox = turf.bbox(buildingPolygon); // get bounding box [minX, minY, maxX, maxY]
-
-          // Convert bbox to screen points for queryRenderedFeatures
-          const sw = map.project([bbox[0], bbox[1]]);
-          const ne = map.project([bbox[2], bbox[3]]);
-          const queryBox = [[sw.x, ne.y], [ne.x, sw.y]]; // top-left, bottom-right in screen pixels
-
-          // Get candidate labels in bbox
-          const labelFeatures = map.queryRenderedFeatures(queryBox, { layers: labelLayerIds });
-
-          // Filter labels whose point lies inside building polygon
-          const labelsInside = labelFeatures.filter(labelFeature => {
-            const labelPoint = point(labelFeature.geometry.coordinates);
-            return booleanPointInPolygon(labelPoint, buildingPolygon);
-          });
-
-          if (labelsInside.length > 0) {
-            // Use the first label inside building polygon (or pick best by other criteria)
-            // Find the first label that has a non-empty name property
-            const labelWithName = labelsInside.find(label => label.properties && label.properties.name && label.properties.name.trim() !== '');
-
-            const labelName = labelWithName ? labelWithName.properties.name : 'Unnamed Place';
-
-            console.log(labelName);
-          } else {
-            console.log('No label found inside building polygon');
+          // Nearby label fallback
+          if (!buildingName) {
+            const searchBox = [
+              [e.point.x - 10, e.point.y - 10],
+              [e.point.x + 10, e.point.y + 10]
+            ];
+            const nearbyLabels = map.queryRenderedFeatures(searchBox, { layers: labelLayerIds });
+            if (nearbyLabels.length > 0) {
+              nearbyLabels.sort((a, b) => {
+                const distA = this.distanceToPoint(a.geometry.coordinates, e.point, map);
+                const distB = this.distanceToPoint(b.geometry.coordinates, e.point, map);
+                return distA - distB;
+              });
+              buildingName = nearbyLabels[0].properties?.name?.trim() || 'Unnamed Place';
+            }
           }
 
-          const selectedData = {
-            building: labelName,
+          // Reverse geocode fallback
+          if (!buildingName) {
+            buildingName = await this.reverseGeocode(coords[0], coords[1]);
+          }
+
+          this.SET_BUILDING_AND_LOCATIONS({
+            building: buildingName,
             guessX: coords[0],
             guessY: coords[1],
-          };
-
-          this.SET_BUILDING_AND_LOCATIONS(selectedData);
+          });
         });
       });
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
