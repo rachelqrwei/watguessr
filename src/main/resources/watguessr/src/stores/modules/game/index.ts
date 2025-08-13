@@ -1,12 +1,12 @@
 // src/stores/modules/game/index.ts
 import type { Module } from 'vuex';
 import type { RootState } from '../../index';
-import { state, type GameState } from './state';
+import { state, type singleplayerGameState } from './state';
 import { getters } from './getters';
 import { mutations } from './mutations';
 import { actions } from './actions';
 
-export const gameModule: Module<GameState, RootState> = {
+export const singleplayerModule: Module<singleplayerGameState, RootState> = {
   namespaced: true,
   state,
   getters,
@@ -14,4 +14,4 @@ export const gameModule: Module<GameState, RootState> = {
   actions
 };
 
-export default gameModule;
+export default singleplayerModule;

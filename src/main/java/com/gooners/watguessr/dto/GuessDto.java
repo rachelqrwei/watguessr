@@ -8,8 +8,8 @@ public class GuessDto {
     private Integer time;
     private Double guessX;
     private Double guessY;
-    private UUID buildingId;
-    private Integer floor;
+    private String building;
+    private String floor;
     private UUID roundId;
     private Integer points;
 
@@ -28,11 +28,11 @@ public class GuessDto {
     public Double getGuessY() { return guessY; }
     public void setGuessY(Double guessY) { this.guessY = guessY; }
 
-    public UUID getBuildingId() { return buildingId; }
-    public void setBuildingId(UUID buildingId) { this.buildingId = buildingId; }
+    public String getBuilding() { return building; }
+    public void setBuilding(String building) { this.building = building; }
 
-    public Integer getFloor() { return floor; }
-    public void setFloor(Integer floor) { this.floor = floor; }
+    public String getFloor() { return floor; }
+    public void setFloor(String floor) { this.floor = floor; }
 
     public UUID getRoundId() { return roundId; }
     public void setRoundId(UUID roundId) { this.roundId = roundId; }

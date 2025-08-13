@@ -3,7 +3,7 @@
     <div class="round-end-panel">
       <div class="round-header">
         <span class="round-label">ROUND</span>
-        <span class="round-number">#{{ getCurrentRound }}</span>
+        <span class="round-number">#{{ singleplayerGame_getCurrentRound }}</span>
       </div>
 
       <div class="points-section">
@@ -39,7 +39,7 @@
           <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
           <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
           <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
-          <circle cx="320" cy="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
+          <circle cx="320" y="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
           <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
         </svg>
       </div>
@@ -82,7 +82,7 @@ export default {
     displayPoints() {
       return this.points;
     },
-    ...mapGetters("game", ["getCurrentRound"])
+    ...mapGetters("singleplayer", ["singleplayerGame_getCurrentRound"])
   },
 };
 </script>

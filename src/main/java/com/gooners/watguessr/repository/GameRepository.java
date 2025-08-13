@@ -18,7 +18,13 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
     Integer countGamesPlayedByUser(@Param("userId") UUID userId);
     
     @Query("SELECT COUNT(g.id) FROM Game g " +
-           "WHERE g.winner.id = :userId")
+           "WHERE g.winner.id = :userId AND g.gameMode <> 'Singleplayer'")
     Integer countGamesWonByUser(@Param("userId") UUID userId);
+    
+    @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
+           "JOIN Round r ON r.game.id = g.id " +
+           "JOIN Guess guess ON guess.round.id = r.id " +
+           "WHERE guess.user.id = :userId AND g.gameMode <> 'Singleplayer'")
+    Integer countNonSingleplayerGamesPlayedByUser(@Param("userId") UUID userId);
     
 }

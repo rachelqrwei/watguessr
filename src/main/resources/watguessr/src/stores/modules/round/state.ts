@@ -1,12 +1,7 @@
 // src/stores/modules/round/state.ts
-export interface Scene {
-  building: string;
-  floor: string;
-}
-
 export interface RoundState {
   roundId: string | null;
-  scene: Scene | null;
+  imageUrl: string | null;
   winner: string | null;
   roundResult: {
     points: number;
@@ -16,7 +11,7 @@ export interface RoundState {
 
 export const state = (): RoundState => ({
   roundId: null,
-  scene: null,
+  imageUrl: null,
   winner: null,
   roundResult: {
     points: 0,

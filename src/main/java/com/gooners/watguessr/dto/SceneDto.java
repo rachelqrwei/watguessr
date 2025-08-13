@@ -7,7 +7,7 @@ public class SceneDto {
     private String image;
     private double locationX;
     private double locationY;
-    private int floor;
+    private String floor;
     private UUID buildingId;
 
     public UUID getId() { return id; }
@@ -18,8 +18,8 @@ public class SceneDto {
     public void setLocationX(double locationX) { this.locationX = locationX; }
     public double getLocationY() { return locationY; }
     public void setLocationY(double locationY) { this.locationY = locationY; }
-    public int getFloor() { return floor; }
-    public void setFloor(int floor) { this.floor = floor; }
+    public String getFloor() { return floor; }
+    public void setFloor(String floor) { this.floor = floor; }
     public UUID getBuildingId() { return buildingId; }
     public void setBuildingId(UUID buildingId) { this.buildingId = buildingId; }
 }

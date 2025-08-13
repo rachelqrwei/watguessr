@@ -3,7 +3,7 @@
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
         <span class="player-name">{{ player1Name }}</span>
-        <span class="player-points">{{ getScores['undefined'] }} PTS</span>
+        <span class="player-points">{{ displayedPoints }} PTS</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="player-score-tracker-2" v-if="getGameMode === 'Multiplayer'">
+    <div class="player-score-tracker-2" v-if="singleplayerGame_getGameMode === 'Multiplayer'">
       <div class="player-score-text-container">
         <span class="player-points">{{ player2Score }} PTS</span>
         <span class="player-name">{{ player2Name }}</span>
@@ -42,28 +42,41 @@ export default {
   data() {
     return {
       // TODO: connect player info to backend
-      player1Name: "NAME 1",
+      player1Name: "YOU",
       player2Name: "NAME 2",
       player1Score: 180,
       player2Score: 300
     };
   },
   computed: {
-    ...mapGetters('game', [
-      'getScores',
-      'getGameMode'
+    ...mapGetters('singleplayer', [
+      'singleplayerGame_getScores',
+      'singleplayerGame_getGameMode',
+      'singleplayerGame_getSingleplayerDisplayedScore',
     ]),
+    ...mapGetters('guess', [
+      'getUserId',
+    ]),
+    displayedPoints() {
+      if (this.singleplayerGame_getGameMode === 'Singleplayer') {
+        return this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
+      }
+      // Multiplayer fallback: show this player's score by id if present
+      const key = this.getUserId || 'player';
+      return this.singleplayerGame_getScores[key] || 0;
+    },
     player1ScorePercentage() {
-      if (this.getGameMode == "Singleplayer") {
-        return Math.floor(
-          (this.getScores['undefined'] * 100) / 5000
-        );
+      if (this.singleplayerGame_getGameMode == "Singleplayer") {
+        // percentage of remaining points out of 1000
+        const remaining = this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
+        return Math.floor((remaining * 100) / 1000);
       }
       else {
-        return Math.floor(
-          (this.getScores[0] * 100) /
-          (this.getScores[0] + this.getScores[1])
-        );
+        const key = this.getUserId || 'player';
+        const me = this.singleplayerGame_getScores[key] || 0;
+        const other = this.player2Score;
+        const denom = me + other || 1;
+        return Math.floor((me * 100) / denom);
       }
 
     },

@@ -4,15 +4,37 @@ import type { RootState } from '../../index';
 import type { GuessState } from './state';
 
 export const actions: ActionTree<GuessState, RootState> = {
-  async submitGuess({ state, rootState, dispatch }) {
-    //answer scene of the round
-    const scene = rootState.round.scene;
-    if (!scene) return;
+  async submitGuess({ state, rootState, rootGetters, dispatch }) {
+    // set user id from Vuex user module
+    const currentUser = rootGetters['user/currentUser'];
+    const currentUserId = currentUser?.id || null;
+    state.user.id = currentUserId;
 
     //calculate points from the round
     try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL;
+      const createGuessBody = {
+        userId: state.user.id,
+        time: state.time,
+        guessX: state.guessX,
+        guessY: state.guessY,
+        building: state.building,
+        floor: state.floor,
+        roundId: rootState.round.roundId
+      };
+
+      const createResponse = await fetch(`${baseUrl}/api/guess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createGuessBody)
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create guess');
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
+        `${baseUrl}/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -25,10 +47,9 @@ export const actions: ActionTree<GuessState, RootState> = {
       }
 
       const roundResult = await response.json();
-      //end round
       dispatch('round/endRound', { winner: state.user, roundResult: roundResult }, { root: true });
 
-      return points;
+      return roundResult;
     } catch (error) {
       console.error('Error calculating points:', error);
       return null;

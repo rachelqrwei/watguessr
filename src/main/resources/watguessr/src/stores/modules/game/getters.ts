@@ -1,15 +1,22 @@
 // src/stores/modules/game/getters.ts
 import type { GetterTree } from 'vuex';
 import type { RootState } from '../../index';
-import type { GameState } from './state';
+import type { singleplayerGameState } from './state';
 
-export const getters: GetterTree<GameState, RootState> = {
-  getGameId: (state) => state.gameId,
-  getGameMode: (state) => state.gameMode,
-  getCurrentRound: (state) => state.currentRound,
-  getMaxRounds: (state) => state.maxRounds,
-  getGameStatus: (state) => state.status,
-  getFinalWinner: (state) => state.finalWinner,
-  getScores: (state) => state.scores,
-  getCurrentView: (state) => state.currentView
+export const getters: GetterTree<singleplayerGameState, RootState> = {
+  singleplayerGame_getGameId: (state) => state.singleplayerGame_gameId,
+  singleplayerGame_getGameMode: (state) => state.singleplayerGame_gameMode,
+  singleplayerGame_getCurrentRound: (state) => state.singleplayerGame_currentRound,
+  singleplayerGame_getGameStatus: (state) => state.singleplayerGame_status,
+  singleplayerGame_getFinalWinner: (state) => state.singleplayerGame_finalWinner,
+  singleplayerGame_getScores: (state) => state.singleplayerGame_scores,
+  singleplayerGame_getCurrentView: (state) => state.singleplayerGame_currentView,
+  singleplayerGame_getShouldEnd: (state) => state.singleplayerGame_shouldEnd,
+  
+  singleplayerGame_getSingleplayerDisplayedScore: (state) => {
+    const mode = state.singleplayerGame_gameMode;
+    if (mode !== 'Singleplayer') return null;
+
+    return typeof state.singleplayerGame_singleplayerScore === 'number' ? state.singleplayerGame_singleplayerScore : 1000;
+  },
 };
