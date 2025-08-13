@@ -6,7 +6,7 @@ import { getters } from './getters';
 import { mutations } from './mutations';
 import { actions } from './actions';
 
-export const singleplayerModule: Module<singleplayerGameState, RootState> = {
+export const singleplayerGameModule: Module<singleplayerGameState, RootState> = {
   namespaced: true,
   state,
   getters,
@@ -14,4 +14,4 @@ export const singleplayerModule: Module<singleplayerGameState, RootState> = {
   actions
 };
 
-export default singleplayerModule;
+export default singleplayerGameModule;
