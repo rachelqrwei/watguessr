@@ -59,7 +59,7 @@ export default {
     ...mapActions('guess', [
       'submitGuess'
     ]),
-    ...mapMutations('singleplayer', [
+    ...mapMutations('singleplayerGame', [
       'SG_CHANGE_VIEW',
       'SG_INCREMENT_ROUND'
     ]),
