@@ -1,2 +1,2 @@
 // Entity stores for backend-linked data
-export { useUserStore } from './user'
+export { useUserStore } from './user';
