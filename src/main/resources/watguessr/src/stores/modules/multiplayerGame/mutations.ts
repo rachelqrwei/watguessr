@@ -3,6 +3,9 @@ import type { MutationTree } from 'vuex';
 import type {MultiplayerGameState, PlayerInfo, PlayerStatus} from './state';
 
 export const mutations: MutationTree<MultiplayerGameState> = {
+  MG_SET_GAME_ID(state, multiplayerGame_gameId: string) {
+    state.multiplayerGame_gameId = multiplayerGame_gameId
+  },
   MG_SET_PLAYERS(state, multiplayerGame_players: Record<string, PlayerInfo>) {
     state.multiplayerGame_players = multiplayerGame_players;
   },
@@ -19,6 +22,12 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   },
   MG_SET_FINAL_WINNER(state, multiplayerGame_finalWinner: string) {
     state.multiplayerGame_finalWinner = multiplayerGame_finalWinner;
+  },
+  MG_SET_GAME_MODE(state, multiplayerGame_gameMode: string) {
+    state.multiplayerGame_gameMode = multiplayerGame_gameMode;
+  },
+  MG_SET_CURRENT_VIEW(state, multiplayerGame_currentView: string) {
+    state.multiplayerGame_currentView = multiplayerGame_currentView;
   },
   MG_RESET_GAME(state) {
     state.multiplayerGame_players = {};
