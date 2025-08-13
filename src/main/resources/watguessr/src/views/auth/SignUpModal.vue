@@ -76,7 +76,7 @@
           </label>
         </div>
       </form>
-      
+
       <OtpModal
         :visible="showOtpModal"
         :email="userEmail"
@@ -87,18 +87,15 @@
     </div>
   </div>
 </template>
-
-<script>
-import { useUserStore } from '@/stores/entity/user.ts';
-import StatusModal from "@/views/auth/StatusModal.vue";
+<script lang="ts">
+import { mapGetters, mapActions } from 'vuex';
 import OtpModal from "@/views/auth/OtpModal.vue";
-
+import StatusModal from "@/views/auth/StatusModal.vue";
 export default {
   props: ['visible'],
   components: {
     OtpModal,
-    OptModal: OtpModal,
-    StatusModal,
+    StatusModal
   },
   data() {
     return {
@@ -113,51 +110,10 @@ export default {
       statusMessage: '',
       showStatus: false,
       statusType: 'success', // or 'error'
-      userStore: useUserStore(),
       showPassword: false,
-      showOtpModal: false,
-      userEmail: ''
+      userEmail: '',
+      showOtpModal: false
     };
-  },
-  methods: {
-    async submitSignUp() {
-      this.error = '';
-      if (this.password !== this.confirmPassword) {
-        this.error = "Passwords do not match";
-        return;
-      }
-      const { email, username, password } = this;
-      this.showSuccess = false;
-
-      try {
-        const result = await this.userStore.signUpUser(email, username, password);
-
-        this.statusMessage = "Login successful!";
-        this.statusType = "success";
-        this.showStatus = true;
-
-        this.successMessage = result;
-        this.showSuccess = true;
-
-        // call OTP Modal
-        this.userEmail = email;
-        await this.userStore.sendOtp(email);
-        this.showOtpModal = true;
-
-        // this.$emit('openLogin');
-        // this.$emit('close');
-      } catch (err) {
-        this.error = err instanceof Error ? err.message : 'Signup failed';
-      }
-    },
-    handleOtpVerified() {
-      this.showOtpModal = false;
-      // optionally log them in or open login modal
-      this.$emit('openLogin');
-    },
-    async resendOtp() {
-      await this.userStore.sendOtp(this.userEmail);
-    }
   },
   computed: {
     passwordChecks() {
@@ -168,9 +124,52 @@ export default {
         lengthValid,
         casingValid,
         specialCharValid,
-        allValid: lengthValid && casingValid && specialCharValid
+        allValid: lengthValid && casingValid && specialCharValid,
       };
     },
+  },
+  methods: {
+    ...mapActions('user', ['signUpUser', 'sendOtp']),
+
+    async submitSignUp() {
+      this.error = '';
+      if (this.password !== this.confirmPassword) {
+        this.error = "Passwords do not match";
+        return;
+      }
+      const { email, username, password } = this;
+      this.showSuccess = false;
+      this.loading = true;
+
+      try {
+        const result = await this.signUpUser({ email, username, password });
+
+        this.statusMessage = "Login successful!";
+        this.statusType = "success";
+        this.showStatus = true;
+
+        this.successMessage = result;
+        this.showSuccess = true;
+
+        // call OTP Modal
+        this.userEmail = email;
+        await this.sendOtp(email);
+
+        this.showOtpModal = true;
+
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Signup failed';
+      } finally {
+        this.loading = false;
+      }
+    },
+    handleOtpVerified() {
+      this.showOtpModal = false;
+      this.$emit('openLogin');
+    },
+    async resendOtp() {
+      await this.sendOtp(this.userEmail);
+    }
   },
   watch: {
     visible(val) {
@@ -178,7 +177,7 @@ export default {
         this.error = '';
       }
     }
-  },
+  }
 };
 </script>
 
