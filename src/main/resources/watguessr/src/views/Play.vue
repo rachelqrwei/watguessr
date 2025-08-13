@@ -5,9 +5,9 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
+  <PlayStopwatch v-if="(singleplayerGame_getCurrentView === 'Map' || singleplayerGame_getCurrentView === 'Image')" />
   <div class="selection-display">
-    <span>Current round: {{getCurrentRound}}</span>
+    <span>Current round: {{singleplayerGame_getCurrentRound}}</span>
     <div>
       <p>Selected Building: {{getGuessBuilding}}</p>
       <p>Lat: {{getGuessX}}</p>
@@ -17,11 +17,7 @@
       Select Floor:
       <select v-model="selectedFloor" class="floor-select">
         <option disabled value="">-- Choose a floor --</option>
-        <option>Basement</option>
-        <option>Ground</option>
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
+        <option v-for="floor in availableFloors" :key="floor" :value="floor">{{ floor }}</option>
       </select>
     </label>
   </div>
@@ -29,24 +25,24 @@
 
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
-    <div v-if="getCurrentView === 'Map'" class="view-pane">
-      <button class="view-change-button" @click="CHANGE_VIEW('Image')">
+    <div v-if="singleplayerGame_getCurrentView === 'Map'" class="view-pane">
+      <button class="view-change-button" @click="SG_CHANGE_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
       </button>
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
-    <div v-if="getCurrentView === 'Image'" class="view-pane">
-      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
+    <div v-if="singleplayerGame_getCurrentView === 'Image'" class="view-pane">
+      <button class="view-change-button" @click="SG_CHANGE_VIEW('Map')">
         VIEW MAP
       </button>
       <PlayImageView />
     </div>
 
-    <div v-if="getCurrentView === 'RoundEnd'">
+    <div v-if="singleplayerGame_getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <button class="view-change-button" @click="CHANGE_VIEW('Map')">
+      <button class="view-change-button" @click="SG_CHANGE_VIEW('Map')">
       BACK TO MAP
       </button>
     </div>
@@ -56,12 +52,12 @@
     {{ errorMessage }}
   </div>
 
-  <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
-    <button class="submit-button" style="color: var(--yellow);" @click="handleSubmit">SUBMIT</button>
+  <div v-if="(singleplayerGame_getCurrentView === 'Map' || singleplayerGame_getCurrentView === 'Image')">
+    <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
   </div>
-  <div v-else-if="getCurrentView === 'RoundEnd'">
-    <button class="submit-button" style="color: white" @click="nextRoundOrEndGame">
-      {{ getCurrentRound < getMaxRounds ? 'NEXT ROUND' : 'END GAME' }}
+  <div v-else-if="singleplayerGame_getCurrentView === 'RoundEnd'">
+    <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
+      {{ singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND' }}
     </button>
   </div>
 
@@ -95,16 +91,15 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('game', [
-      'getGameId',
-      'getCurrentView',
-      'getGameStatus',
-      'getFinalWinner',
-      'getCurrentRound',
-      'getMaxRounds'
+    ...mapGetters('singleplayerGame', [
+      'singleplayerGame_getGameId',
+      'singleplayerGame_getCurrentView',
+      'singleplayerGame_getGameStatus',
+      'singleplayerGame_getFinalWinner',
+      'singleplayerGame_getCurrentRound',
+      'singleplayerGame_getShouldEnd',
     ]),
     ...mapGetters('round', [
-      'getScene',
       'getWinner',
       'getRoundResult'
     ]),
@@ -115,13 +110,44 @@ export default {
       'getGuessBuilding',
       'getGuessFloor'
     ]),
+    ...mapGetters('building', [
+      'getBuildingsMap'
+    ]),
+
+    availableFloors() {
+      const buildingName = this.getGuessBuilding;
+      if (!buildingName) return [];
+      const b = this.getBuildingsMap?.[buildingName];
+      const floors = b?.floors || [];
+      return Array.isArray(floors) ? floors.map(f => String(f)) : [];
+    }
 
   },
+  watch: {
+    selectedFloor(newVal) {
+      if (newVal) {
+        this.SET_FLOOR(newVal);
+      }
+    },
+    singleplayerGame_getGameStatus(newStatus) {
+      if (newStatus === 'ended') {
+        if (this.singleplayerGame_getCurrentView !== 'RoundEnd') {
+          this.SG_CHANGE_VIEW('RoundEnd');
+        }
+      }
+    },
+    getGuessBuilding(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        const floors = this.availableFloors;
+        this.selectedFloor = (floors && floors.length > 0) ? floors[0] : '';
+      }
+    }
+  },
   methods: {
-    ...mapActions('game', [
-      'createSingleplayerGame',
-      'recordRoundWinner',
-      'endCurrentRound'
+    ...mapActions('singleplayerGame', [
+      'singleplayerGame_createSingleplayerGame',
+      'singleplayerGame_endCurrentRound',
+      'singleplayerGame_checkSingleplayerState'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -129,9 +155,15 @@ export default {
     ...mapActions('guess', [
       'submitGuess'
     ]),
-    ...mapMutations('game', [
-      'CHANGE_VIEW',
-      'INCREMENT_ROUND'
+    ...mapActions('building', [
+      'fetchAllBuildings'
+    ]),
+    ...mapMutations('singleplayerGame', [
+      'SG_CHANGE_VIEW',
+      'SG_INCREMENT_ROUND'
+    ]),
+    ...mapMutations('guess', [
+      'SET_FLOOR'
     ]),
 
     handleSubmit() {
@@ -145,28 +177,33 @@ export default {
       }
       this.errorMessage = ""; // clear any previous error
 
+      // ensure floor committed to store before submit
+      this.SET_FLOOR(this.selectedFloor);
+
       this.submitGuess();
     },
 
-    nextRoundOrEndGame() {
-      if (this.getCurrentRound >= this.getMaxRounds) {
-        // Go to game end screen
+    async nextRoundOrEndGame() {
+      // if the game should end already, navigate directly
+      if (this.singleplayerGame_getShouldEnd) {
+        this.$router.push('/singleplayer-game-end');
+        return;
+      }
+
+      const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
+      if (shouldEnd) {
         this.$router.push('/singleplayer-game-end')
         return;
       }
 
-      //if still has rounds left
-      //reset every UI detail about current round
       this.selectedBuilding = null;
       this.selectedFloor = '';
       this.resetTimer();
 
-      //start next round
-      this.startRound({gameId: this.getGameId});
-      this.INCREMENT_ROUND();
+      await this.startRound({gameId: this.singleplayerGame_getGameId});
+      this.SG_INCREMENT_ROUND();
 
-      //change view to map again
-      this.CHANGE_VIEW("Map");
+      this.SG_CHANGE_VIEW("Map");
     },
 
     handleBuildingSelected(payload) {
@@ -174,11 +211,12 @@ export default {
     },
 
     resetTimer() {
-      this.timeLeft = 60000 // or any other time in ms
+      this.timeLeft = 60000
     }
   },
   mounted() {
-    this.createSingleplayerGame();
+    this.fetchAllBuildings();
+    this.singleplayerGame_createSingleplayerGame();
   }
 }
 </script>
@@ -273,6 +311,14 @@ export default {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button--yellow {
+  color: var(--yellow);
+}
+
+.submit-button--white {
+  color: white;
 }
 
 .submit-button:hover {

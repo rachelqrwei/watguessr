@@ -56,23 +56,26 @@ export default {
     ...mapActions('round', [
       "endRound"
     ]),
-    ...mapMutations('game', [
-      'CHANGE_VIEW',
-      'INCREMENT_ROUND'
+    ...mapActions('guess', [
+      'submitGuess'
+    ]),
+    ...mapMutations('singleplayerGame', [
+      'SG_CHANGE_VIEW',
+      'SG_INCREMENT_ROUND'
     ]),
     startTimer() {
       this.clearTimer();
 
       this.SET_TIME(0);
 
-      this.interval = setInterval(() => {
+      this.interval = setInterval(async () => {
         if (this.getGuessTime < this.totalTime) {
           this.SET_TIME(this.getGuessTime + 100); // increase by 100ms
         } else {
           // when 60s reached
           this.clearTimer();
-          this.CHANGE_VIEW('RoundEnd');
-          this.endRound({winner: null, score: 0});
+          // Use the same flow as manual submission so scoring/ending logic is consistent
+          await this.submitGuess();
         }
       }, 100);
     },

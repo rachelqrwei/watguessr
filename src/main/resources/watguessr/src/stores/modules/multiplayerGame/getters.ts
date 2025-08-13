@@ -1,15 +1,14 @@
 // src/stores/modules/game/getters.ts
 import type { GetterTree } from 'vuex';
-import type { RootState } from '../../index';
-import type { GameState } from './state';
+import type { MultiplayerGameState } from './state';
+import type {RootState} from "@/stores";
 
-export const getters: GetterTree<GameState, RootState> = {
-  getGameId: (state) => state.gameId,
-  getGameMode: (state) => state.gameMode,
-  getCurrentRound: (state) => state.currentRound,
-  getMaxRounds: (state) => state.maxRounds,
-  getGameStatus: (state) => state.status,
-  getFinalWinner: (state) => state.finalWinner,
-  getScores: (state) => state.scores,
-  getCurrentView: (state) => state.currentView
+export const getters: GetterTree<MultiplayerGameState, RootState> = {
+  multiplayerGame_getPlayers: (state) => state.multiplayerGame_players,
+  multiplayerGame_getCurrentRound: (state) => state.multiplayerGame_currentRound,
+  multiplayerGame_getMaxRounds: (state) => state.multiplayerGame_currentRound,
+  multiplayerGame_getFinalWinner: (state) => state.multiplayerGame_finalWinner,
+  multiplayerGame_getShouldEnd: (state) => state.multiplayerGame_shouldEnd,
+  multiplayerGame_getGameMode: (state) => state.multiplayerGame_gameMode,
+  multiplayerGame_getCurrentView: (state) => state.multiplayerGame_currentView
 };

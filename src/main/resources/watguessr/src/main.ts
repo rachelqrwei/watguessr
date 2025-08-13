@@ -1,7 +1,6 @@
 import './assets/main.css'
 
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import store from './stores'
 
 import App from './App.vue'
@@ -52,10 +51,8 @@ library.add(
 )
 
 const app = createApp(App)
-  .use(store);
-
-app.use(createPinia())
-app.use(router)
+  .use(store)
+  .use(router)
 
 // Register FontAwesome component globally
 app.component('font-awesome-icon', FontAwesomeIcon)

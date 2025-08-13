@@ -14,6 +14,9 @@ export const mutations: MutationTree<GuessState> = {
     state.guessX = payload.guessX;
     state.guessY = payload.guessY;
   },
+  SET_FLOOR(state, floor: string) {
+    state.floor = floor;
+  },
   RESET_USER_ID(state) {
     state.user.id = null;
   },
