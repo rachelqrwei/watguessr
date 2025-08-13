@@ -40,6 +40,7 @@ export const actions = {
   async signUpUser({ state }: { state: UserState }, payload: { email: string; username: string; password: string }) {
     state.loading = true;
     state.error = null;
+
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/signup`, {
         method: 'POST',

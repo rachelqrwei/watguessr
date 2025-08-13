@@ -4,12 +4,12 @@
       <button class="close-btn" @click="$emit('close')">×</button>
       <form @submit.prevent="submitLogin" class="login-form">
         <div class="form-group floating-label">
-          <input type="text" id="username" v-model="username" placeholder="" required/>
+          <input type="text" id="username" v-model="username" placeholder="" required />
           <label for="username">USERNAME</label>
         </div>
 
         <div class="form-group floating-label">
-          <input type="password" id="password" v-model="password" placeholder="" required/>
+          <input type="password" id="password" v-model="password" placeholder="" required />
           <label for="password">PASSWORD</label>
         </div>
 
@@ -25,7 +25,8 @@
         </div>
 
         <div class="sign-up">
-          <label>Don't have an account?
+          <label>
+            Don't have an account?
             <span class="link" @click="$emit('openSignUp')">SIGN UP</span>
           </label>
         </div>
@@ -35,40 +36,43 @@
 </template>
 
 <script>
-import {useUserStore} from "@/stores/entity/index.js";
+import { mapActions } from 'vuex';
+
 export default {
   props: ['visible'],
+
   data() {
     return {
       username: '',
       password: '',
       error: '',
       rememberMe: false,
-      useStore: useUserStore()
     };
   },
+
   methods: {
+    ...mapActions('user', ['login']),
+
     async submitLogin() {
       this.error = '';
-      const { username, password } = this;
       try {
-        const response = await this.useStore.login(username, password);
+        await this.login({ username: this.username, password: this.password });
         this.$emit('close');
       } catch (err) {
         this.error = err instanceof Error ? err.message : 'Login failed';
       }
     },
-    openSignUp() {
-      this.showSignIn = true;
-      this.$emit('close');
-    }
   },
+
   watch: {
     visible(val) {
       if (val) {
         this.error = '';
+        this.username = '';
+        this.password = '';
+        this.rememberMe = false;
       }
-    }
+    },
   },
 };
 </script>
