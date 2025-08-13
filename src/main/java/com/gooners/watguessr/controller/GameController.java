@@ -41,8 +41,8 @@ public class GameController {
     }
 
     @PostMapping(value = "/finish/singleplayer")
-    public Integer finishSingleplayerGame(@RequestParam UUID gameId) {
-        return gameService.resolveSingleplayerGame(gameId);
+    public Integer finishSingleplayerGame(@RequestParam UUID gameId, @RequestParam UUID userId) {
+        return gameService.resolveSingleplayerGame(gameId, userId);
     }
 
     @PostMapping(value = "/finish/multiplayer")

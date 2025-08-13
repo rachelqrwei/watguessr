@@ -8,5 +8,6 @@ export const getters: GetterTree<GuessState, RootState> = {
   getGuessBuilding: (state) => state.building,
   getGuessX: state => state.guessX,
   getGuessY: state => state.guessY,
-  getGuessFloor: state => state.floor
+  getGuessFloor: state => state.floor,
+  getUserId: state => state.user?.id || null,
 };

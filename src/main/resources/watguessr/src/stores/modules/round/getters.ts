@@ -5,7 +5,7 @@ import type { RoundState } from './state';
 
 export const getters: GetterTree<RoundState, RootState> = {
   getRoundId: (state) => state.roundId,
-  getScene: (state) => state.scene,
   getWinner: (state) => state.winner,
-  getRoundResult: (state) => state.roundResult
+  getRoundResult: (state) => state.roundResult,
+  getImageUrl: (state) => state.imageUrl,
 };

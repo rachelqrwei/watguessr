@@ -25,11 +25,13 @@ public class PointsCalculator {
         boolean floorMatch = false;
 
         if (guess.getBuilding() != null && scene.getBuilding() != null) {
-            buildingMatch = guess.getBuilding().equals(scene.getBuilding().getId());
+            String guessedBuildingName = normalize(guess.getBuilding());
+            String actualBuildingName = normalize(scene.getBuilding().getName());
+            buildingMatch = guessedBuildingName.equals(actualBuildingName);
         }
 
         if (guess.getFloor() != null && scene.getFloor() != null) {
-            floorMatch = guess.getFloor().equals(scene.getFloor());
+            floorMatch = normalize(guess.getFloor()).equals(normalize(scene.getFloor()));
         }
 
         if (game.getGameMode().equals("Singleplayer")) {
@@ -42,7 +44,7 @@ public class PointsCalculator {
     }
 
     //calculate euclidean distance
-    private static double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
+    public static double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
         if (x1 == null || y1 == null || x2 == null || y2 == null) {
             return Double.MAX_VALUE; // maximum penalty for missing coordinates
         }
@@ -62,67 +64,60 @@ public class PointsCalculator {
     private static int calculateMultiplayerPoints(double distance, boolean buildingMatch, boolean floorMatch) {
         int basePoints = 0;
 
-        // Distance-based scoring with less steep exponential falloff
-        if (distance == 0) {
-            basePoints = 500; // Reduced from 1000 to 500
-        } else {
-            // Maximum reasonable distance on campus: ~2km (2000 meters)
-            double maxDistance = 2000.0; // meters
-            double normalizedDistance = Math.min(distance / maxDistance, 1.0);
+        // Less exponential: polynomial falloff based on normalized distance
+        // points ≈ 500 * (1 - normalizedDistance)^beta
+        double maxDistance = 2000.0; // meters
+        double normalizedDistance = Math.min(distance / maxDistance, 1.0);
+        double beta = 1.1; // 1.0 is linear; >1 curves slightly
+        basePoints = (int) Math.round(500 * Math.pow(1.0 - normalizedDistance, beta));
 
-            // Less steep exponential decay: points = 500 * e^(-1.5 * normalizedDistance)
-            // This gives more balanced scoring:
-            // - 100m away: ~430 points
-            // - 250m away: ~344 points  
-            // - 500m away: ~236 points
-            // - 1000m away: ~111 points
-            // - 2000m+ away: ~25 points
-            basePoints = (int) (500 * Math.exp(-1.5 * normalizedDistance));
-        }
-
-        // Bonus points for correct building and floor (reduced proportionally)
+        // Bonus points for correct building and floor (reduced floor influence)
         if (buildingMatch) {
-            basePoints += 100; // Reduced from 200 to 100
+            basePoints += 100;
             if (floorMatch) {
-                basePoints += 50; // Reduced from 100 to 50
+                basePoints += 20; // floor matters less than coordinates
             }
         }
 
-        return Math.max(basePoints, 25); // Minimum 25 points for any guess (reduced from 50)
+        return Math.max(basePoints, 25); // Minimum 25 points for any guess
     }
 
     //calculate points for a singleplayer game
     private static int calculateSingleplayerPoints(double distance, boolean buildingMatch, boolean floorMatch, Game game, RoundRepository roundRepository, User user) {
         int penalty = 0;
 
-        // Distance-based penalty with less steep falloff
         if (distance > 0) {
-            // Maximum reasonable distance on campus: ~2km (2000 meters)
-            double maxDistance = 2000.0; // meters
-            double normalizedDistance = Math.min(distance / maxDistance, 1.0);
+            // Polynomial growth tuned so ~100m ≈ ~200 points lost
+            double maxDistance = 1500.0;   // meters
+            double base = 800.0;           // overall penalty scale
+            double gamma = 0.5;            // sqrt curve: higher sensitivity near zero
 
-            // Exponential penalty that's less harsh:
-            // penalty = 850 * (1 - e^(-1.2 * normalizedDistance))
-            // This gives:
-            // - 100m away: ~49 point penalty
-            // - 250m away: ~179 point penalty
-            // - 500m away: ~328 point penalty
-            // - 1000m away: ~567 point penalty
-            // - 2000m+ away: ~850 point penalty
-            penalty = (int) (850 * (1 - Math.exp(-1.2 * normalizedDistance)));
-        }
+            double normalized = Math.min(distance / maxDistance, 1.0);
+            penalty = (int) Math.round(base * Math.pow(normalized, gamma));
 
-        // Reduce penalty for correct building/floor
-        if (buildingMatch) {
-            penalty = (int) (penalty * 0.4); // 60% penalty reduction for correct building
-            if (floorMatch) {
-                penalty = (int) (penalty * 0.6); // Additional 40% reduction for correct floor
+            // Scaled reductions so coordinates dominate
+            double closeness = 1.0 - normalized; // 1 near, 0 far
+            if (buildingMatch) {
+                double buildingReductionMax = 0.50; // up to 50% reduction when very close
+                penalty = (int) Math.round(penalty * (1.0 - buildingReductionMax * closeness));
+                if (floorMatch) {
+                    double floorReductionMax = 0.05; // make floor far less significant than coordinates
+                    double nearWeight = closeness * closeness; // only meaningful when very close
+                    penalty = (int) Math.round(penalty * (1.0 - floorReductionMax * nearWeight));
+                }
+            } else {
+                // Proximity grace when building is wrong: mild relief when very close
+                double graceRadiusMeters = 180.0;
+                double proximity = Math.max(0.0, 1.0 - Math.min(distance / graceRadiusMeters, 1.0));
+                double maxRelief = 0.30; // max 30% reduction when guessing close
+                double factor = 1.0 - (maxRelief * proximity);
+                penalty = (int) Math.round(penalty * factor);
             }
         }
 
-        // Ensure minimum penalty of 10 points for any guess (except perfect)
+        // Ensure small penalty for near-miss
         if (penalty == 0 && distance > 0) {
-            penalty = 10;
+            penalty = 8;
         }
 
         // Return negative penalty to be stored in database
@@ -142,5 +137,12 @@ public class PointsCalculator {
     //check if a singleplayer game should end
     public static boolean shouldEndSingleplayerGame(UUID gameId, UUID userId, RoundRepository roundRepository) {
         return getCurrentSingleplayerScore(gameId, userId, roundRepository) <= 0;
+    }
+
+    private static String normalize(String input) {
+        if (input == null) return null;
+        return input.toLowerCase()
+                .replaceAll("[^a-z0-9 ]", "")
+                .trim();
     }
 } 

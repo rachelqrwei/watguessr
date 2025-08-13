@@ -90,7 +90,7 @@ import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
-const showLogin = ref(false) // ✅ reactive state for login modal
+const showLogin = ref(false) //  reactive state for login modal
 const showSignUp = ref(false);
 
 const isHomePage = computed(() => route.path === '/')

@@ -1,13 +1,13 @@
 // src/stores/modules/round/mutations.ts
 import type { MutationTree } from 'vuex';
-import type { RoundState, Scene } from './state';
+import type { RoundState } from './state';
 
 export const mutations: MutationTree<RoundState> = {
   SET_ROUND_ID(state, roundId: string) {
     state.roundId = roundId;
   },
-  SET_SCENE(state, scene: Scene) {
-    state.scene = scene;
+  SET_IMAGE_URL(state, imageUrl: string | null) {
+    state.imageUrl = imageUrl;
   },
   SET_WINNER(state, winner: string) {
     state.winner = winner;
@@ -20,7 +20,7 @@ export const mutations: MutationTree<RoundState> = {
   },
   RESET_ROUND(state) {
     state.roundId = null;
-    state.scene = null;
+    state.imageUrl = null;
     state.winner = null;
     state.roundResult = {
       points: 0,

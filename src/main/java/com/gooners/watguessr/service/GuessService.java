@@ -3,6 +3,8 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GuessRepository;
+import com.gooners.watguessr.repository.RoundRepository;
+import com.gooners.watguessr.utils.PointsCalculator;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +16,14 @@ import java.util.UUID;
 public class GuessService {
 
     private final GuessRepository guessRepository;
-    private final RoundService roundService;
+    private final RoundRepository roundRepository;
     private UserService userService;
 
     public GuessService(GuessRepository guessRepository,
-                        UserService userService, RoundService roundService) {
+                        UserService userService, RoundService roundService, RoundRepository roundRepository) {
         this.guessRepository = guessRepository;
         this.userService = userService;
-        this.roundService = roundService;
+        this.roundRepository = roundRepository;
     }
 
     public Guess create(Guess guess) {
@@ -32,20 +34,22 @@ public class GuessService {
 
         // object instantiation
         Guess newGuess = new Guess();
-        newGuess.setPoints(guess.getPoints());
+        newGuess.setPoints(null);
         newGuess.setGuessX(guess.getGuessX());
         newGuess.setGuessY(guess.getGuessY());
         if (guess.getBuilding() != null ) {
-            guess.setBuilding(guess.getBuilding());
-            guess.setFloor(guess.getFloor());
+            newGuess.setBuilding(guess.getBuilding());
+            newGuess.setFloor(guess.getFloor());
         }
         newGuess.setRound(guess.getRound());
         newGuess.setTime(guess.getTime());
         newGuess.setUser(guess.getUser());
 
-        User user = userService.findById(guess.getUser().getId());
-        this.guessRepository.save(guess);
-        return guess;
+        if (newGuess.getUser() != null && newGuess.getUser().getId() != null) {
+            userService.findById(newGuess.getUser().getId());
+        }
+
+        return this.guessRepository.save(newGuess);
     }
 
     public void update(Guess guess) {
@@ -76,154 +80,52 @@ public class GuessService {
     }
 
     public RoundResult evaluateGuess(Round round, Guess guess) {
-        Game game = round.getGame();
-        Scene scene = round.getScene();
+        guess.setRound(round);
 
-        // calculate base distance between guess and actual location
-        double distance = calculateDistance(
+        // fill minimal required fields if null to satisfy schema during timeouts BEFORE calculations
+        if (guess.getTime() == null) guess.setTime(60000);
+        if (guess.getGuessX() == null) guess.setGuessX(0.0);
+        if (guess.getGuessY() == null) guess.setGuessY(0.0);
+        if (guess.getBuilding() == null) guess.setBuilding("NO_GUESS");
+        if (guess.getFloor() == null) {
+            String defaultFloor = null;
+            Scene scene = round.getScene();
+            Building building = scene != null ? scene.getBuilding() : null;
+            if (building != null && building.getFloors() != null && !building.getFloors().isEmpty()) {
+                defaultFloor = building.getFloors().get(0);
+            }
+            if (defaultFloor == null) defaultFloor = "UNKNOWN";
+            guess.setFloor(defaultFloor);
+        }
+
+        // calculate distance for UI feedback using centralized calculator
+        Scene scene = round.getScene();
+        double distance = PointsCalculator.calculateDistance(
                 guess.getGuessX(), guess.getGuessY(),
                 scene.getLocationX(), scene.getLocationY()
         );
 
-        // check for perfect matches
-        boolean buildingMatch = false;
-        boolean floorMatch = false;
+        int points = PointsCalculator.calculatePoints(guess, roundRepository);
+        guess.setPoints(points);
 
-        if (guess.getBuilding() != null && scene.getBuilding() != null) {
-            String guessBuilding = normalize(guess.getBuilding());
-            String sceneBuilding = normalize(scene.getBuilding().getName());
-
-            buildingMatch = sceneBuilding.contains(guessBuilding) || guessBuilding.contains(sceneBuilding);
-        }
-
-        if (guess.getFloor() != null && scene.getFloor() != null) {
-            floorMatch = guess.getFloor().equals(scene.getFloor());
-        }
-
-        if (game.getGameMode().equals("Singleplayer")) {
-            return createSingleplayerResult(distance, buildingMatch, floorMatch, game);
-        } else if (game.getGameMode().equals("Multiplayer") || game.getGameMode().equals("Ranked")) {
-//            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
-        }
-
-        return null;
-    }
-
-    /**
-     * Calculate distance between two points using Euclidean distance
-     * For lat/lng coordinates, this approximation works well for small distances like a campus
-     */
-    private double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
-        if (x1 == null || y1 == null || x2 == null || y2 == null) {
-            return Double.MAX_VALUE; // maximum penalty for missing coordinates
-        }
-
-        // Convert lat/lng differences to approximate meters
-        // 1 degree latitude ≈ 111,000 meters
-        // 1 degree longitude ≈ 111,000 * cos(latitude) meters
-        // For University of Waterloo (latitude ≈ 43.47°), cos(43.47°) ≈ 0.727
-
-        double latDiffMeters = (y1 - y2) * 111000; // latitude difference in meters
-        double lngDiffMeters = (x1 - x2) * 111000 * 0.727; // longitude difference in meters (adjusted for UW latitude)
-
-        return Math.sqrt(latDiffMeters * latDiffMeters + lngDiffMeters * lngDiffMeters);
-    }
-
-    /**
-     * Calculate points for multiplayer/ranked modes
-     * Players start at 0 and gain points based on accuracy
-     */
-    private int calculateMultiplayerPoints(double distance, boolean buildingMatch, boolean floorMatch) {
-        int basePoints = 0;
-
-        // Distance-based scoring with less steep exponential falloff
-        if (distance == 0) {
-            basePoints = 1000;
-        } else {
-            // Maximum reasonable distance on campus: ~2km (2000 meters)
-            double maxDistance = 2000.0; // meters
-            double normalizedDistance = Math.min(distance / maxDistance, 1.0);
-
-            // Less steep exponential decay: points = 1000 * e^(-1.5 * normalizedDistance)
-            // This gives more generous scoring:
-            // - 100m away: ~861 points
-            // - 250m away: ~688 points  
-            // - 500m away: ~472 points
-            // - 1000m away: ~223 points
-            // - 2000m+ away: ~50 points
-            basePoints = (int) (1000 * Math.exp(-1.5 * normalizedDistance));
-        }
-
-        // Bonus points for correct building and floor
-        if (buildingMatch) {
-            basePoints += 200; // Building bonus
-            if (floorMatch) {
-                basePoints += 100; // Additional floor bonus
-            }
-        }
-
-        return Math.max(basePoints, 50); // Minimum 50 points for any guess
-    }
-
-    /**
-     * Calculate points for singleplayer mode
-     * Players start at 1000 points and lose points based on inaccuracy
-     */
-    private RoundResult createSingleplayerResult(
-            double distance,
-            boolean buildingMatch,
-            boolean floorMatch,
-            Game game
-    ) {
-        boolean isFirstRound = isFirstRoundOfGame(game);
-
-        if (!isFirstRound) {
-            int points = calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
-            return new RoundResult(points, distance);
-        }
-
-        int startingPoints = 1000;
-        int penalty = 0;
-
-        if (distance > 0) {
-            double maxDistance = 2000.0;
-            double normalizedDistance = Math.min(distance / maxDistance, 1.0);
-            penalty = (int) (850 * (1 - Math.exp(-1.2 * normalizedDistance)));
-        }
-
-        if (buildingMatch) {
-            penalty = (int) (penalty * 0.4);
-            if (floorMatch) {
-                penalty = (int) (penalty * 0.6);
-            }
-        }
-
-        int finalPoints = Math.max(startingPoints - penalty, 50);
-        return new RoundResult(finalPoints, distance);
-    }
-
-    /**
-     * Check if this is the first round of a singleplayer game
-     */
-    private boolean isFirstRoundOfGame(Game game) {
         try {
-            // Count existing GameRounds for this game
-            Integer roundCount = roundService.getRoundCountForGame(game.getId());
-            return roundCount <= 1; // first round (current round is already created)
-        } catch (Exception e) {
-            // if query fails, assume it's the first round
-            return true;
-        }
-    }
+            // ensure user exists if provided
+            if (guess.getUser() != null && guess.getUser().getId() != null) {
+                userService.findById(guess.getUser().getId());
+            }
 
+            guessRepository.save(guess);
+        } catch (Exception ignored) {
+        }
+
+        // for singleplayer, PointsCalculator returns negative penalties; UI can display positive lost points
+        int uiPoints = Math.abs(points);
+        return new RoundResult(uiPoints, distance);
+    }
 
     public List<Object[]> findUserPointsByGame (UUID gameId) {
         return guessRepository.findUserPointsByGame(gameId);
     }
 
-    //Submit a Guess for a Round
-    public void submitGuess(Round round, Guess guess) {
-
-    }
 
 }

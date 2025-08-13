@@ -1,10 +1,15 @@
 <script setup lang="ts">
-//TODO: fetch image from database
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+const imageUrl = computed(() => store.getters['round/getImageUrl']);
 </script>
 
 <template>
   <div class="image-root">
-    <div id='image'></div>
+    <img v-if="imageUrl" :src="imageUrl" alt="round scene" id="image" />
+    <div v-else id='image'></div>
   </div>
 </template>
 
@@ -22,5 +27,6 @@ body { margin: 0; padding: 0; }
   inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 </style>

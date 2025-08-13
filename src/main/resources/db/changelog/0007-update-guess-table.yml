@@ -29,7 +29,7 @@ databaseChangeLog:
                   name: points
                   type: int
                   constraints:
-                    nullable: false
+                    nullable: true
   - changeSet:
       id: 7-2
       author: LEANNE
