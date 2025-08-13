@@ -44,7 +44,13 @@ export default {
         return 'Unknown Building';
       }
     },
-
+    // Helper function to calculate screen pixel distance between a feature and a mouse click point
+    distanceToPoint(coord, point, map) {
+      const pixel = map.project(coord);
+      const dx = pixel.x - point.x;
+      const dy = pixel.y - point.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    },
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -92,17 +98,45 @@ export default {
             .setLngLat(coords)
             .addTo(map);
 
-          // Try to get label from map
-          const labelFeatures = map.queryRenderedFeatures(e.point, {
-            layers: labelLayerIds,
+          // Query building polygons at click
+          const buildingFeatures = map.queryRenderedFeatures(e.point, {
+            layers: ['building'],
           });
 
           let buildingName;
 
-          if (labelFeatures.length > 0 && labelFeatures[0].properties.name) {
-            buildingName = labelFeatures[0].properties.name;
-          } else {
-            // ❌ No building label on map —> use reverse geocoding
+          if (buildingFeatures.length > 0) {
+            const props = buildingFeatures[0].properties;
+            buildingName = props.name || null;
+          }
+
+          // If buildingName is null or generic, try finding closest label nearby
+          if (!buildingName) {
+            // Search a small bbox around click point for poi-label or place-label layers
+            const bbox = [
+              [e.point.x - 10, e.point.y - 10],
+              [e.point.x + 10, e.point.y + 10]
+            ];
+
+            const nearbyLabels = map.queryRenderedFeatures(bbox, {
+              layers: labelLayerIds
+            });
+
+            if (nearbyLabels.length > 0) {
+              // Find closest feature by distance in screen pixels
+              nearbyLabels.sort((a, b) => {
+                const distA = this.distanceToPoint(a.geometry.coordinates, e.point, map);
+                const distB = this.distanceToPoint(b.geometry.coordinates, e.point, map);
+                return distA - distB;
+              });
+
+              const bestLabel = nearbyLabels[0];
+              buildingName = bestLabel.properties.name || 'Unnamed Place';
+            }
+          }
+
+          // Final fallback: reverse geocode
+          if (!buildingName) {
             buildingName = await this.reverseGeocode(coords[0], coords[1]);
           }
 
