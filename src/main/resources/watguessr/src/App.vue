@@ -87,10 +87,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
-import { useUserStore } from '@/stores/entity/user';
 
-// import login api
-const userStore = useUserStore()
 const route = useRoute()
 const isHoveringHeader = ref(false)
 const showLogin = ref(false) // ✅ reactive state for login modal
