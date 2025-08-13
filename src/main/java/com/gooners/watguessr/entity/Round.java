@@ -7,6 +7,7 @@ import java.util.UUID;
 
 @Entity
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+@Table(name = "round")
 public class Round {
 
     @Id

@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8
+      author: KENNY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "email_verification"
+      changes:
+        - createTable:
+            tableName: "email_verification"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_email_verification_user
+                    references: user(id)
+              - column:
+                  name: code
+                  type: varchar(6)
+              - column:
+                  name: expiry
+                  type: timestamp
+              - column:
+                  name: verified
+                  type: boolean
+                  defaultValueBoolean: false

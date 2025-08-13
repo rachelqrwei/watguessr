@@ -3,17 +3,19 @@
     <div class="modal-content">
       <button class="close-btn" @click="$emit('close')">×</button>
       <form @submit.prevent="submitLogin" class="login-form">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" v-model="username" />
+        <div class="form-group floating-label">
+          <input type="text" id="username" v-model="username" placeholder="" required/>
+          <label for="username">USERNAME</label>
         </div>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" v-model="password" />
+        <div class="form-group floating-label">
+          <input type="password" id="password" v-model="password" placeholder="" required/>
+          <label for="password">PASSWORD</label>
         </div>
 
-        <button type="submit" class="login-btn">Login</button>
+        <p v-if="error" class="error-message">{{ error }}</p>
+
+        <button type="submit" class="login-btn">LOGIN</button>
 
         <div class="checkbox-wrapper">
           <label>
@@ -24,41 +26,62 @@
 
         <div class="sign-up">
           <label>Don't have an account?
-<!--            <span class="link" @click="showSignIn = true">Sign Up</span>-->
-            <span class="link" @click="$emit('openSignUp')">Sign Up</span>
+            <span class="link" @click="$emit('openSignUp')">SIGN UP</span>
           </label>
         </div>
-
       </form>
     </div>
   </div>
 </template>
 
 <script>
-
+import {useUserStore} from "@/stores/entity/index.js";
 export default {
   props: ['visible'],
   data() {
     return {
       username: '',
       password: '',
+      error: '',
       rememberMe: false,
+      useStore: useUserStore()
     };
   },
   methods: {
-    submitLogin() {
-      console.log(`Username: ${this.username}, Password: ${this.password}, Remember: ${this.rememberMe}`);
-      this.$emit('close');
+    async submitLogin() {
+      this.error = '';
+      const { username, password } = this;
+      try {
+        const response = await this.useStore.login(username, password);
+        this.$emit('close');
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Login failed';
+      }
     },
     openSignUp() {
       this.showSignIn = true;
-      this.$emit('close'); // close current LoginModal
+      this.$emit('close');
+    }
+  },
+  watch: {
+    visible(val) {
+      if (val) {
+        this.error = '';
+      }
     }
   },
 };
 </script>
 
 <style scoped>
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -71,7 +94,7 @@ export default {
 
 .modal-content {
   background-color: #2b2b2b;
-  padding: 1.5rem;
+  padding: 3rem;
   border-radius: 10px;
   width: 300px;
   color: #fff;
@@ -129,6 +152,9 @@ export default {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  display: block;
+  margin: 1rem auto 0;
+  margin-top: 3rem;
 }
 
 .login-btn:hover {
@@ -150,5 +176,53 @@ export default {
 
 .sign-up .link:hover {
   text-decoration: underline;
+}
+
+.floating-label {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+.floating-label input {
+  padding: 1.1rem 0.6rem 0.4rem;
+  height: 3rem; /* Ensure consistent height */
+  background: #3a3a3a;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #aaa;
+  font-size: 1rem;
+}
+
+.floating-label label {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.75rem;
+  color: #cccccc;
+  font-size: 1rem;
+  pointer-events: none;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  padding: 0 0.25rem;
+}
+
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label input:valid + label {
+  top: 0.1rem;
+  left: 0.2rem;
+  font-size: 0.6rem;
+  color: #aaa;
+  padding: 0 0.4rem;
+  z-index: 2;
+}
+
+.floating-label input:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 0 1px #aaa;
+}
+
+.floating-label input:-webkit-autofill {
+  background-color: #3a3a3a !important;
+  color: #aaa !important;
 }
 </style>

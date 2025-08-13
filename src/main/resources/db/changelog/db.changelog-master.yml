@@ -14,6 +14,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/0007-update-guess-table.yml
   - include:
-      file: db/changelog/0008-update-floors-datatype-in-building.yml
+      file: db/changelog/0008-create-email-verfication-table.yml
   - include:
-      file: db/changelog/0009-update-floors-datatype-in-scene.yml
+      file: db/changelog/0008-update-floors-datatype-in-building.yml

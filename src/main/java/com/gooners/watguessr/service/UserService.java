@@ -1,16 +1,21 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.UserRepository;
+import com.gooners.watguessr.utils.CustomException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,11 +26,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final LeaderboardMapper leaderboardMapper;
     private final GameRepository gameRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository) {
+    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.leaderboardMapper = leaderboardMapper;
         this.gameRepository = gameRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void update(User user) {
@@ -63,15 +70,55 @@ public class UserService {
         return userRepository.findSorted(keyword, sortBy, PageRequest.of(page, pageSize));
     }
 
+    public void signup(UserSignupDto dto) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new CustomException("Username already exists");
+        }
+
+        if (dto.getUsername().length() < 8) {
+            throw new CustomException("Username must be at least 8 characters");
+        }
+
+        if (!isValidPassword(dto.getPassword())) {
+            throw new CustomException("Password does not meet criteria");
+        }
+
+        String hashedPassword = passwordEncoder.encode(dto.getPassword());
+
+        User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
+        try {
+            User savedUser = userRepository.save(user);
+            System.out.println("After save: " + savedUser);
+        } catch (Exception e) {
+            System.err.println("Exception during user save: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public User login(String username, String rawPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException("User not found"));
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new CustomException("Invalid password");
+        }
+        updateStreakAndLastLogin(user);
+        System.out.println("Login successful for user: " + user.getUsername());
+        return user;
+    }
+
+    public boolean isValidPassword(String password) {
+        return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
+    }
+
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
         int actualLimit = limit != null ? limit : 20;
         int actualOffset = offset != null ? offset : 0;
-        
+
         int page = actualOffset / actualLimit;
 
         List<User> users = userRepository.findSorted(searchTerm, actualSortBy, PageRequest.of(page, actualLimit));
-        
+
         List<LeaderboardUser> leaderboardUsers = users.stream()
                 .map(this::convertToLeaderboardUser)
                 .collect(Collectors.toList());
@@ -93,28 +140,42 @@ public class UserService {
                 return Double.compare(winRateA, winRateB);
             });
         }
-        
+
         QueryResults<LeaderboardUser> queryResults = new QueryResults<>();
         queryResults.setResults(leaderboardUsers);
-        
+
         return queryResults;
     }
-    
+
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
-        
+
         Integer gamesPlayed = gameRepository.countGamesPlayedByUser(user.getId());
         Integer gamesWon = gameRepository.countGamesWonByUser(user.getId());
-        
+
         gamesPlayed = gamesPlayed != null ? gamesPlayed : 0;
         gamesWon = gamesWon != null ? gamesWon : 0;
-        
+
         leaderboardUser.setGamesPlayed(gamesPlayed);
         leaderboardUser.setGamesWon(gamesWon);
         leaderboardUser.setGamesLost(gamesPlayed - gamesWon);
-        
+
         return leaderboardUser;
     }
+
+    public void updateStreakAndLastLogin(User user) {
+        LocalDate today = OffsetDateTime.now(ZoneOffset.UTC).toLocalDate();
+        LocalDate lastLogin = user.getLastLoginAt().toLocalDate();
+
+        if (lastLogin.equals(today.minusDays(1))) {
+            user.setStreak(user.getStreak() + 1);
+        } else if (!lastLogin.equals(today)) {
+            user.setStreak(1);
+        }
+
+        user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+    }
+
 
     public void clearSession(){
 
@@ -128,7 +189,6 @@ public class UserService {
 
     }
 
-    // wip
     public void getMatchHistory() {
 
     }

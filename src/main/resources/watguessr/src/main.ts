@@ -20,31 +20,35 @@ import {
   faStar,
   faClipboard,
   faUsers,
+  faEye,
+  faEyeSlash,
   faImage,
   faSearch,
   faExclamationTriangle,
   faFire,
   faChevronLeft,
-  faChevronRight
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
 library.add(
-  faPlay, 
-  faTrophy, 
-  faUser, 
-  faCog, 
-  faMapMarkerAlt, 
-  faChevronDown, 
-  faStar, 
-  faClipboard, 
-  faUsers, 
+  faPlay,
+  faTrophy,
+  faUser,
+  faCog,
+  faMapMarkerAlt,
+  faChevronDown,
+  faStar,
+  faClipboard,
+  faUsers,
+  faEye,
+  faEyeSlash,
   faImage,
   faSearch,
   faExclamationTriangle,
   faFire,
   faChevronLeft,
-  faChevronRight
+  faChevronRight,
 )
 
 const app = createApp(App)

@@ -1,32 +1,34 @@
 <template>
   <div class="game-end-container">
-    <div class="game-header">
-      <span class="game-label">GAME OVER</span>
-    </div>
-
-    <div class="final-points-section">
-      <span class="final-points-label">FINAL SCORE</span>
-      <span class="final-points-value">{{ finalScore }}</span>
-    </div>
-
-    <div class="final-stats-section">
-      <div class="stat-item">
-        <span class="stat-label">ROUNDS PLAYED</span>
-        <span class="stat-value">{{ totalRounds }}</span>
+    <div class="game-end-panel">
+      <div class="game-header">
+        <span class="game-label">GAME OVER</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-label">BEST ROUND</span>
-        <span class="stat-value">{{ bestRoundPoints }}</span>
-      </div>
-    </div>
 
-    <div class="button-section">
-      <button class="btn restart-btn" @click="restartGame">
-        🔄 Restart Game
-      </button>
-      <button class="btn home-btn" @click="goHome">
-        🏆 Leaderboard / Home
-      </button>
+      <div class="final-points-section">
+        <span class="final-points-label">FINAL SCORE</span>
+        <span class="final-points-value">{{ finalScore }}</span>
+      </div>
+
+      <div class="final-stats-section">
+        <div class="stat-item">
+          <span class="stat-label">ROUNDS PLAYED</span>
+          <span class="stat-value">{{ totalRounds }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">BEST ROUND</span>
+          <span class="stat-value">{{ bestRoundPoints }}</span>
+        </div>
+      </div>
+
+      <div class="button-section">
+        <button class="btn restart-btn" @click="restartGame">
+          🔄 Restart Game
+        </button>
+        <button class="btn home-btn" @click="goHome">
+          🏆 Leaderboard / Home
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -67,18 +69,29 @@ export default {
 <style scoped>
 .game-end-container {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #1a1a1c;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  z-index: 1;
+}
+
+.game-end-panel {
+  width: 95%;
+  max-width: 740px;
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  z-index: 1;
+  gap: 16px;
+  padding: 28px 24px 24px;
+  border-radius: 16px;
+  background: var(--dark-grey);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .game-header {
