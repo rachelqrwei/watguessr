@@ -24,8 +24,8 @@
       </div>
 
       <div class="helper-row">
-        <button class="link-btn" :disabled="cooldown>0" @click="$emit('resend')">
-          {{ cooldown>0 ? `Resend in ${cooldown}s` : 'Resend code' }}
+        <button class="link-btn" :disabled="cooldown > 0" @click="$emit('resend')">
+          {{ cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code' }}
         </button>
       </div>
 
@@ -36,13 +36,13 @@
 </template>
 
 <script>
-import { useUserStore } from '@/stores/entity/index.js'
+import { mapActions } from 'vuex';
 
 export default {
   name: 'OtpModal',
   props: {
     visible: { type: Boolean, default: false },
-    email:   { type: String, required: true }
+    email: { type: String, required: true }
   },
   data() {
     return {
@@ -51,39 +51,46 @@ export default {
       success: false,
       submitting: false,
       cooldown: 0,
-      userStore: useUserStore()
-    }
+      _iv: null
+    };
   },
   methods: {
-    async submitOtp() {
-      if (this.submitting) return
-      this.error = null
-      this.submitting = true
-      try {
-        const res = await this.userStore.verifyOtp(this.email, this.otp);
+    ...mapActions('user', ['verifyOtp']),
 
-        if (res === "verified") {
-          this.success = true
-          this.$emit('verified')
-          setTimeout(() => this.$emit('close'), 600)
+    async submitOtp() {
+      if (this.submitting) return;
+      this.error = null;
+      this.submitting = true;
+      try {
+        const res = await this.verifyOtp({ email: this.email, submittedOtp: this.otp });
+
+        if (res === 'verified') {
+          this.success = true;
+          this.$emit('verified');
+          setTimeout(() => this.$emit('close'), 600);
         } else {
-          this.error = res || 'Verification failed.'
+          this.error = res || 'Verification failed.';
         }
       } catch (e) {
-        this.error = 'Network error. Try again.'
+        this.error = 'Network error. Try again.';
       } finally {
-        this.submitting = false
+        this.submitting = false;
       }
     }
   },
   mounted() {
-    // optional resend cooldown display (e.g., 30s)
-    const T = 30; this.cooldown = T
-    this._iv = setInterval(() => { if (this.cooldown>0) this.cooldown-- }, 1000)
+    const T = 30;
+    this.cooldown = T;
+    this._iv = setInterval(() => {
+      if (this.cooldown > 0) this.cooldown--;
+    }, 1000);
   },
-  beforeUnmount() { clearInterval(this._iv) }
-}
+  beforeUnmount() {
+    clearInterval(this._iv);
+  }
+};
 </script>
+
 
 <style scoped>
 /* overlay */

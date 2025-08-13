@@ -46,114 +46,116 @@
 <!--    />-->
   </div>
 </template>
-<script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
-import AuthModalManager from "@/views/auth/AuthModalManager.vue";
-import { useUserStore } from '@/stores/entity/user.ts';
-import { computed } from 'vue'
-import { watch } from "vue";
+<script>
+import { mapGetters, mapActions } from 'vuex';
+import AuthModalManager from '@/views/auth/AuthModalManager.vue';
 
-const userStore = useUserStore()
+export default {
+  components: { AuthModalManager },
 
-const getUserName = computed(() => userStore.currentUser?.username || 'Guest')
+  data() {
+    return {
+      dropdownOpen: false,
+      showLogin: false,
+      showSignUp: false,
+      showProfile: false,
+    };
+  },
 
-const getStreak = computed( () => userStore.currentUser?.streak || 0)
+  computed: {
+    ...mapGetters('user', [
+      'currentUser'
+    ]),
 
-const loggedIn = computed(() => !!userStore.currentUser) // It forces truthy/falsy → true/false:
+    getUserName() {
+      return this.currentUser?.username || 'Guest';
+    },
 
-const submitSignUp = async () => {
-  // your logic here
-}
-watch(loggedIn, (newVal) => {
-  console.log('User login status changed:', newVal);
-  // You could also trigger a UI update, analytics event, etc., here
-});
-watch(
-  () => userStore.currentUser,
-  (newUser, oldUser) => {
-    if (newUser && !oldUser) {
-      console.log('✅ User logged in:', newUser.username)
-    } else if (!newUser && oldUser) {
-      console.log('👋 User logged out')
+    getStreak() {
+      return this.currentUser?.streak || 0;
+    },
+
+    loggedIn() {
+      return !!this.currentUser;
     }
-  }
-);
+  },
 
-onMounted(async () => {
-  await userStore.fetchUserById()  // fetch and populate user
-  document.addEventListener('click', onClickOutside);
-});
+  methods: {
+    ...mapActions('user', ['fetchUserById', 'logout']),
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onClickOutside);
-});
+    handleSettings() {
+      console.log('Navigating to settings...');
+      this.dropdownOpen = false;
+    },
 
-onMounted(async () => {
-  await userStore.fetchUserById()  // fetch and populate user
-  document.addEventListener('click', onClickOutside);
-});
+    handleProfile() {
+      console.log('Navigating to profile...');
+      this.showProfile = true;
+      this.dropdownOpen = false;
+    },
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onClickOutside);
-});
+    handleLogout() {
+      console.log('Logging out...');
+      this.logout();
+      this.dropdownOpen = false;
+    },
 
-const dropdownOpen = ref(false);
-// const loggedIn = ref(false);
-const signedUp = ref(false);
-const showLogin = ref(false);
-const showSignUp = ref(false);
-const showProfile = ref(false);
+    handleLogin() {
+      console.log('Logging in...');
+      this.showLogin = true;
+      this.dropdownOpen = false;
+    },
 
+    handleSignUp() {
+      console.log('Signing up...');
+      this.showSignUp = true;
+      this.dropdownOpen = false;
+    },
 
-const handleSettings = () => {
-  console.log('Navigating to settings...');
-  dropdownOpen.value = false;
-};
+    handleQuit() {
+      console.log('Quitting game...');
+      this.dropdownOpen = false;
+    },
 
-const handleProfile = () => {
-  console.log('Navigating to profile...');
-  showProfile.value = true;
-  dropdownOpen.value = false;
-};
+    onClickOutside(event) {
+      const dropdown = this.$el.querySelector('.dropdown-menu');
+      const profile = this.$el.querySelector('.profile-container');
+      if (
+        dropdown &&
+        !dropdown.contains(event.target) &&
+        profile &&
+        !profile.contains(event.target)
+      ) {
+        this.dropdownOpen = false;
+      }
+    },
+  },
 
-const handleLogout = () => {
-  console.log('Logging out...');
-  //call mutation
-  userStore.logout();
-  dropdownOpen.value = false;
+  watch: {
+    loggedIn(newVal) {
+      console.log('User login status changed:', newVal);
+    },
 
-};
+    currentUser(newUser, oldUser) {
+      if (newUser && !oldUser) {
+        console.log('✅ User logged in:', newUser.username);
+      } else if (!newUser && oldUser) {
+        console.log('👋 User logged out');
+      }
+    }
+  },
 
-const handleLogin = () => {
-  console.log('Logging in...');
-  showLogin.value = true;
-  dropdownOpen.value = false;
-};
+  mounted() {
+    this.fetchUserById();
+    document.addEventListener('click', this.onClickOutside);
+  },
 
-const handleSignUp = () => {
-  console.log('Signing up...');
-  showSignUp.value = true;
-  dropdownOpen.value = false;
-};
-
-const handleQuit = () => {
-  console.log('Quitting game...');
-  dropdownOpen.value = false;
-};
-
-const onClickOutside = (event) => {
-  const dropdown = document.querySelector('.dropdown-menu');
-  const profile = document.querySelector('.profile-container');
-  if (
-    dropdown &&
-    !dropdown.contains(event.target) &&
-    profile &&
-    !profile.contains(event.target)
-  ) {
-    dropdownOpen.value = false;
+  beforeUnmount() {
+    document.removeEventListener('click', this.onClickOutside);
   }
 };
 </script>
+
 
 <style scoped>
 .header-container {
