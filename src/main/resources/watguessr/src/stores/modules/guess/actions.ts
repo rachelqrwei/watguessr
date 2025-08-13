@@ -28,10 +28,11 @@ export const actions: ActionTree<GuessState, RootState> = {
       //end round
       dispatch('round/endRound', { winner: state.user, roundResult: roundResult }, { root: true });
 
-      return points;
+      return roundResult;
     } catch (error) {
       console.error('Error calculating points:', error);
       return null;
     }
   },
+
 };
