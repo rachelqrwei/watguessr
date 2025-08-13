@@ -155,7 +155,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
-import type { LeaderboardRequest } from '@/stores/modules/leaderboard'
+import type { LeaderboardRequest } from '@/stores/modules/leaderboard/types.ts'
 
 const store = useStore()
 
