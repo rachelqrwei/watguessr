@@ -8,7 +8,7 @@ export interface GameInfoState {
 
 export const state = (): GameInfoState => ({
   gameMode: '',
-  currentView: '',
   mapCenter: null,
-  mapZoom: null
+  mapZoom: null,
+  currentView: 'Map'
 });

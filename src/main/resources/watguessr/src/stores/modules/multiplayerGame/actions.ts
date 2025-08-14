@@ -4,18 +4,21 @@ import type { RootState } from '../../index';
 import type { MultiplayerGameState } from './state';
 
 export const actions: ActionTree<MultiplayerGameState, RootState> = {
-  async multiplayerGame_createMultiplayerGame({ commit, dispatch }) {
-    commit('MG_RESET_GAME');
-    commit('MG_SET_STATUS', 'loading');
-    commit('gameInfo/SET_GAME_MODE', 'Multiplayer', {root: true});
+  async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
+    const currentUser = rootGetters['user/currentUser'];
+    const userId = currentUser?.id;
+
+    commit('MG_RESET_GAME', userId);
+    commit('MG_SET_STATUS',  {playerId: userId, status: 'loading'});
+    commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/multiplayer`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/multiplayer?roundCount=${state.multiplayerGame_maxRounds}&timer=${state.multiplayerGame_timer}`);
     const gameId = await response.json();
 
     commit('MG_SET_GAME_ID', gameId);
     dispatch('round/startRound', { gameId }, { root: true });
-    commit('MG_SET_STATUS', 'playing');
+    commit('MG_SET_STATUS', {playerId: userId, status: 'playing'});
   },
   async multiplayerGame_restartGame({ state, commit, dispatch }) {
     await dispatch('multiplayerGame_createMultiplayerGame');

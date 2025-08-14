@@ -25,7 +25,11 @@
     </div>
 
     <div v-if="getCurrentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <PlaySingleplayerRoundEnd v-if="getCurrentView === 'Singleplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <PlayMultiplayerRoundEnd v-if="getCurrentView === 'Multiplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
+      BACK TO MAP
+      </button>
     </div>
 
     <PlayFloorPanel
@@ -61,6 +65,7 @@ import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
 import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
+import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import { RouterLink, useRouter } from 'vue-router'
 
@@ -71,6 +76,7 @@ export default {
     PlayImageView,
     PlayScoreTracker,
     PlaySingleplayerRoundEnd,
+    PlayMultiplayerRoundEnd,
     PlayFloorPanel,
     RouterLink,
   },
@@ -85,7 +91,8 @@ export default {
   },
   computed: {
     ...mapGetters("gameInfo", [
-      'getCurrentView'
+      'getCurrentView',
+      'getGameMode'
     ]),
     ...mapGetters('singleplayerGame', [
       'singleplayerGame_getGameId',
@@ -93,6 +100,9 @@ export default {
       'singleplayerGame_getFinalWinner',
       'singleplayerGame_getCurrentRound',
       'singleplayerGame_getShouldEnd',
+    ]),
+    ...mapGetters('multiplayerGame', [
+      'multiplayerGame_getTimer'
     ]),
     ...mapGetters('round', [
       'getWinner',
@@ -124,13 +134,6 @@ export default {
         this.SET_FLOOR(newVal);
       }
     },
-    singleplayerGame_getGameStatus(newStatus) {
-      if (newStatus === 'ended') {
-        if (this.getCurrentView !== 'RoundEnd') {
-          this.SET_CURRENT_VIEW('RoundEnd');
-        }
-      }
-    },
     getGuessBuilding(newVal, oldVal) {
       if (newVal !== oldVal) {
         const floors = this.availableFloors;
@@ -143,6 +146,11 @@ export default {
       'singleplayerGame_createSingleplayerGame',
       'singleplayerGame_endCurrentRound',
       'singleplayerGame_checkSingleplayerState'
+    ]),
+    ...mapActions('multiplayerGame', [
+      'multiplayerGame_createMultiplayerGame',
+      'multiplayerGame_endCurrentRound',
+      'multiplayerGame_checkMultiplayerState'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -225,6 +233,14 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
+
+    if (this.getGameMode == 'singleplayer') {
+      this.singleplayerGame_createSingleplayerGame();
+    }
+    else if (this.getGameMode == 'multiplayer') {
+      this.multiplayerGame_createMultiplayerGame();
+    }
+
   }
 }
 </script>
