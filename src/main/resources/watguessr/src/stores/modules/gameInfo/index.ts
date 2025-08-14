@@ -6,7 +6,7 @@ import { getters } from './getters';
 import { mutations } from './mutations';
 import { actions } from './actions';
 
-export const GameInfoModule: Module<GameInfoState, RootState> = {
+export const gameInfoModule: Module<GameInfoState, RootState> = {
   namespaced: true,
   state,
   getters,
@@ -14,4 +14,4 @@ export const GameInfoModule: Module<GameInfoState, RootState> = {
   actions
 };
 
-export default GameInfoModule;
+export default gameInfoModule;
