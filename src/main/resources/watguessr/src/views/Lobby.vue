@@ -13,20 +13,20 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
-
-const route = useRoute()
-const router = useRouter()
-
-const gameModeLabel = computed(() => {
-  const mode = (route.query.gameMode ?? '').toString()
-  return mode ? mode : 'singleplayer'
-})
-
-function goToPlay() {
-  router.push({ name: 'play' })
+<script>
+export default {
+  name: 'Lobby',
+  computed: {
+    gameModeLabel() {
+      const mode = (this.$route.query.gameMode ?? '').toString()
+      return mode ? mode : 'singleplayer'
+    }
+  },
+  methods: {
+    goToPlay() {
+      this.$router.push({ name: 'play' })
+    }
+  }
 }
 </script>
 
@@ -99,4 +99,4 @@ function goToPlay() {
 .play-button:hover {
   filter: brightness(1.05);
 }
-</style> 
+</style>
