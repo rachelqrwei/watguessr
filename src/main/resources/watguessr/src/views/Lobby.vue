@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import {mapMutations} from "vuex";
+
 export default {
   name: 'Lobby',
   computed: {
@@ -23,7 +25,11 @@ export default {
     }
   },
   methods: {
+    ...mapMutations('gameInfo', [
+      'SET_GAME_MODE'
+    ]),
     goToPlay() {
+      this.SET_GAME_MODE(this.gameModeLabel);
       this.$router.push({ name: 'play' })
     }
   }

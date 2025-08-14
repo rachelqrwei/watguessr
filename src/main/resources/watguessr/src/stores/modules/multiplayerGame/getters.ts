@@ -9,4 +9,5 @@ export const getters: GetterTree<MultiplayerGameState, RootState> = {
   multiplayerGame_getMaxRounds: (state) => state.multiplayerGame_currentRound,
   multiplayerGame_getFinalWinner: (state) => state.multiplayerGame_finalWinner,
   multiplayerGame_getShouldEnd: (state) => state.multiplayerGame_shouldEnd,
+  multiplayerGame_getTimer: (state) => state.multiplayerGame_timer
 };
