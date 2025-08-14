@@ -6,6 +6,8 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
   async singleplayerGame_createSingleplayerGame({ commit, dispatch }) {
     commit('SG_RESET_GAME');
     commit('SG_SET_STATUS', 'loading');
+    commit('gameInfo/SET_GAME_MODE', 'Multiplayer', {root: true});
+    commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`);
     const gameId = await response.json();
@@ -30,6 +32,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
       if (shouldEnd) {
         commit('SG_SET_STATUS', 'ended');
       } else {
+        commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
       }
     });
   },

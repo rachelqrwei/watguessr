@@ -7,6 +7,8 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ commit, dispatch }) {
     commit('MG_RESET_GAME');
     commit('MG_SET_STATUS', 'loading');
+    commit('gameInfo/SET_GAME_MODE', 'Multiplayer', {root: true});
+    commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/multiplayer`);
     const gameId = await response.json();
@@ -27,6 +29,8 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     dispatch('multiplayerGame_checkMultiplayerState').then((shouldEnd) => {
       if (shouldEnd) {
         commit('MG_SET_STATUS', 'ended');
+      } else {
+        commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
       }
     });
   },

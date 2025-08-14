@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="player-score-tracker-2" v-if="singleplayerGame_getGameMode === 'Multiplayer'">
+    <div class="player-score-tracker-2" v-if="getGameMode === 'Multiplayer'">
       <div class="player-score-text-container">
         <span class="player-points">{{ player2Score }} PTS</span>
         <span class="player-name">{{ player2Name }}</span>
@@ -49,16 +49,18 @@ export default {
     };
   },
   computed: {
+    ...mapGetters('gameInfo', [
+      'getGameMode'
+    ]),
     ...mapGetters('singleplayerGame', [
       'singleplayerGame_getScores',
-      'singleplayerGame_getGameMode',
       'singleplayerGame_getSingleplayerDisplayedScore',
     ]),
     ...mapGetters('guess', [
       'getUserId',
     ]),
     displayedPoints() {
-      if (this.singleplayerGame_getGameMode === 'Singleplayer') {
+      if (this.getGameMode === 'Singleplayer') {
         return this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
       }
       // Multiplayer fallback: show this player's score by id if present
@@ -66,7 +68,7 @@ export default {
       return this.singleplayerGame_getScores[key] || 0;
     },
     player1ScorePercentage() {
-      if (this.singleplayerGame_getGameMode == "Singleplayer") {
+      if (this.getGameMode == "Singleplayer") {
         // percentage of remaining points out of 1000
         const remaining = this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
         return Math.floor((remaining * 100) / 1000);

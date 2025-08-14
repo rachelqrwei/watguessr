@@ -49,18 +49,11 @@ export default {
       default: false
     }
   },
-  computed: {
-    ...mapMutations('multiplayerGame', [
-      'MG_SET_GAME_MODE'
-    ])
-  },
   methods: {
     goSolo() {
       this.$router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } });
     },
     goDuels() {
-      this.MG_SET_GAME_MODE("Multiplayer");
-
       this.$router.push({ name: 'lobby', query: { gameMode: 'multiplayer' } });
     },
     goRanked() {
