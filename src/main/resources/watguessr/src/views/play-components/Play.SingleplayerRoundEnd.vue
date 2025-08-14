@@ -62,6 +62,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters("singleplayerGame", [
+      "singleplayerGame_getCurrentRound"
+    ]),
     ...mapGetters('guess', [
       'getGuessTime',
     ]),
@@ -82,7 +85,6 @@ export default {
     displayPoints() {
       return this.points;
     },
-    ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"])
   },
 };
 </script>
