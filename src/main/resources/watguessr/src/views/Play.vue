@@ -25,8 +25,8 @@
     </div>
 
     <div v-if="getCurrentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd v-if="getCurrentView === 'Singleplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <PlayMultiplayerRoundEnd v-if="getCurrentView === 'Multiplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <PlaySingleplayerRoundEnd v-if="getGameMode === 'singleplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <PlayMultiplayerRoundEnd v-if="getGameMode === 'multiplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
       BACK TO MAP
       </button>
@@ -228,11 +228,7 @@ export default {
   },
   mounted() {
     this.fetchAllBuildings();
-    this.singleplayerGame_createSingleplayerGame();
     window.addEventListener('keydown', this.onGlobalKeyDown);
-  },
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.onGlobalKeyDown);
 
     if (this.getGameMode == 'singleplayer') {
       this.singleplayerGame_createSingleplayerGame();
@@ -240,6 +236,9 @@ export default {
     else if (this.getGameMode == 'multiplayer') {
       this.multiplayerGame_createMultiplayerGame();
     }
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeyDown);
 
   }
 }
