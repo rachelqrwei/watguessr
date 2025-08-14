@@ -39,29 +39,35 @@
   </section>
 </template>
 
-<script setup>
-import { useRouter } from 'vue-router'
+<script>
+import {mapMutations} from "vuex";
 
-const router = useRouter()
+export default {
+  props: {
+    isLoaded: {
+      type: Boolean,
+      default: false
+    }
+  },
+  computed: {
+    ...mapMutations('multiplayerGame', [
+      'MG_SET_GAME_MODE'
+    ])
+  },
+  methods: {
+    goSolo() {
+      this.$router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } });
+    },
+    goDuels() {
+      this.MG_SET_GAME_MODE("Multiplayer");
 
-function goSolo() {
-  router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } })
-}
-
-function goDuels() {
-  router.push({ name: 'lobby', query: { gameMode: 'multiplayer' } })
-}
-
-function goRanked() {
-  router.push({ name: 'lobby', query: { gameMode: 'ranked' } })
-}
-
-defineProps({
-  isLoaded: {
-    type: Boolean,
-    default: false
+      this.$router.push({ name: 'lobby', query: { gameMode: 'multiplayer' } });
+    },
+    goRanked() {
+      this.$router.push({ name: 'lobby', query: { gameMode: 'ranked' } });
+    }
   }
-})
+};
 </script>
 
 <style scoped>
