@@ -45,6 +45,6 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('SET_ROUND_RESULT_FROM_ROUND', payload.roundResult);
 
     //end this round in the game store
-    dispatch('singleplayer/singleplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
+    dispatch('singleplayerGame/singleplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
   },
 };

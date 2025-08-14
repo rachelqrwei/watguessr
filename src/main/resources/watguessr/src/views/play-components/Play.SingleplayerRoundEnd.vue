@@ -82,7 +82,7 @@ export default {
     displayPoints() {
       return this.points;
     },
-    ...mapGetters("singleplayer", ["singleplayerGame_getCurrentRound"])
+    ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"])
   },
 };
 </script>
