@@ -5,5 +5,7 @@ import type {RootState} from "../../index.ts";
 
 export const getters: GetterTree<GameInfoState, RootState> = {
   getGameMode: (state) => state.gameMode,
-  getCurrentView: (state) => state.currentView
+  getCurrentView: (state) => state.currentView,
+  getMapCenter: (state) => state.mapCenter,
+  getMapZoom: (state) => state.mapZoom
 };
