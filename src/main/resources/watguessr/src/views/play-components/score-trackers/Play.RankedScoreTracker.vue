@@ -1,4 +1,5 @@
 <template>
+<!--  TODO-->
   <div class="player-score-tracker-container">
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
@@ -16,7 +17,7 @@
       </div>
     </div>
 
-    <div class="player-score-tracker-2" v-if="getGameMode === 'Multiplayer'">
+    <div class="player-score-tracker-2" v-if="getGameMode === 'multiplayer'">
       <div class="player-score-text-container">
         <span class="player-points">{{ player2Score }} PTS</span>
         <span class="player-name">{{ player2Name }}</span>
@@ -38,14 +39,9 @@
 import {mapGetters} from "vuex";
 
 export default {
-  name: "PlayerScoreTracker",
+  name: "PlayerSingleplayerScoreTracker",
   data() {
     return {
-      // TODO: connect player info to backend
-      player1Name: "YOU",
-      player2Name: "NAME 2",
-      player1Score: 180,
-      player2Score: 300
     };
   },
   computed: {
