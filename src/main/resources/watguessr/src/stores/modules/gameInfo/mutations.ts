@@ -9,8 +9,16 @@ export const mutations: MutationTree<GameInfoState> = {
   SET_CURRENT_VIEW(state, currentView: string) {
     state.currentView = currentView;
   },
+  SET_MAP_CENTER(state, center: [number, number] | null) {
+    state.mapCenter = center;
+  },
+  SET_MAP_ZOOM(state, zoom: number | null) {
+    state.mapZoom = zoom;
+  },
   RESET_GAME(state) {
     state.gameMode = '';
     state.currentView = '';
+    state.mapCenter = null;
+    state.mapZoom = null;
   },
 };

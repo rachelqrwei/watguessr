@@ -8,8 +8,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
-import { point, polygon } from '@turf/helpers';
-import { mapMutations } from 'vuex';
+import { point, polygon, multiPolygon } from '@turf/helpers';
+import { mapMutations, mapGetters } from 'vuex';
 
 export default {
   name: 'MapboxMap',
@@ -17,17 +17,66 @@ export default {
   data() {
     return {
       marker: null, // only one marker
+      map: null,
+      panStepPx: 80,
     };
+  },
+
+  computed: {
+    ...mapGetters('gameInfo', [
+      'getMapCenter',
+      'getMapZoom'
+    ]),
+    ...mapGetters('guess', [
+      'getGuessX',
+      'getGuessY'
+    ])
   },
 
   mounted() {
     this.renderMap();
+    window.addEventListener('keydown', this.onKeyDown);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.onKeyDown);
+
+    // persist map position when leaving the map view
+    if (this.map) {
+      const c = this.map.getCenter();
+      const z = this.map.getZoom();
+      this.SET_MAP_CENTER([c.lng, c.lat]);
+      this.SET_MAP_ZOOM(z);
+    }
   },
 
   methods: {
     ...mapMutations('guess', [
       'SET_BUILDING_AND_LOCATIONS'
     ]),
+    ...mapMutations('gameInfo', [
+      'SET_MAP_CENTER',
+      'SET_MAP_ZOOM'
+    ]),
+
+    onKeyDown(e) {
+      if (!this.map) return;
+      // Prevent arrow keys from moving the map; we'll use WASD instead
+      if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        return;
+      }
+      const step = this.panStepPx;
+      if (e.code === 'KeyW') {
+        this.map.panBy([0, -step], { animate: true });
+      } else if (e.code === 'KeyS') {
+        this.map.panBy([0, step], { animate: true });
+      } else if (e.code === 'KeyA') {
+        this.map.panBy([-step, 0], { animate: true });
+      } else if (e.code === 'KeyD') {
+        this.map.panBy([step, 0], { animate: true });
+      }
+    },
 
     async reverseGeocode(lng, lat) {
       const token = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -56,12 +105,24 @@ export default {
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
+      const defaultCenter = [-80.54478250141877, 43.47247223467783];
+      const center = this.getMapCenter ?? defaultCenter;
+      const zoom = this.getMapZoom ?? 17;
+
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-80.54478250141877, 43.47247223467783],
-        zoom: 17,
+        center: center,
+        zoom: zoom,
       });
+      this.map = map;
+
+      // Try to disable built-in keyboard panning (arrow keys)
+      try {
+        if (map && map.keyboard && typeof map.keyboard.disable === 'function') {
+          map.keyboard.disable();
+        }
+      } catch (_) {}
 
       map.on('load', () => {
         const layers = map.getStyle().layers ?? [];
@@ -86,6 +147,15 @@ export default {
           },
           insertBeforeLayerId
         );
+
+        // Restore existing guess marker if present in store
+        const x = this.getGuessX;
+        const y = this.getGuessY;
+        if (typeof x === 'number' && typeof y === 'number') {
+          this.marker = new mapboxgl.Marker({ anchor: 'bottom' })
+            .setLngLat([x, y])
+            .addTo(map);
+        }
 
         map.on('click', async (e) => {
           const coords = [e.lngLat.lng, e.lngLat.lat];
