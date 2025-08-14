@@ -5,9 +5,9 @@ import guessModule from './modules/guess/index';
 import leaderboardModule from './modules/leaderboard';
 import userModule from './modules/user/index';
 import buildingModule from './modules/building/index';
-import GameInfoModule from './modules/gameInfo/index';
+import gameInfoModule from './modules/gameInfo/index';
 import singleplayerGameModule from "@/stores/modules/singleplayerGame";
-import MultiplayerGameModule from "@/stores/modules/multiplayerGame";
+import multiplayerGameModule from "@/stores/modules/multiplayerGame";
 
 import type { RoundState } from './modules/round/state';
 import type { singleplayerGameState } from '@/stores/modules/singleplayerGame/state';
@@ -42,9 +42,9 @@ const store = createStore<RootState>({
     leaderboard: leaderboardModule as Module<LeaderboardState, RootState>,
     user: userModule as Module<UserState, RootState>,
     building: buildingModule as Module<BuildingState, RootState>,
-    gameInfo: GameInfoModule as Module<GameInfoState, RootState>,
+    gameInfo: gameInfoModule as Module<GameInfoState, RootState>,
     singleplayerGame: singleplayerGameModule as Module<singleplayerGameState, RootState>,
-    multiplayerGame: MultiplayerGameModule as Module<MultiplayerGameState, RootState>
+    multiplayerGame: multiplayerGameModule as Module<MultiplayerGameState, RootState>
   },
 });
 

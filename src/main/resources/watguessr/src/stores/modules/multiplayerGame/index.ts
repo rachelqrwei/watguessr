@@ -6,7 +6,7 @@ import { getters } from './getters';
 import { mutations } from './mutations';
 import { actions } from './actions';
 
-export const MultiplayerGameModule: Module<MultiplayerGameState, RootState> = {
+export const multiplayerGameModule: Module<MultiplayerGameState, RootState> = {
   namespaced: true,
   state,
   getters,
@@ -14,4 +14,4 @@ export const MultiplayerGameModule: Module<MultiplayerGameState, RootState> = {
   actions
 };
 
-export default MultiplayerGameModule;
+export default multiplayerGameModule;
