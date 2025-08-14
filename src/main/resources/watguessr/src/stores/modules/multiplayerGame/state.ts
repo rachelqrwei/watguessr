@@ -14,10 +14,6 @@ export interface MultiplayerGameState {
   multiplayerGame_maxRounds: number;
   multiplayerGame_finalWinner: string | null;
   multiplayerGame_shouldEnd: boolean;
-
-  //personal
-  multiplayerGame_gameMode: string;
-  multiplayerGame_currentView: string;
 }
 
 export const state = (): MultiplayerGameState => ({
@@ -27,6 +23,4 @@ export const state = (): MultiplayerGameState => ({
   multiplayerGame_maxRounds: 5,
   multiplayerGame_finalWinner: null,
   multiplayerGame_shouldEnd: false,
-  multiplayerGame_currentView: 'Map',
-  multiplayerGame_gameMode: 'Multiplayer'
 });

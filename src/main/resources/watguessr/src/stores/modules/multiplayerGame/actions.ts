@@ -7,8 +7,8 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ commit, dispatch }) {
     commit('MG_RESET_GAME');
     commit('MG_SET_STATUS', 'loading');
-    commit('MG_SET_GAME_MODE', 'Multiplayer');
-    commit('MG_SET_CURRENT_VIEW', 'Map');
+    commit('gameInfo/SET_GAME_MODE', 'Multiplayer', {root: true});
+    commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/multiplayer`);
     const gameId = await response.json();
@@ -18,10 +18,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     commit('MG_SET_STATUS', 'playing');
   },
   async multiplayerGame_restartGame({ state, commit, dispatch }) {
-    const mode = state.multiplayerGame_gameMode || 'Multiplayer';
-    if (mode === 'Multiplayer') {
-      await dispatch('multiplayerGame_createMultiplayerGame');
-    }
+    await dispatch('multiplayerGame_createMultiplayerGame');
   },
   multiplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     const currentUser = rootGetters['user/currentUser'];
@@ -33,7 +30,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
       if (shouldEnd) {
         commit('MG_SET_STATUS', 'ended');
       } else {
-        commit('MG_CHANGE_VIEW', 'RoundEnd');
+        commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
       }
     });
   },

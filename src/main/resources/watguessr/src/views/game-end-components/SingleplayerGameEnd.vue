@@ -30,13 +30,13 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "GameEnd",
   computed: {
-    ...mapGetters("singleplayer", ["singleplayerGame_getCurrentRound"]),
+    ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"]),
     totalRounds() {
       return this.singleplayerGame_getCurrentRound ?? 0;
     },
   },
   methods: {
-    ...mapActions("singleplayer", { doRestartGame: "singleplayerGame_restartGame" }),
+    ...mapActions("singleplayerGame", { doRestartGame: "singleplayerGame_restartGame" }),
     async restartGame() {
       await this.doRestartGame();
       this.$router.push('/play');

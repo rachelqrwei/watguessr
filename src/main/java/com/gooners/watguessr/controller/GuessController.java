@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -49,6 +51,13 @@ public class GuessController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(result);
+    }
+
+    @MessageMapping("/guess") //client sends to /app/guess
+    @SendTo("/topic/guesses")
+    public Guess processGuessInMultiplayerGame(Guess guess) {
+        System.out.println(guess);
+        return guess;
     }
 
     @PostMapping("/evaluate-guess")

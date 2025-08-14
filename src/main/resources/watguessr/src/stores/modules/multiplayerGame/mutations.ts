@@ -23,12 +23,6 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   MG_SET_FINAL_WINNER(state, multiplayerGame_finalWinner: string) {
     state.multiplayerGame_finalWinner = multiplayerGame_finalWinner;
   },
-  MG_SET_GAME_MODE(state, multiplayerGame_gameMode: string) {
-    state.multiplayerGame_gameMode = multiplayerGame_gameMode;
-  },
-  MG_SET_CURRENT_VIEW(state, multiplayerGame_currentView: string) {
-    state.multiplayerGame_currentView = multiplayerGame_currentView;
-  },
   MG_RESET_GAME(state) {
     state.multiplayerGame_players = {};
     state.multiplayerGame_currentRound = 1;

@@ -5,7 +5,7 @@
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
 
-  <PlayStopwatch v-if="(singleplayerGame_getCurrentView === 'Map' || singleplayerGame_getCurrentView === 'Image')" />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
   <div class="selection-display">
     <span>Current round: {{singleplayerGame_getCurrentRound}}</span>
     <div>
@@ -25,7 +25,7 @@
 
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
-    <div v-if="singleplayerGame_getCurrentView === 'Map'" class="view-pane">
+    <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="SG_CHANGE_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
@@ -33,16 +33,16 @@
       <PlayMapView @building-selected="handleBuildingSelected" />
     </div>
 
-    <div v-if="singleplayerGame_getCurrentView === 'Image'" class="view-pane">
-      <button class="view-change-button" @click="SG_CHANGE_VIEW('Map')">
+    <div v-if="getCurrentView === 'Image'" class="view-pane">
+      <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
         VIEW MAP
       </button>
       <PlayImageView />
     </div>
 
-    <div v-if="singleplayerGame_getCurrentView === 'RoundEnd'">
+    <div v-if="getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <button class="view-change-button" @click="SG_CHANGE_VIEW('Map')">
+      <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
       BACK TO MAP
       </button>
     </div>
@@ -52,10 +52,10 @@
     {{ errorMessage }}
   </div>
 
-  <div v-if="(singleplayerGame_getCurrentView === 'Map' || singleplayerGame_getCurrentView === 'Image')">
+  <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
   </div>
-  <div v-else-if="singleplayerGame_getCurrentView === 'RoundEnd'">
+  <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
       {{ singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND' }}
     </button>
@@ -91,9 +91,11 @@ export default {
     }
   },
   computed: {
+    ...mapGetters("gameInfo", [
+      'getCurrentView'
+    ]),
     ...mapGetters('singleplayerGame', [
       'singleplayerGame_getGameId',
-      'singleplayerGame_getCurrentView',
       'singleplayerGame_getGameStatus',
       'singleplayerGame_getFinalWinner',
       'singleplayerGame_getCurrentRound',
@@ -131,8 +133,8 @@ export default {
     },
     singleplayerGame_getGameStatus(newStatus) {
       if (newStatus === 'ended') {
-        if (this.singleplayerGame_getCurrentView !== 'RoundEnd') {
-          this.SG_CHANGE_VIEW('RoundEnd');
+        if (this.getCurrentView !== 'RoundEnd') {
+          this.SET_CURRENT_VIEW('RoundEnd');
         }
       }
     },
@@ -158,8 +160,10 @@ export default {
     ...mapActions('building', [
       'fetchAllBuildings'
     ]),
+    ...mapMutations('gameInfo', [
+      "SET_CURRENT_VIEW"
+    ]),
     ...mapMutations('singleplayerGame', [
-      'SG_CHANGE_VIEW',
       'SG_INCREMENT_ROUND'
     ]),
     ...mapMutations('guess', [
@@ -203,7 +207,7 @@ export default {
       await this.startRound({gameId: this.singleplayerGame_getGameId});
       this.SG_INCREMENT_ROUND();
 
-      this.SG_CHANGE_VIEW("Map");
+      this.SET_CURRENT_VIEW("Map");
     },
 
     handleBuildingSelected(payload) {

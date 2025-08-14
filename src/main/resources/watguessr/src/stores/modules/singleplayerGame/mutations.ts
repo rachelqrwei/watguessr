@@ -6,17 +6,11 @@ export const mutations: MutationTree<singleplayerGameState> = {
   SG_SET_GAME_ID(state, gameId: string) {
     state.singleplayerGame_gameId = gameId;
   },
-  SG_SET_GAME_MODE(state, mode: string) {
-    state.singleplayerGame_gameMode = mode;
-  },
   SG_SET_STATUS(state, status: singleplayerGameState['singleplayerGame_status']) {
     state.singleplayerGame_status = status;
   },
   SG_INCREMENT_ROUND(state) {
     state.singleplayerGame_currentRound++;
-  },
-  SG_CHANGE_VIEW(state, nextView: string) {
-    state.singleplayerGame_currentView = nextView;
   },
   SG_ADD_SINGLEPLAYER_PENALTY(state, payload: { userId?: string; roundResult: {points: number, distance: number} }) {
     const userKey = payload.userId || 'player';
