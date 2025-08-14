@@ -3,8 +3,10 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
+import com.gooners.watguessr.entity.EmailVerification;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
+import com.gooners.watguessr.repository.EmailVerificationRepository;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.UserRepository;
 import com.gooners.watguessr.utils.CustomException;
@@ -27,12 +29,14 @@ public class UserService {
     private final LeaderboardMapper leaderboardMapper;
     private final GameRepository gameRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationRepository emailVerificationRepository;
 
-    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository) {
         this.userRepository = userRepository;
         this.leaderboardMapper = leaderboardMapper;
         this.gameRepository = gameRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationRepository = emailVerificationRepository;
     }
 
     public void update(User user) {
@@ -98,6 +102,11 @@ public class UserService {
     public User login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException("User not found"));
+
+        if (!emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress()).isPresent()) {
+            throw new CustomException("User not verified");
+        }
+
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new CustomException("Invalid password");
         }
