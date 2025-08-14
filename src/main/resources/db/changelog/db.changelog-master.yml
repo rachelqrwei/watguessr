@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/0008-update-floors-datatype-in-building.yml
   - include:
       file: db/changelog/0009-update-floors-datatype-in-scene.yml
+  - include:
+      file: db/changelog/0010-populate-building-table.yml

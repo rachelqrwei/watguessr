@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-1
+      author: STANLEY
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: building
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO building (id, name, floors, longitude, latitude) VALUES
+              ('93a0f9ca-94a8-405c-a278-858ac537805e', 'ARC - School of Architecture', '{1st Floor,2nd Floor,3rd Floor}', -80.3166582, 43.35820),
+              ('dec06af9-1fcc-4ffe-872c-641879354f1a', 'AL - Arts Lecture Hall', '{Basement,1st Floor,2nd Floor}', -80.5418434, 43.4689141),
+              ('a1076c90-85a2-4f70-8777-346a4242c66a', 'BMH - B.C. Matthews Hall', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor}', -80.5453604, 43.4736700),
+              ('1a69e8bc-dfe7-401c-9efa-e84fdaede57d', 'C2 - Chemistry 2', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.54300, 43.47050),
+              ('6cb45fd8-fec2-435b-a59c-7ec521ba591f', 'CBET - Centre for Bioengineering and Biotechnology', '{1st Floor,2nd Floor}', -80.54100, 43.47200),
+              ('15bdf9a8-16ad-495a-a542-262522c20a4d', 'CGR - Conrad Grebel University College', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5449799, 43.4663),
+              ('7323c442-5420-49f7-b3bc-a3f391e86392', 'DC - William G. Davis Computer Research Centre', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5422460, 43.47280),
+              ('c5a27c9e-118a-4bdc-81b0-1f412b00a932', 'DWE - Douglas Wright Engineering Building', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor}', -80.5395471, 43.47005),
+              ('aec6b495-d46a-4709-91b6-436f86ea4ea2', 'E2 - Engineering 2', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5403329, 43.4709380),
+              ('1631b10d-fc2c-4657-ba47-4428100c0a40', 'E3 - Engineering 3', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor,5th Floor}', -80.54070, 43.47168),
+              ('4d9c3b68-0720-4c92-9237-3956cae0608d', 'E5 - Engineering 5', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor,5th Floor,6th Floor}', -80.54260, 43.47240),
+              ('630839d9-b574-4c5b-bc71-ab0b0e2abb96', 'E7 - Engineering 7', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor,5th Floor,6th Floor}', -80.5395461, 43.4730371),
+              ('a942e8cf-1c76-45c5-aa44-2992abb1a715', 'ESC - Earth Sciences & Chemistry', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5427513, 43.4713872),
+              ('0ba9f81a-2c43-478d-b07e-3fde3080a88e', 'EV1 - Environment 1', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.54170, 43.46970),
+              ('13317f71-737e-476d-82f7-03b9174ca89b', 'EV2 - Environment 2', '{Basement,1st Floor,2nd Floor}', -80.5431727, 43.4679853),
+              ('7adcc0ee-0f33-494f-b80c-98ca63f3569f', 'EV3 - Environment 3', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5433937, 43.4682788),
+              ('d74db23b-3871-4891-846a-0ccdbe991160', 'GH - Graduate House', '{1st Floor,2nd Floor}', -80.5409247, 43.3697331),
+              ('b88ee0d3-1783-4f1e-910d-1d5d86e89bb0', 'HH - Hagey Hall', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5415088, 43.4677543),
+              ('04a68d5f-0037-4cad-9e99-af78d2d2f1da', 'LIB - Dana Porter Library', '{1st Floor,2nd Floor,3rd Floor,4th Floor,5th Floor,6th Floor,7th Floor,8th Floor,9th Floor,10th Floor}', -80.5422819, 43.469720),
+              ('c20ce479-8126-4e9a-b6d9-16cfe84a503e', 'MC - Mathematics & Computer', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor,5th Floor}', -80.5439117, 43.472107),
+              ('cd5601bd-fbc5-4a17-ac1e-cc64f591dbcd', 'ML - Modern Languages', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5429655, 43.4689491),
+              ('c952a4d3-6a3b-4c55-9eeb-123bac9575d7', 'OPT - School of Optometry and Vision Science', '{1st Floor,2nd Floor,3rd Floor,4th Floor}', -80.4989585, 43.4757906),
+              ('97cb7ce8-076c-4f4c-8f51-e940dc6ca299', 'PHR - School of Pharmacy', '{1st Floor,2nd Floor,3rd Floor}', -80.4989585, 43.4527928),
+              ('70168b71-c28c-4ec7-8171-412f9c3a1b23', 'QNC - Mike & Ophelia Lazaridis Quantum-Nano Centre', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor}', -80.5440766, 43.4711938),
+              ('99914a3a-2f0f-46cb-b540-89f82e92479d', 'REV - Ron Eydt Village', '{1st Floor,2nd Floor}', -80.5541483, 43.4702636),
+              ('289951e3-f6f4-403b-a0d6-e0fa6c1d3a88', 'RCH - J.R. Coutts Engineering Lecture Hall', '{Basement,1st Floor,2nd Floor}', -80.5407279, 43.4703022),
+              ('27e40a95-fa39-49d7-9ba2-8fe313504ffe', 'SLC - Student Life Centre', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5452873, 43.4716631),
+              ('97a62a75-86a6-4521-9a56-5f0b8ba465e3', 'STC - Science Teaching Complex', '{Basement,1st Floor,2nd Floor,3rd Floor,4th Floor}', -80.5432750, 43.4709220),
+              ('ce10607d-9152-4c4f-ace3-3e2c33e57f13', 'TC - William M. Tatham Centre', '{Basement,1st Floor,2nd Floor,3rd Floor}', -80.5412949, 43.4690073),
+              ('adaa4d0b-6578-4b4b-ac8b-772e07a654b5', 'TH - Matthews Hall (Test Centre)', '{1st Floor,2nd Floor}', -80.5453628, 43.473624),
+              ('46c7baca-7b70-425a-af68-d23fc60e69d7', 'V1 - Village 1', '{1st Floor,2nd Floor}', -80.5499034, 43.4715943)
+              ON CONFLICT (id) DO NOTHING;
