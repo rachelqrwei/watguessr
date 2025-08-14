@@ -60,7 +60,7 @@ export default {
       'getUserId',
     ]),
     displayedPoints() {
-      if (this.getGameMode === 'Singleplayer') {
+      if (this.getGameMode === 'singleplayer') {
         return this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
       }
       // Multiplayer fallback: show this player's score by id if present
@@ -68,7 +68,7 @@ export default {
       return this.singleplayerGame_getScores[key] || 0;
     },
     player1ScorePercentage() {
-      if (this.getGameMode == "Singleplayer") {
+      if (this.getGameMode == "singleplayer") {
         // percentage of remaining points out of 1000
         const remaining = this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
         return Math.floor((remaining * 100) / 1000);
