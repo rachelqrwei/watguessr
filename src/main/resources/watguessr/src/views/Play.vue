@@ -6,27 +6,11 @@
   </div>
 
   <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
-  <div class="selection-display">
-    <span>Current round: {{singleplayerGame_getCurrentRound}}</span>
-    <div>
-      <p>Selected Building: {{getGuessBuilding}}</p>
-      <p>Lat: {{getGuessX}}</p>
-      <p>Long: {{getGuessY}}</p>
-    </div>
-    <label class="floor-select-label">
-      Select Floor:
-      <select v-model="selectedFloor" class="floor-select">
-        <option disabled value="">-- Choose a floor --</option>
-        <option v-for="floor in availableFloors" :key="floor" :value="floor">{{ floor }}</option>
-      </select>
-    </label>
-  </div>
-
 
   <div class="game-container">
     <!-- FLOOR SELECT DROPDOWN -->
     <div v-if="getCurrentView === 'Map'" class="view-pane">
-      <button class="view-change-button" @click="SG_CHANGE_VIEW('Image')">
+      <button class="view-change-button" @click="SET_CURRENT_VIEW('Image')">
         <font-awesome-icon icon="image" />
         VIEW IMAGE
       </button>
@@ -42,10 +26,17 @@
 
     <div v-if="getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
-      BACK TO MAP
-      </button>
     </div>
+
+    <PlayFloorPanel
+      v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')"
+      :round="singleplayerGame_getCurrentRound"
+      :building="getGuessBuilding"
+      :lat="getGuessX"
+      :lng="getGuessY"
+      :floors="availableFloors"
+      v-model:floor="selectedFloor"
+    />
   </div>
 
   <div v-if="errorMessage" class="error-banner">
@@ -70,6 +61,7 @@ import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
 import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
+import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 export default {
@@ -79,6 +71,7 @@ export default {
     PlayImageView,
     PlayScoreTracker,
     PlaySingleplayerRoundEnd,
+    PlayFloorPanel,
     RouterLink,
   },
   data() {
@@ -170,6 +163,17 @@ export default {
       'SET_FLOOR'
     ]),
 
+    onGlobalKeyDown(e) {
+      if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
+      if (this.getCurrentView === 'Map' || this.getCurrentView === 'Image') {
+        e.preventDefault();
+        this.handleSubmit();
+      } else if (this.getCurrentView === 'RoundEnd') {
+        e.preventDefault();
+        this.nextRoundOrEndGame();
+      }
+    },
+
     handleSubmit() {
       if (!this.getGuessBuilding) {
         this.errorMessage = "Please select a building.";
@@ -179,16 +183,12 @@ export default {
         this.errorMessage = "Please select a floor.";
         return;
       }
-      this.errorMessage = ""; // clear any previous error
-
-      // ensure floor committed to store before submit
+      this.errorMessage = "";
       this.SET_FLOOR(this.selectedFloor);
-
       this.submitGuess();
     },
 
     async nextRoundOrEndGame() {
-      // if the game should end already, navigate directly
       if (this.singleplayerGame_getShouldEnd) {
         this.$router.push('/singleplayer-game-end');
         return;
@@ -221,6 +221,10 @@ export default {
   mounted() {
     this.fetchAllBuildings();
     this.singleplayerGame_createSingleplayerGame();
+    window.addEventListener('keydown', this.onGlobalKeyDown);
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeyDown);
   }
 }
 </script>
@@ -254,13 +258,14 @@ export default {
 
 .view-change-button {
   position: absolute;
-  top: 30px;
-  left: 40px;
+  top: 20px;
+  left: 20px;
   z-index: 10;
-  background: var(--dark-grey);
-  padding: 20px;
-  border: none;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 40px;
+  backdrop-filter: blur(8px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   width: 200px;
   font-weight: bold;
@@ -271,9 +276,10 @@ export default {
 }
 
 .view-change-button:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.8);
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .test-end-btn {
@@ -327,13 +333,6 @@ export default {
 
 .submit-button:hover {
   transform: translateX(-50%) translateY(-2px);
-}
-
-.selection-display {
-  z-index: 999;
-  position: absolute;
-  top: 100px;
-  background: black;
 }
 
 .error-banner {
