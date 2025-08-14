@@ -8,101 +8,111 @@
     <div class="lobby-card">
       <h1 class="lobby-title">Lobby</h1>
       <p class="lobby-subtitle">Mode: {{ gameModeLabel }}</p>
-      <button class="play-button" @click="goToPlay">PLAY</button>
+
+      <!-- SINGLEPLAYER -->
+      <div v-if="gameModeLabel === 'singleplayer'">
+        <button class="play-button" @click="goToPlay">PLAY</button>
+      </div>
+
+      <!-- MULTIPLAYER -->
+      <div v-else-if="gameModeLabel === 'multiplayer'">
+        <ul class="players-list">
+          <li v-for="u in users" :key="u.id">
+            {{ u.username }} <span v-if="u.id === myId">(YOU)</span>
+          </li>
+        </ul>
+
+        <p v-if="users.length < 2" class="waiting-msg">
+          Waiting for more players to join...
+        </p>
+
+        <button
+          v-if="users.length >= 2 && !gameStarted"
+          class="play-button"
+          @click="startGameClick"
+        >
+          START GAME
+        </button>
+
+        <p v-if="gameStarted" class="waiting-msg">
+          Game started! Redirecting...
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import {mapMutations} from "vuex";
+import { mapMutations } from "vuex";
+import { connectLobby, joinLobby, startGame, disconnectLobby } from "@/services/lobby";
 
 export default {
-  name: 'Lobby',
+  name: "Lobby",
+  data() {
+    return {
+      users: [],
+      myId: "",
+      gameStarted: false,
+    };
+  },
   computed: {
     gameModeLabel() {
-      const mode = (this.$route.query.gameMode ?? '').toString()
-      return mode ? mode : 'singleplayer'
-    }
+      const mode = (this.$route.query.gameMode ?? "").toString();
+      return mode ? mode : "singleplayer";
+    },
   },
   methods: {
-    ...mapMutations('gameInfo', [
-      'SET_GAME_MODE'
-    ]),
+    ...mapMutations("gameInfo", ["SET_GAME_MODE"]),
+
     goToPlay() {
-      this.SET_GAME_MODE(this.gameModeLabel);
-      this.$router.push({ name: 'play' })
+      this.SET_GAME_MODE("singleplayer");
+      this.$router.push({ name: "play", query: { gameMode: "singleplayer" } });
+    },
+
+    startGameClick() {
+      startGame(); // broadcast to all clients that game is starting
+    },
+  },
+  mounted() {
+    const currentUser = this.$store.getters["user/currentUser"];
+    this.myId = currentUser.id;
+
+    if (this.gameModeLabel === "multiplayer") {
+      // Connect to lobby WebSocket
+      connectLobby(
+        (lobbyUpdate) => {
+          this.users = lobbyUpdate.users;
+        },
+        (startInfo) => {
+          this.gameStarted = true;
+          this.SET_GAME_MODE("multiplayer");
+          this.$router.push({ name: "play", query: { gameMode: "multiplayer" } });
+        }
+      );
+
+      joinLobby(currentUser);
     }
-  }
-}
+  },
+  beforeUnmount() {
+    if (this.gameModeLabel === "multiplayer") disconnectLobby();
+  },
+};
 </script>
 
 <style scoped>
-.lobby-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--dark-grey);
-  padding-top: 40px;
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  color: white;
 }
-
-.logo-container {
-  position: fixed;
-  top: 18px;
-  left: 18px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 10;
+.players-list li {
+  margin: 6px 0;
+  font-weight: bold;
 }
-
-.logo-icon {
-  color: var(--yellow);
-  font-size: 20px;
-}
-
-.logo-text {
-  color: var(--white);
-  font-weight: 900;
-  text-decoration: none;
-}
-
-.lobby-card {
-  margin-top: 120px;
-  width: 90%;
-  max-width: 520px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-.lobby-title {
-  color: var(--white);
-  font-size: 36px;
-  margin: 0 0 8px;
-}
-
-.lobby-subtitle {
-  color: var(--white);
-  opacity: 0.85;
-  margin: 0 0 20px;
-}
-
-.play-button {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  background: var(--yellow);
-  color: #000;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.play-button:hover {
-  filter: brightness(1.05);
+.waiting-msg {
+  color: white;
+  opacity: 0.8;
+  margin: 10px 0;
 }
 </style>

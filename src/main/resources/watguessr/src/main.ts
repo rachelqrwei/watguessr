@@ -29,6 +29,8 @@ import {
   faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 
+(window as any).global = window;
+
 // Add icons to the library
 library.add(
   faPlay,
