@@ -56,14 +56,17 @@
     </button>
   </div>
 
-  <PlayScoreTracker />
+  <div id="score-tracker">
+    <PlaySingleplayerScoreTracker v-if="getGameMode === 'singleplayer'" />
+  </div>
+
 </template>
 <script>
 import {mapGetters, mapActions, mapMutations} from 'vuex';
 import PlayStopwatch from '@/views/play-components/Play.Stopwatch.vue'
 import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
-import PlayScoreTracker from '@/views/play-components/Play.ScoreTracker.vue'
+import PlaySingleplayerScoreTracker from '@/views/play-components/score-trackers/Play.SingleplayerScoreTracker.vue'
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
@@ -74,7 +77,7 @@ export default {
     PlayStopwatch,
     PlayMapView,
     PlayImageView,
-    PlayScoreTracker,
+    PlaySingleplayerScoreTracker,
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
     PlayFloorPanel,
