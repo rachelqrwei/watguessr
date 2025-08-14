@@ -6,8 +6,6 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
   async singleplayerGame_createSingleplayerGame({ commit, dispatch }) {
     commit('SG_RESET_GAME');
     commit('SG_SET_STATUS', 'loading');
-    commit('SG_SET_GAME_MODE', 'Singleplayer');
-    commit('SG_CHANGE_VIEW', 'Map'); //TODO: change to image on start after testing
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`);
     const gameId = await response.json();
@@ -19,10 +17,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
   },
 
   async singleplayerGame_restartGame({ state, commit, dispatch }) {
-    const mode = state.singleplayerGame_gameMode || 'Singleplayer';
-    if (mode === 'Singleplayer') {
-      await dispatch('singleplayerGame_createSingleplayerGame');
-    }
+    await dispatch('singleplayerGame_createSingleplayerGame');
   },
 
   singleplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
@@ -35,7 +30,6 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
       if (shouldEnd) {
         commit('SG_SET_STATUS', 'ended');
       } else {
-        commit('SG_CHANGE_VIEW', 'RoundEnd');
       }
     });
   },
