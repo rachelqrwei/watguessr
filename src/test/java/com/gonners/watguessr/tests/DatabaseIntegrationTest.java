@@ -66,7 +66,7 @@ public class DatabaseIntegrationTest {
         // Given - Create a test building
         Building building = new Building();
         building.setName("Mathematics & Computer Building");
-        building.setFloors(Arrays.asList(1, 2, 3, 4));
+        building.setFloors(Arrays.asList("1", "2", "3", "4"));
         building.setLatitude(new BigDecimal("43.472081"));
         building.setLongitude(new BigDecimal("-80.544962"));
 
@@ -80,6 +80,6 @@ public class DatabaseIntegrationTest {
         Optional<Building> foundBuilding = buildingRepository.findById(savedBuilding.getId());
         assertTrue(foundBuilding.isPresent());
         assertEquals("Mathematics & Computer Building", foundBuilding.get().getName());
-        assertEquals(Arrays.asList(1, 2, 3, 4), foundBuilding.get().getFloors());
+        assertEquals(Arrays.asList("1", "2", "3", "4"), foundBuilding.get().getFloors());
     }
 } 
