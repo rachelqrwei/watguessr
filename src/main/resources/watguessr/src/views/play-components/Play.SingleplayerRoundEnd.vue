@@ -23,34 +23,25 @@
       </div>
 
       <div class="map-section">
-        <svg width="100%" height="220" viewBox="0 0 400 220">
-          <defs>
-            <radialGradient id="guessGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ff4136" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ff4136" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="actualGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <line x1="80" y1="110" x2="320" y2="170" stroke="#ffe066" stroke-width="6" stroke-dasharray="10,8" />
-          <circle cx="80" cy="110" r="22" fill="url(#actualGlow)" />
-          <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
-          <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
-          <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
-          <circle cx="320" y="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
-          <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
-        </svg>
+        <div id="answer-map">
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import 'mapbox-gl/dist/mapbox-gl.css';
 import {mapGetters} from "vuex";
+import mapboxgl from "mapbox-gl";
 
 export default {
+  data() {
+    return {
+      answerMarker: null,
+      guessMarker: null,
+    }
+  },
   props: {
     points: {
       type: Number,
@@ -61,6 +52,22 @@ export default {
       required: true
     }
   },
+  mounted() {
+    this.renderMap();
+    window.addEventListener('keydown', this.onKeyDown);
+  },
+
+  // beforeUnmount() {
+  //   window.removeEventListener('keydown', this.onKeyDown);
+  //
+  //   // persist map position when leaving the map view
+  //   if (this.map) {
+  //     const c = this.map.getCenter();
+  //     const z = this.map.getZoom();
+  //     this.SET_MAP_CENTER([c.lng, c.lat]);
+  //     this.SET_MAP_ZOOM(z);
+  //   }
+  // },
   computed: {
     ...mapGetters("singleplayerGame", [
       "singleplayerGame_getCurrentRound"
@@ -86,6 +93,46 @@ export default {
       return this.points;
     },
   },
+  methods: {
+    renderMap() {
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+      const defaultCenter = [-80.54478250141877, 43.47247223467783];
+      // const center = this.getMapCenter ?? defaultCenter;
+      // const zoom = this.getMapZoom ?? 17;
+
+      const map = new mapboxgl.Map({
+        container: 'answer-map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: defaultCenter,
+        zoom: 17,
+      });
+
+      this.guessMarker = new mapboxgl.Marker({ color: 'blue' })
+        .setLngLat([-80.54478250141877, 47.47247223467783])
+        .addTo(map);
+
+      this.answerMarker = new mapboxgl.Marker({ color: 'red' })
+        .setLngLat(defaultCenter)
+        .addTo(map);
+
+      map.on('load', () => {
+        map.resize();
+
+        // Compute bounds that include both markers
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(this.guessMarker.getLngLat());
+        bounds.extend(this.answerMarker.getLngLat());
+
+        // Animate zooming/panning to fit both points
+        map.fitBounds(bounds, {
+          padding: 80,       // space around markers
+          duration: 2000,    // animation length (ms)
+          easing: (t) => t,  // linear easing (you can play with easing functions)
+        });
+      });
+    }
+  }
 };
 </script>
 
@@ -197,5 +244,11 @@ export default {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 12px;
+}
+
+
+#answer-map {
+  width: 100%;
+  height: 300px;
 }
 </style>
