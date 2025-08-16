@@ -61,9 +61,10 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapActions } from "vuex";
 import { connectLobby, joinLobby, startGame, disconnectLobby } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
+import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
 
 export default {
   name: "Lobby",
@@ -86,6 +87,7 @@ export default {
   },
   methods: {
     ...mapMutations("gameInfo", ["SET_GAME_MODE"]),
+    ...mapActions("multiplayerGame", ["multiplayerGame_createMultiplayerGame"]),
 
     goToPlay() {
       this.SET_GAME_MODE(this.gameModeLabel);
@@ -141,7 +143,27 @@ export default {
         (startInfo) => {
           this.gameStarted = true;
           this.SET_GAME_MODE("multiplayer");
-          this.$router.push({ name: "play", query: { gameMode: "multiplayer" } });
+          
+          // Connect to multiplayer game WebSocket and initialize game state
+          if (this.lobbyId) {
+            connectToMultiplayerGame(this.lobbyId);
+            
+            // Set up multiplayer game state in Vuex
+            this.$store.commit('multiplayerGame/MG_SET_GAME_ID', this.lobbyId);
+            this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
+            
+            // Initialize players in game state
+            const players = {};
+            startInfo.users.forEach(user => {
+              players[user.id] = {
+                status: 'loading',
+                score: 0
+              };
+            });
+            this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+          }
+          
+          this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: this.lobbyId } });
         }
       );
 

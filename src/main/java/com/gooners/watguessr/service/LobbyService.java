@@ -16,11 +16,13 @@ public class LobbyService {
 	private final Map<UUID, List<User>> lobbies = new ConcurrentHashMap<>();
 	private final GameRepository gameRepository;
 	private final SimpMessagingTemplate messagingTemplate;
+	private final MultiplayerGameStateService multiplayerGameStateService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
+		this.multiplayerGameStateService = multiplayerGameStateService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
@@ -98,6 +100,22 @@ public class LobbyService {
 	public void tryStartGame(UUID lobbyId) {
 		List<User> users = getUsers(lobbyId);
 		if (users.size() >= 2) { // min 2 players
+			// Get game details
+			Game game = gameRepository.findById(lobbyId).orElse(null);
+			if (game != null) {
+				// Initialize multiplayer game state
+				List<String> playerIds = users.stream()
+						.map(user -> user.getId().toString())
+						.toList();
+				
+				multiplayerGameStateService.initializeGame(
+					lobbyId, 
+					playerIds, 
+					game.getMultiplayerRoundCount(), 
+					game.getMultiplayerTimer()
+				);
+			}
+			
 			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(users));
 			lobbies.remove(lobbyId); // reset lobby after game starts
 			

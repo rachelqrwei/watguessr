@@ -10,6 +10,13 @@ export const actions: ActionTree<GuessState, RootState> = {
     const currentUserId = currentUser?.id || null;
     state.user.id = currentUserId;
 
+    // Check if we have a valid roundId
+    const roundId = rootState.round.roundId;
+    if (!roundId) {
+      console.error('Cannot submit guess: No roundId found in store');
+      throw new Error('Round ID is required to submit a guess');
+    }
+
     //calculate points from the round
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -20,8 +27,10 @@ export const actions: ActionTree<GuessState, RootState> = {
         guessY: state.guessY,
         building: state.building,
         floor: state.floor,
-        roundId: rootState.round.roundId
+        roundId: roundId
       };
+
+      console.log('Submitting guess with body:', createGuessBody);
 
       const createResponse = await fetch(`${baseUrl}/api/guess`, {
         method: 'POST',
