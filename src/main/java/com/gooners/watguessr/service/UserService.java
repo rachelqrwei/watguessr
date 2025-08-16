@@ -3,7 +3,6 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
-import com.gooners.watguessr.entity.EmailVerification;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.EmailVerificationRepository;
@@ -111,7 +110,6 @@ public class UserService {
             throw new CustomException("Invalid password");
         }
         updateStreakAndLastLogin(user);
-        System.out.println("Login successful for user: " + user.getUsername());
         return user;
     }
 
@@ -183,23 +181,6 @@ public class UserService {
         }
 
         user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
-    }
-
-
-    public void clearSession(){
-
-    }
-
-    public void clearToken() {
-
-    }
-
-    public void JWTTokenValidate() {
-
-    }
-
-    public void getMatchHistory() {
-
     }
 
 }
