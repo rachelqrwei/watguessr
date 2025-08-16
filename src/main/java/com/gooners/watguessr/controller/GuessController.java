@@ -4,10 +4,12 @@ import com.gooners.watguessr.dto.GuessCreateDto;
 import com.gooners.watguessr.dto.GuessDto;
 import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.Round;
+import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.entity.Guess;
 import com.gooners.watguessr.service.GuessService;
 import com.gooners.watguessr.service.RoundService;
+import com.gooners.watguessr.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +27,13 @@ public class GuessController {
 
     private final GuessService guessService;
     private final RoundService roundService;
+    private final UserService userService;
     private final GuessMapper guessMapper;
 
-    public GuessController(GuessService guessService, RoundService roundService, GuessMapper guessMapper) {
+    public GuessController(GuessService guessService, RoundService roundService, UserService userService, GuessMapper guessMapper) {
         this.guessService = guessService;
         this.roundService = roundService;
+        this.userService = userService;
         this.guessMapper = guessMapper;
     }
     
@@ -37,7 +41,19 @@ public class GuessController {
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto
     ) {
-        Guess toSave = guessMapper.toEntity(createDto);
+        // Fetch managed entities from database
+        Round round = roundService.findById(createDto.getRoundId());
+        User user = userService.findById(createDto.getUserId());
+        
+        // Create guess entity manually to ensure proper entity relationships
+        Guess toSave = new Guess();
+        toSave.setTime(createDto.getTime());
+        toSave.setGuessX(createDto.getGuessX());
+        toSave.setGuessY(createDto.getGuessY());
+        toSave.setBuilding(createDto.getBuilding());
+        toSave.setFloor(createDto.getFloor());
+        toSave.setRound(round);  // Set managed Round entity
+        toSave.setUser(user);    // Set managed User entity
 
         Guess saved  = guessService.create(toSave);
 

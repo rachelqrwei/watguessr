@@ -134,6 +134,16 @@ public class PointsCalculator {
         return Math.max(1000 + totalPenalties, 0); // Ensure score doesn't go below 0
     }
 
+    //Calculate current score for a multiplayer game
+    public static Integer getCurrentMultiplayerScore(UUID gameId, UUID userId, RoundRepository roundRepository) {
+        Integer totalPoints = roundRepository.getUserPointsForGameAndUser(gameId, userId);
+        if (totalPoints == null) {
+            totalPoints = 0;
+        }
+        // For multiplayer, points are positive and we sum them directly
+        return Math.max(totalPoints, 0); // Ensure score doesn't go below 0
+    }
+
     //check if a singleplayer game should end
     public static boolean shouldEndSingleplayerGame(UUID gameId, UUID userId, RoundRepository roundRepository) {
         return getCurrentSingleplayerScore(gameId, userId, roundRepository) <= 0;

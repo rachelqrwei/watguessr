@@ -18,12 +18,15 @@ public class GuessService {
     private final GuessRepository guessRepository;
     private final RoundRepository roundRepository;
     private UserService userService;
+    private final MultiplayerGameStateService multiplayerGameStateService;
 
     public GuessService(GuessRepository guessRepository,
-                        UserService userService, RoundService roundService, RoundRepository roundRepository) {
+                        UserService userService, RoundService roundService, RoundRepository roundRepository,
+                        MultiplayerGameStateService multiplayerGameStateService) {
         this.guessRepository = guessRepository;
         this.userService = userService;
         this.roundRepository = roundRepository;
+        this.multiplayerGameStateService = multiplayerGameStateService;
     }
 
     public Guess create(Guess guess) {
@@ -114,6 +117,21 @@ public class GuessService {
                 userService.findById(guess.getUser().getId());
             }
 
+            // Update multiplayer game state if this is a multiplayer game
+            UUID gameId = round.getGame().getId();
+            String gameMode = round.getGame().getGameMode();
+            if ("Multiplayer".equals(gameMode) && guess.getUser() != null) {
+                // Calculate total score for this user in this game
+                Integer totalScore = PointsCalculator.getCurrentMultiplayerScore(gameId, guess.getUser().getId(), roundRepository);
+
+                // Update player progress
+                multiplayerGameStateService.updatePlayerProgress(
+                    gameId,
+                    guess.getUser().getId().toString(),
+                    totalScore,
+                    "ended" // Player completed this round
+                );
+            }
             // Upsert: if a guess already exists for (round, user), update it
             if (guess.getUser() != null && guess.getUser().getId() != null && round.getId() != null) {
                 guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId())

@@ -1,7 +1,7 @@
 import type { UserState } from './state';
 
 export const getters = {
-  currentUser: (state) => state.currentUser,
+  currentUser: (state: UserState) => state.currentUser,
   getUserById: (state: UserState) => (id: string) =>
     state.users.find(user => user.id === id),
 

@@ -4,9 +4,11 @@ import type { MultiplayerGameState } from './state';
 import type {RootState} from "@/stores";
 
 export const getters: GetterTree<MultiplayerGameState, RootState> = {
+  multiplayerGame_getGameId: (state) => state.multiplayerGame_gameId,
   multiplayerGame_getPlayers: (state) => state.multiplayerGame_players,
   multiplayerGame_getCurrentRound: (state) => state.multiplayerGame_currentRound,
-  multiplayerGame_getMaxRounds: (state) => state.multiplayerGame_currentRound,
+  multiplayerGame_getMaxRounds: (state) => state.multiplayerGame_maxRounds,
   multiplayerGame_getFinalWinner: (state) => state.multiplayerGame_finalWinner,
   multiplayerGame_getShouldEnd: (state) => state.multiplayerGame_shouldEnd,
+  multiplayerGame_getTimer: (state) => state.multiplayerGame_timer
 };

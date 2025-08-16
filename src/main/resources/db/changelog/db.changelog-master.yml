@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/0009-update-floors-datatype-in-scene.yml
   - include:
       file: db/changelog/0010-populate-building-table.yml
+  - include:
+      file: db/changelog/0011-add-lobby-fields.yml

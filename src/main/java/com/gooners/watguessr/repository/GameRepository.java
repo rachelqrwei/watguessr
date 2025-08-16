@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -35,5 +37,8 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
            "WHERE guess.user.id = :userId " +
            "ORDER BY g.createdAt DESC")
     Page<Game> findGamesByUser(@Param("userId") UUID userId, Pageable pageable);
-    
+
+    List<Game> findByIsPrivateFalseAndGameMode(String gameMode);
+
+    Optional<Game> findByLobbyCode(String lobbyCode);
 }

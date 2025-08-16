@@ -30,6 +30,17 @@ import {
   faUserGroup,
 } from '@fortawesome/free-solid-svg-icons'
 
+// Polyfills for Node.js globals (needed for WebSocket libraries)
+if (typeof global === 'undefined') {
+  (window as any).global = window;
+}
+if (typeof process === 'undefined') {
+  (window as any).process = { env: {} };
+}
+if (typeof Buffer === 'undefined') {
+  (window as any).Buffer = { isBuffer: () => false };
+}
+
 // Add icons to the library
 library.add(
   faPlay,

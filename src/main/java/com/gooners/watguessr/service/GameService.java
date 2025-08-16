@@ -1,13 +1,17 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.dto.MatchHistoryItem;
+import com.gooners.watguessr.dto.LobbyCreateDto;
+import com.gooners.watguessr.dto.LobbyDto;
 import com.gooners.watguessr.dto.SingleplayerGameState;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.RoundRepository;
 import com.gooners.watguessr.utils.PointsCalculator;
 import com.gooners.watguessr.utils.EloCalculator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -28,13 +32,20 @@ public class GameService {
     private final UserService userService;
     private final RoundService roundService;
     private final RoundRepository roundRepository;
+    private final LobbyService lobbyService;
+    private final UserMapper userMapper;
+    private final MultiplayerGameStateService multiplayerGameStateService;
 
     public GameService(GameRepository gameRepository,
-                       UserService userService, RoundService roundService, RoundRepository roundRepository) {
+                       UserService userService, RoundService roundService, RoundRepository roundRepository,
+                       LobbyService lobbyService, UserMapper userMapper, MultiplayerGameStateService multiplayerGameStateService) {
         this.gameRepository = gameRepository;
         this.userService = userService;
         this.roundService = roundService;
         this.roundRepository = roundRepository;
+        this.lobbyService = lobbyService;
+        this.userMapper = userMapper;
+        this.multiplayerGameStateService = multiplayerGameStateService;
     }
 
     public UUID createSingleplayerGame() {
@@ -66,6 +77,93 @@ public class GameService {
         newGame.setRankedAverageElo(averageElo);
         newGame.setCreatedAt(OffsetDateTime.now());
         return gameRepository.save(newGame).getId();
+    }
+
+    public LobbyDto createLobby(LobbyCreateDto lobbyCreateDto) {
+        Game newGame = new Game();
+        newGame.setGameMode(lobbyCreateDto.getGameMode());
+        newGame.setLobbyName(lobbyCreateDto.getLobbyName());
+        newGame.setIsPrivate(lobbyCreateDto.getIsPrivate());
+        newGame.setMaxPlayers(lobbyCreateDto.getMaxPlayers());
+        newGame.setMultiplayerTimer(lobbyCreateDto.getMultiplayerTimer());
+        newGame.setMultiplayerRoundCount(lobbyCreateDto.getMultiplayerRoundCount());
+        newGame.setCreatedAt(OffsetDateTime.now());
+
+        // Generate lobby code for private lobbies
+        if (lobbyCreateDto.getIsPrivate()) {
+            newGame.setLobbyCode(generateLobbyCode());
+        }
+
+        Game savedGame = gameRepository.save(newGame);
+
+        // Convert to LobbyDto
+        LobbyDto lobbyDto = new LobbyDto();
+        lobbyDto.setId(savedGame.getId());
+        lobbyDto.setLobbyName(savedGame.getLobbyName());
+        lobbyDto.setGameMode(savedGame.getGameMode());
+        lobbyDto.setIsPrivate(savedGame.getIsPrivate());
+        lobbyDto.setLobbyCode(savedGame.getLobbyCode());
+        lobbyDto.setMaxPlayers(savedGame.getMaxPlayers());
+        lobbyDto.setCurrentPlayers(0); // Will be updated when players join
+        lobbyDto.setMultiplayerTimer(savedGame.getMultiplayerTimer());
+        lobbyDto.setMultiplayerRoundCount(savedGame.getMultiplayerRoundCount());
+        lobbyDto.setCreatedAt(savedGame.getCreatedAt());
+        lobbyDto.setPlayers(List.of());
+
+        return lobbyDto;
+    }
+
+    public List<LobbyDto> getPublicLobbies() {
+        List<Game> publicGames = gameRepository.findByIsPrivateFalseAndGameMode("Multiplayer");
+        return publicGames.stream()
+                .map(this::convertGameToLobbyDto)
+                .collect(Collectors.toList());
+    }
+
+    public LobbyDto getLobbyByCode(String lobbyCode) {
+        Game game = gameRepository.findByLobbyCode(lobbyCode)
+                .orElseThrow(() -> new RuntimeException("Lobby not found with code: " + lobbyCode));
+        return convertGameToLobbyDto(game);
+    }
+
+    public LobbyDto getLobbyById(UUID lobbyId) {
+        Game game = findById(lobbyId);
+        return convertGameToLobbyDto(game);
+    }
+
+    private String generateLobbyCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            code.append(chars.charAt((int) (Math.random() * chars.length())));
+        }
+        return code.toString();
+    }
+
+    private LobbyDto convertGameToLobbyDto(Game game) {
+        LobbyDto lobbyDto = new LobbyDto();
+        lobbyDto.setId(game.getId());
+        lobbyDto.setLobbyName(game.getLobbyName());
+        lobbyDto.setGameMode(game.getGameMode());
+        lobbyDto.setIsPrivate(game.getIsPrivate());
+        lobbyDto.setLobbyCode(game.getLobbyCode());
+        lobbyDto.setMaxPlayers(game.getMaxPlayers());
+
+        // Get actual current player count from lobby service
+        int currentPlayers = lobbyService.getUsers(game.getId()).size();
+        lobbyDto.setCurrentPlayers(currentPlayers);
+
+        lobbyDto.setMultiplayerTimer(game.getMultiplayerTimer());
+        lobbyDto.setMultiplayerRoundCount(game.getMultiplayerRoundCount());
+        lobbyDto.setCreatedAt(game.getCreatedAt());
+
+        // Get actual players from lobby service and convert to DTOs
+        List<User> players = lobbyService.getUsers(game.getId());
+        lobbyDto.setPlayers(players.stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList()));
+
+        return lobbyDto;
     }
 
     public Integer resolveSingleplayerGame(UUID gameId, UUID userId) {

@@ -10,6 +10,7 @@ export const getters: GetterTree<singleplayerGameState, RootState> = {
   singleplayerGame_getFinalWinner: (state) => state.singleplayerGame_finalWinner,
   singleplayerGame_getScores: (state) => state.singleplayerGame_scores,
   singleplayerGame_getShouldEnd: (state) => state.singleplayerGame_shouldEnd,
+  singleplayerGame_getTimer: (state) => state.singleplayerGame_timer,
 
   singleplayerGame_getSingleplayerDisplayedScore: (state) => {
     return typeof state.singleplayerGame_singleplayerScore === 'number' ? state.singleplayerGame_singleplayerScore : 1000;
