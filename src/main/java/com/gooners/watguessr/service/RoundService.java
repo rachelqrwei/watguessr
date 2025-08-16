@@ -42,24 +42,11 @@ public class RoundService {
         return roundRepository.save(round);
     }
 
-    public void delete(UUID id) {
-        roundRepository.deleteById(id);
-    }
-
     public Round findById(UUID id) {
         return roundRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Round not found with id: " + id));
     }
 
-    public List<Round> findAll() {
-        return roundRepository.findAll();
-    }
-
-    public List<Round> getRoundsForGame(UUID gameId) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found with id: " + gameId));
-        return game.getRound();
-    }
 
     List<Object[]> getUserPointsForGame(@Param("gameId") UUID gameId){ return roundRepository.getUserPointsForGame(gameId); }
 

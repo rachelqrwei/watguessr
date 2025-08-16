@@ -14,10 +14,6 @@ import java.util.UUID;
 public interface GuessRepository extends JpaRepository<Guess, UUID> {
     // JpaRepository provides save(), findById(), findAll(), delete(), etc.
     // No need for custom create() and update() methods
-    /**
-     * Fetch all guesses belonging to the given round ID.
-     */
-    List<Guess> findAllByRoundId(UUID roundId);
 
     Optional<Guess> findFirstByRoundIdAndUserId(UUID roundId, UUID userId);
 
@@ -28,14 +24,4 @@ public interface GuessRepository extends JpaRepository<Guess, UUID> {
             " ORDER BY SUM(g.points) DESC")
     List<Object[]> findUserPointsByGame(@Param("gameId") UUID gameId);
 
-
-    // original
-    //    @Query("SELECT rg.user.id, SUM(rg.points) FROM RoundGuess rg " +
-//            "JOIN rg.round r " +
-//            "JOIN GameRound gr ON gr.round.id = r.id " +
-//            "WHERE gr.game.id = :gameId " +
-//            "GROUP BY rg.user.id " +
-//            "ORDER BY SUM(rg.points) DESC")
-//    List<Object[]> getUserPointsForGame(@Param("gameId") UUID gameId);
-//
 }
