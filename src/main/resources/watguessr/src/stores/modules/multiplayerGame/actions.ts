@@ -40,7 +40,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
       console.warn('⚠️ Player not found in multiplayer game state, initializing...');
       commit('MG_SET_PLAYERS', { 
         ...state.multiplayerGame_players, 
-        [userId]: { score: 0, status: 'playing' } 
+        [userId]: { score: 0, status: 'playing', username: 'Player' } 
       });
     }
 
