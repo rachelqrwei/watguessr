@@ -25,9 +25,4 @@ public class SceneController {
     public String getImage(@RequestParam UUID roundId) {
         return sceneService.getImageByRoundId(roundId);
     }
-
-    @GetMapping(value = "/location")
-    public HashMap<String, Double> getLocation(@RequestParam UUID roundId) {
-        return sceneService.getLocationByRoundId(roundId);
-    }
 }
