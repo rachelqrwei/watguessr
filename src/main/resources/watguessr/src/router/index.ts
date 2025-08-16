@@ -38,6 +38,11 @@ const router = createRouter({
       component: () => import('../views/game-end-components/MultiplayerGameEnd.vue'),
     },
     {
+      path: '/ranked-game-end',
+      name: 'rankedGameEnd',
+      component: () => import('../views/game-end-components/RankedGameEnd.vue'),
+    },
+    {
       path: '/profile/:userId?',
       name: 'profile',
       component: () => import('../views/Profile.vue'),
