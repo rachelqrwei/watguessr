@@ -20,7 +20,6 @@ export interface LobbyDto {
 export interface UserDto {
   id: string;
   username: string;
-  emailAddress?: string;
   elo?: number;
   streak?: number;
 }

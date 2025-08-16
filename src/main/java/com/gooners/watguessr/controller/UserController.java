@@ -1,6 +1,7 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.UserSignupDto;
+import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 
 import com.gooners.watguessr.entity.User;
@@ -53,13 +54,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}")
-    public User getUser(@PathVariable UUID id) {
-        return this.userService.findById(id);
+    public UserDto getUser(@PathVariable UUID id) {
+        return this.userMapper.toDto(this.userService.findById(id));
     }
 
     @GetMapping(value = "/all")
-    public List<User> getSorted(String keyword, String sortBy, int page, int pageSize) {
-        return this.userService.findSorted(keyword, sortBy, page, pageSize);
+    public List<UserDto> getSorted(String keyword, String sortBy, int page, int pageSize) {
+        return this.userService.findSorted(keyword, sortBy, page, pageSize).stream().map(userMapper::toDto).toList();
     }
 
     @PostMapping(value = "/send-email")
@@ -102,7 +103,7 @@ public class UserController {
         return new QueryResults<>(results);
     }
 
-    @GetMapping(value = "/{id}/leaderboard")
+    @GetMapping(value = "/{id}/leaderboard") //for the profile stats section
     public LeaderboardUser getLeaderboardUserById(@PathVariable UUID id) {
         return userService.getLeaderboardUserById(id);
     }
