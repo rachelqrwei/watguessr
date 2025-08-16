@@ -97,6 +97,10 @@ export default {
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
+      // Example coordinates (lng, lat)
+      const point1 = [-79.3832, 43.6532]; // Toronto
+      const point2 = [-73.5673, 45.5017]; // Montreal
+
       const defaultCenter = [-80.54478250141877, 43.47247223467783];
       // const center = this.getMapCenter ?? defaultCenter;
       // const zoom = this.getMapZoom ?? 17;
@@ -109,11 +113,11 @@ export default {
       });
 
       this.guessMarker = new mapboxgl.Marker({ color: 'blue' })
-        .setLngLat([-80.54478250141877, 47.47247223467783])
+        .setLngLat(point1)
         .addTo(map);
 
       this.answerMarker = new mapboxgl.Marker({ color: 'red' })
-        .setLngLat(defaultCenter)
+        .setLngLat(point2)
         .addTo(map);
 
       map.on('load', () => {
@@ -129,6 +133,28 @@ export default {
           padding: 80,       // space around markers
           duration: 2000,    // animation length (ms)
           easing: (t) => t,  // linear easing (you can play with easing functions)
+        });
+
+        map.addSource('line', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [point1, point2]
+            }
+          }
+        });
+
+        map.addLayer({
+          id: 'line',
+          type: 'line',
+          source: 'line',
+          layout: {},
+          paint: {
+            'line-color': 'black',
+            'line-width': 3
+          }
         });
       });
     }
