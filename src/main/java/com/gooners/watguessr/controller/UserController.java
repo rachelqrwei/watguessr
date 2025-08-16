@@ -6,11 +6,11 @@ import com.gooners.watguessr.dto.UserLoginDto;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.gooners.watguessr.mapper.UserMapper;
+import com.gooners.watguessr.service.EmailVerificationService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
@@ -38,10 +38,6 @@ public class UserController {
     @PostMapping(value = "/register")
     public void register(@RequestBody @Valid User user) {
         this.userService.create(user);
-    }
-  
-    public UserController(UserService userService) {
-        this.userService = userService;
     }
 
     @GetMapping(value = "/{id}")
