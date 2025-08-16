@@ -3,6 +3,7 @@ package com.gooners.watguessr.dto;
 import java.util.List;
 import java.util.UUID;
 
+//used for match history modal
 public class RoundGuessesDto {
     private UUID roundId;
     private List<GuessDto> guesses;

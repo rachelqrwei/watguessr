@@ -50,7 +50,7 @@ public class Game {
 
     @OneToMany(mappedBy = "game")
     @JsonIgnoreProperties({"game"})
-    private List<Round> round;
+    private List<Round> rounds;
 
     public UUID getId() {
         return id;
@@ -108,8 +108,8 @@ public class Game {
         this.multiplayerRoundCount = multiplayerRoundCount;
     }
 
-    public List<Round> getRound() {
-        return round;
+    public List<Round> getRounds() {
+        return rounds;
     }
 
     public String getLobbyCode() {

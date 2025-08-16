@@ -17,7 +17,7 @@
 
             <div class="player-2-trapezoid" @click="showLobbyBrowser = true">
               <div class="play-option-container">
-                <h3>MULTIPLAYER</h3>
+                <h3>PARTY</h3>
                 <p>JOIN PUBLIC LOBBIES OR CREATE PRIVATE ONES!</p>
               </div>
             </div>

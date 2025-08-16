@@ -3,6 +3,8 @@ package com.gooners.watguessr.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +25,10 @@ public class Round {
     @JoinColumn(name = "game_id", foreignKey = @ForeignKey(name = "fk_round_game"))
     @JsonIgnoreProperties({"round"})
     private Game game;
+
+    @OneToMany(mappedBy = "round", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({ "round" })
+    private List<Guess> guesses = new ArrayList<>();
 
     public UUID getId() {
         return id;
@@ -46,5 +52,9 @@ public class Round {
 
     public void setGame(Game game) {
         this.game = game;
+    }
+
+    public List<Guess> getGuesses() {
+        return guesses;
     }
 }

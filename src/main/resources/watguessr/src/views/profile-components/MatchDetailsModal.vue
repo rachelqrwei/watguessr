@@ -13,7 +13,7 @@
             <div class="round-header">Round {{ idx + 1 }}</div>
             <div class="guesses">
               <div v-for="g in guessesByRound[round.id] || []" :key="g.id" class="guess-row" :class="userClass(g.userId)">
-                <div class="guess-user">{{ usernameFor(g.userId) }}</div>
+                <button type="button" class="guess-user" @click="goToUser(g.userId)">{{ usernameFor(g.userId) }}</button>
                 <div class="guess-metrics">
                   <span class="pill" :class="{ positive: (g.points ?? 0) > 0, negative: (g.points ?? 0) < 0 }">{{ g.points ?? 0 }} pts</span>
                   <span class="pill">{{ timeDisplay(g.time) }}</span>
@@ -78,6 +78,11 @@ export default {
   },
   methods: {
     close() {
+      this.$emit('close')
+    },
+    goToUser(userId) {
+      if (!userId) return
+      this.$router.push({ name: 'profile', params: { userId } })
       this.$emit('close')
     },
     async loadData() {
@@ -272,6 +277,12 @@ export default {
 .guess-user {
   font-weight: 700;
   min-width: 140px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  padding: 0;
+  text-align: left;
 }
 
 .guess-metrics {

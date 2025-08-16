@@ -41,29 +41,29 @@ onUnmounted(() => {
     <div class="home-content-scale">
       <HeroSection :isLoaded="isLoaded" />
       <GameModesSection :isLoaded="isLoaded" />
-<!--      <FeaturesSection :isLoaded="isLoaded" />-->
+     <FeaturesSection :isLoaded="isLoaded" />
 
-<!--      <div class="section-with-goose goose1-wrapper">-->
-<!--        <LeaderboardSection :isLoaded="isLoaded" />-->
-<!--        <img-->
-<!--          class="goose-decor goose1"-->
-<!--          src="/Goose1.png"-->
-<!--          alt=""-->
-<!--          aria-hidden="true"-->
-<!--          v-if="showGeese"-->
-<!--        />-->
-<!--      </div>-->
+     <div class="section-with-goose goose1-wrapper">
+       <LeaderboardSection :isLoaded="isLoaded" />
+       <img
+         class="goose-decor goose1"
+         src="/Goose1.png"
+         alt=""
+         aria-hidden="true"
+         v-if="showGeese"
+       />
+     </div>
 
-<!--      <div class="section-with-goose goose2-wrapper">-->
-<!--        <TestimonialsSection :isLoaded="isLoaded" />-->
-<!--        <img-->
-<!--          class="goose-decor goose2"-->
-<!--          src="/Goose2.png"-->
-<!--          alt=""-->
-<!--          aria-hidden="true"-->
-<!--          v-if="showGeese"-->
-<!--        />-->
-<!--      </div>-->
+     <div class="section-with-goose goose2-wrapper">
+       <TestimonialsSection :isLoaded="isLoaded" />
+       <img
+         class="goose-decor goose2"
+         src="/Goose2.png"
+         alt=""
+         aria-hidden="true"
+         v-if="showGeese"
+/>
+     </div>
     </div>
   </div>
 </template>

@@ -11,7 +11,6 @@ public class LeaderboardUser {
     private int gamesPlayed;
     private int gamesWon;
     private int gamesLost;
-    private OffsetDateTime createdAt;
 
     public UUID getId() {
         return id;
@@ -69,11 +68,4 @@ public class LeaderboardUser {
         this.gamesLost = gamesLost;
     }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }

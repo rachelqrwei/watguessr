@@ -80,6 +80,14 @@ export default {
         }
       }
     },
+    '$route.params.userId': {
+      handler(newId) {
+        if (newId) {
+          this.SET_PROFILE_USER_ID(newId)
+        }
+      },
+      immediate: true
+    }
   },
 
   methods: {
