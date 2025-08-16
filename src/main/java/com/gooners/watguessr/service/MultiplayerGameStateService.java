@@ -2,6 +2,7 @@ package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.dto.MultiplayerGameStateDto;
 import com.gooners.watguessr.entity.Round;
+import com.gooners.watguessr.entity.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class MultiplayerGameStateService {
 		this.roundService = roundService;
 	}
 
-	public void initializeGame(UUID gameId, List<String> playerIds, Integer roundCount, Integer timer) {
+	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
 		MultiplayerGameStateDto gameState = new MultiplayerGameStateDto();
 		gameState.setGameId(gameId.toString());
 		gameState.setCurrentRound(1);
@@ -28,13 +29,14 @@ public class MultiplayerGameStateService {
 		gameState.setTimer(timer);
 		gameState.setGameStatus("loading");
 		
-		// Initialize all players with loading status and 0 score
+		// Initialize all players with loading status, 0 score, and usernames
 		Map<String, PlayerStateDto> players = new HashMap<>();
-		for (String playerId : playerIds) {
+		for (User user : users) {
 			PlayerStateDto playerState = new PlayerStateDto();
 			playerState.setScore(0);
 			playerState.setStatus("loading");
-			players.put(playerId, playerState);
+			playerState.setUsername(user.getUsername());
+			players.put(user.getId().toString(), playerState);
 		}
 		gameState.setPlayers(players);
 		
@@ -155,7 +157,19 @@ public class MultiplayerGameStateService {
 			} else {
 				// Game completed
 				gameState.setGameStatus("game-complete");
+				gameState.setShouldEnd(true);
+				
+				// Determine the winner
+				String winnerId = findWinner(gameState);
+				if (winnerId != null) {
+					gameState.setFinalWinner(winnerId);
+				}
+				
+				System.out.println("🏆 Game completed! Winner: " + winnerId);
 				broadcastGameState(gameId);
+				
+				// Broadcast game completion event
+				messagingTemplate.convertAndSend("/topic/game/" + gameId + "/complete", gameState);
 			}
 		}
 	}
@@ -175,15 +189,38 @@ public class MultiplayerGameStateService {
 		}
 	}
 
+	private String findWinner(MultiplayerGameStateDto gameState) {
+		if (gameState.getPlayers().isEmpty()) {
+			return null;
+		}
+
+		String winnerId = null;
+		Integer maxScore = Integer.MIN_VALUE;
+
+		for (Map.Entry<String, PlayerStateDto> entry : gameState.getPlayers().entrySet()) {
+			Integer playerScore = entry.getValue().getScore();
+			if (playerScore > maxScore) {
+				maxScore = playerScore;
+				winnerId = entry.getKey();
+			}
+		}
+
+		return winnerId;
+	}
+
 	// Inner class for player state
 	public static class PlayerStateDto {
 		private Integer score;
 		private String status; // "idle", "loading", "playing", "ended", "ready"
+		private String username; // Player's username
 
 		public Integer getScore() { return score; }
 		public void setScore(Integer score) { this.score = score; }
 
 		public String getStatus() { return status; }
 		public void setStatus(String status) { this.status = status; }
+
+		public String getUsername() { return username; }
+		public void setUsername(String username) { this.username = username; }
 	}
 }

@@ -281,7 +281,7 @@ export default {
           this.$router.push('/multiplayer-game-end');
           return;
         }
-
+        
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           // End the multiplayer game

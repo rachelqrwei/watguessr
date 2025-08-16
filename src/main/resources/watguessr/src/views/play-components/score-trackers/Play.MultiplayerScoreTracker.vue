@@ -42,9 +42,8 @@ export default {
   },
   methods: {
     getPlayerName(playerId) {
-      console.log(playerId);
-      // Placeholder: Replace with real name lookup if available
-      return playerId;
+      const player = this.multiplayerGame_getPlayers[playerId];
+      return player?.username || `Player ${playerId.slice(-4)}`;
     },
     getScorePercentage(score) {
       return Math.floor((score * 100) / this.maxScore);

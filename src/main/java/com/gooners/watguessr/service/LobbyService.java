@@ -103,17 +103,13 @@ public class LobbyService {
 			// Get game details
 			Game game = gameRepository.findById(lobbyId).orElse(null);
 			if (game != null) {
-				// Initialize multiplayer game state
-				List<String> playerIds = users.stream()
-						.map(user -> user.getId().toString())
-						.toList();
-				
-				multiplayerGameStateService.initializeGame(
-					lobbyId, 
-					playerIds, 
-					game.getMultiplayerRoundCount(), 
-					game.getMultiplayerTimer()
-				);
+							// Initialize multiplayer game state with full user objects
+			multiplayerGameStateService.initializeGame(
+				lobbyId, 
+				users, 
+				game.getMultiplayerRoundCount(), 
+				game.getMultiplayerTimer()
+			);
 			}
 			
 			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(users));
