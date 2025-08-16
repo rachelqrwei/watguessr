@@ -1,7 +1,7 @@
 import type { UserState } from './state';
 
 export const getters = {
-  getCurrentUser: (state: UserState) => state.currentUser,
+  currentUser: (state: UserState) => state.currentUser,
   getUsers: (state: UserState) => state.users,
   getLoading: (state: UserState) => state.loading,
   getError: (state: UserState) => state.error,

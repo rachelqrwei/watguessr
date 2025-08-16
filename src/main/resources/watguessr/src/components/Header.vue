@@ -59,15 +59,15 @@ export default {
 
   computed: {
     ...mapGetters('user', [
-      'getCurrentUser'
+      'currentUser'
     ]),
 
     getUserName() {
-      return this.getCurrentUser?.username || 'Guest';
+      return this.currentUser?.username || 'Guest';
     },
 
     getStreak() {
-      return this.getCurrentUser?.streak || 0;
+      return this.currentUser?.streak || 0;
     },
 
     loggedIn() {
@@ -117,7 +117,7 @@ export default {
       this.dropdownOpen = false;
     },
 
-    
+
 
     onClickOutside(event) {
       const dropdown = this.$el.querySelector('.dropdown-menu');
@@ -138,7 +138,7 @@ export default {
       console.log('User login status changed:', newVal);
     },
 
-    getCurrentUser(newUser, oldUser) {
+    currentUser(newUser, oldUser) {
       if (newUser && !oldUser) {
         console.log('✅ User logged in:', newUser.username);
       } else if (!newUser && oldUser) {
