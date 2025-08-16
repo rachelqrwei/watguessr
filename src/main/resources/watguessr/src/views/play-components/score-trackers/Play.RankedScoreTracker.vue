@@ -1,10 +1,13 @@
 <template>
-<!--  TODO-->
   <div class="player-score-tracker-container">
+    <!-- Player 1 (YOU) -->
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
-        <span class="player-name">{{ player1Name }}</span>
-        <span class="player-points">{{ displayedPoints }} PTS</span>
+        <div class="player-info">
+          <span class="player-name">{{ player1Name }}</span>
+          <span class="player-elo">{{ player1Elo }} ELO</span>
+        </div>
+        <span class="player-points">{{ player1Score }} PTS</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -17,10 +20,14 @@
       </div>
     </div>
 
-    <div class="player-score-tracker-2" v-if="getGameMode === 'multiplayer'">
+    <!-- Player 2 (OPPONENT) -->
+    <div class="player-score-tracker-2">
       <div class="player-score-text-container">
+        <div class="player-info">
+          <span class="player-name">{{ player2Name }}</span>
+          <span class="player-elo">{{ player2Elo }} ELO</span>
+        </div>
         <span class="player-points">{{ player2Score }} PTS</span>
-        <span class="player-name">{{ player2Name }}</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -32,6 +39,11 @@
         />
       </div>
     </div>
+
+    <!-- Round indicator -->
+    <div class="round-indicator">
+      <span class="round-text">ROUND {{ currentRound }}/5</span>
+    </div>
   </div>
 </template>
 
@@ -39,9 +51,15 @@
 import {mapGetters} from "vuex";
 
 export default {
-  name: "PlayerSingleplayerScoreTracker",
+  name: "RankedScoreTracker",
   data() {
     return {
+      // Hardcoded values for now
+      currentRound: 1,
+      player1Elo: 1250,
+      player2Elo: 1180,
+      player1Score: 0,
+      player2Score: 0
     };
   },
   computed: {
@@ -55,40 +73,30 @@ export default {
     ...mapGetters('guess', [
       'getUserId',
     ]),
-    displayedPoints() {
-      if (this.getGameMode === 'singleplayer') {
-        return this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
-      }
-      // Multiplayer fallback: show this player's score by id if present
-      const key = this.getUserId || 'player';
-      return this.singleplayerGame_getScores[key] || 0;
-    },
-    player1ScorePercentage() {
-      if (this.getGameMode == "singleplayer") {
-        // percentage of remaining points out of 1000
-        const remaining = this.singleplayerGame_getSingleplayerDisplayedScore ?? 1000;
-        return Math.floor((remaining * 100) / 1000);
-      }
-      else {
-        const key = this.getUserId || 'player';
-        const me = this.singleplayerGame_getScores[key] || 0;
-        const other = this.player2Score;
-        const denom = me + other || 1;
-        return Math.floor((me * 100) / denom);
-      }
-
-    },
-    player2ScorePercentage() {
-      return Math.floor(
-        (this.player2Score * 100) /
-        (this.player1Score + this.player2Score)
-      );
-    },
     player1Name() {
       return 'YOU';
     },
     player2Name() {
       return 'OPPONENT';
+    },
+    player1ScorePercentage() {
+      const total = this.player1Score + this.player2Score || 1;
+      return Math.floor((this.player1Score * 100) / total);
+    },
+    player2ScorePercentage() {
+      const total = this.player1Score + this.player2Score || 1;
+      return Math.floor((this.player2Score * 100) / total);
+    }
+  },
+  methods: {
+    // Method to update scores (will be called from parent component)
+    updateScores(player1Score, player2Score) {
+      this.player1Score = player1Score;
+      this.player2Score = player2Score;
+    },
+    // Method to update current round
+    updateRound(round) {
+      this.currentRound = round;
     }
   }
 };
@@ -122,8 +130,12 @@ export default {
   gap: 28px;
   align-items: center;
   width: fit-content;
-  box-shadow: none !important;
-  filter: none;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .player-score-tracker-1 .player-score-text-container {
@@ -142,6 +154,15 @@ export default {
   height: 40px;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
   position: relative;
+}
+
+.player-score-tracker-1 .player-score-progress-container {
+  border-radius: 0 25px 25px 25px;
+}
+
+.player-score-tracker-2 .player-score-progress-container {
+  border-radius: 25px 0 25px 25px;
+  direction: rtl;
 }
 
 .player-score-progress-container::before {
@@ -163,24 +184,42 @@ export default {
   z-index: 1;
 }
 
-.player-score-tracker-1 .player-score-progress-container {
-  border-radius: 0 25px 25px 25px;
-}
-
-.player-score-tracker-2 .player-score-progress-container {
-  border-radius: 25px 0 25px 25px;
-  direction: rtl;
-}
-
 .player-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--white);
 }
 
+.player-elo {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--light-grey);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .player-points {
   font-size: 14px;
   font-weight: 600;
   color: var(--light-grey);
+}
+
+.round-indicator {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--dark-grey);
+  padding: 8px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.round-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 </style>
