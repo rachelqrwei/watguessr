@@ -43,7 +43,7 @@ export default {
   methods: {
     getPlayerName(playerId) {
       const player = this.multiplayerGame_getPlayers[playerId];
-      return player?.username || `Player ${playerId.slice(-4)}`;
+      return player?.username || `Player`;
     },
     getScorePercentage(score) {
       return Math.floor((score * 100) / this.maxScore);

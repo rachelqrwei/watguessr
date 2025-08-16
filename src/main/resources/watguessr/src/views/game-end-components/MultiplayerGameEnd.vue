@@ -117,7 +117,7 @@ export default {
     ...mapActions("multiplayerGame", ["multiplayerGame_disconnect"]),
     getPlayerName(playerId) {
       const player = this.multiplayerGame_getPlayers[playerId];
-      return player?.username || `Player ${playerId.slice(-4)}`;
+      return player?.username || `Player`;
     },
     restartGame() {
       // Disconnect from current game and return to lobby

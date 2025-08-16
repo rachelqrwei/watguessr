@@ -86,7 +86,6 @@
           <div class="player-col">
             <div class="player-info">
               <div class="player-name">{{ player.username }}</div>
-              <div class="player-id">#{{ player.id.substring(0, 8) }}</div>
             </div>
           </div>
 

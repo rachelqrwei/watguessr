@@ -157,7 +157,8 @@ export default {
             startInfo.users.forEach(user => {
               players[user.id] = {
                 status: 'loading',
-                score: 0
+                score: 0,
+                username: user.username
               };
             });
             this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);

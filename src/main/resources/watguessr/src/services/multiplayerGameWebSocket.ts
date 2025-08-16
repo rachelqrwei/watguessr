@@ -122,12 +122,13 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   console.log('📡 Received game state update:', gameState);
 
   // Convert backend DTO format to frontend store format
-  const players: Record<string, { status: any; score: number }> = {};
+  const players: Record<string, { status: any; score: number; username: string }> = {};
 
   Object.entries(gameState.players).forEach(([playerId, playerState]) => {
     players[playerId] = {
       status: playerState.status,
-      score: playerState.score
+      score: playerState.score,
+      username: playerState.username
     };
   });
 

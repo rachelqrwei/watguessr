@@ -83,6 +83,12 @@ export default {
         (this.player2Score * 100) /
         (this.player1Score + this.player2Score)
       );
+    },
+    player1Name() {
+      return 'YOU';
+    },
+    player2Name() {
+      return 'OPPONENT';
     }
   }
 };
