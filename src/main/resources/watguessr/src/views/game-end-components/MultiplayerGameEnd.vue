@@ -2,6 +2,9 @@
   <div class="game-end-container">
     <div class="game-header">
       <span class="game-label">GAME OVER</span>
+      <div v-if="finalLeaderboard.length > 0" class="winner-announcement">
+        🏆 {{ winnerName }} Wins!
+      </div>
     </div>
 
     <div class="leaderboard-section">
@@ -18,11 +21,25 @@
         <tr
           v-for="(player, index) in finalLeaderboard"
           :key="player.id"
-          :class="{ highlight: player.id === myPlayerId }"
+          :class="{ 
+            highlight: player.id === myPlayerId,
+            winner: index === 0,
+            'top-three': index < 3
+          }"
         >
-          <td>{{ index + 1 }}</td>
-          <td>{{ player.name }}</td>
-          <td>{{ player.totalPoints }}</td>
+          <td>
+            <span class="rank">
+              <span v-if="index === 0" class="trophy">🥇</span>
+              <span v-else-if="index === 1" class="trophy">🥈</span>
+              <span v-else-if="index === 2" class="trophy">🥉</span>
+              <span v-else>{{ index + 1 }}</span>
+            </span>
+          </td>
+          <td>
+            {{ player.name }}
+            <span v-if="player.id === myPlayerId" class="you-tag">(YOU)</span>
+          </td>
+          <td>{{ player.totalPoints }} PTS</td>
         </tr>
         </tbody>
       </table>
@@ -34,8 +51,12 @@
         <span class="stat-value">{{ totalRounds }}</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">BEST ROUND</span>
+        <span class="stat-label">YOUR SCORE</span>
         <span class="stat-value">{{ bestRoundPoints }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">PLAYERS</span>
+        <span class="stat-value">{{ finalLeaderboard.length }}</span>
       </div>
     </div>
 
@@ -56,37 +77,55 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "MultiplayerGameEnd",
   computed: {
-    ...mapGetters("singleplayer", ["singleplayerGame_getScores", "singleplayerGame_getCurrentRound"]),
+    ...mapGetters("multiplayerGame", [
+      "multiplayerGame_getPlayers",
+      "multiplayerGame_getCurrentRound",
+      "multiplayerGame_getMaxRounds",
+      "multiplayerGame_getFinalWinner"
+    ]),
+    ...mapGetters("user", ["currentUser"]),
     myPlayerId() {
-      return this.$store.state.playerId;
+      return this.currentUser?.id;
     },
     finalLeaderboard() {
-      //TODO
-      // build array: [{id, name, totalPoints}, ...] sorted by points
-      // return this.getPlayers
-      //   .map(p => ({
-      //     id: p.id,
-      //     name: p.name,
-      //     totalPoints: this.singleplayerGame_getScores[p.id] ?? 0
-      //   }))
-      //   .sort((a, b) => b.totalPoints - a.totalPoints);
+      if (!this.multiplayerGame_getPlayers) return [];
+      
+      // Convert players object to array and sort by score
+      return Object.entries(this.multiplayerGame_getPlayers)
+        .map(([playerId, playerData]) => ({
+          id: playerId,
+          name: this.getPlayerName(playerId),
+          totalPoints: playerData.score || 0,
+          status: playerData.status
+        }))
+        .sort((a, b) => b.totalPoints - a.totalPoints);
     },
     totalRounds() {
-      return this.singleplayerGame_getCurrentRound ?? 0;
+      return this.multiplayerGame_getMaxRounds || 0;
     },
     bestRoundPoints() {
-      // Replace with actual best round logic if stored
-      const myScores = Object.values(this.singleplayerGame_getScores || {});
-      return myScores.length ? Math.max(...myScores) : "-";
+      // Get the current player's best score
+      const myPlayerData = this.multiplayerGame_getPlayers?.[this.myPlayerId];
+      return myPlayerData?.score || 0;
+    },
+    winnerName() {
+      const winner = this.finalLeaderboard[0];
+      return winner ? winner.name : "Unknown";
     }
   },
   methods: {
-    ...mapActions("singleplayer", ["endGame"]),
+    ...mapActions("multiplayerGame", ["multiplayerGame_disconnect"]),
+    getPlayerName(playerId) {
+      const player = this.multiplayerGame_getPlayers[playerId];
+      return player?.username || `Player ${playerId.slice(-4)}`;
+    },
     restartGame() {
-      this.endGame();
-      this.$router.push("/play");
+      // Disconnect from current game and return to lobby
+      this.multiplayerGame_disconnect();
+      this.$router.push({ name: "lobby", query: { gameMode: "multiplayer" } });
     },
     goHome() {
+      this.multiplayerGame_disconnect();
       this.$router.push("/");
     }
   }
@@ -120,6 +159,14 @@ export default {
   color: var(--yellow);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.winner-announcement {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4CAF50;
+  margin-top: 12px;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
 }
 
 .leaderboard-section {
@@ -157,6 +204,34 @@ export default {
 
 .highlight {
   background-color: rgba(255, 204, 0, 0.2);
+  border: 2px solid var(--yellow);
+}
+
+.winner {
+  background-color: rgba(76, 175, 80, 0.2);
+  border: 2px solid #4CAF50;
+}
+
+.top-three {
+  font-weight: 700;
+}
+
+.trophy {
+  font-size: 18px;
+}
+
+.rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+}
+
+.you-tag {
+  font-size: 12px;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-left: 8px;
 }
 
 .stats-section {

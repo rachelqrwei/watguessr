@@ -5,6 +5,7 @@ export type PlayerStatus = 'idle' | 'loading' | 'playing' | 'ended';
 export interface PlayerInfo {
   status: PlayerStatus;
   score: number;
+  username: string;
 }
 
 export interface MultiplayerGameState {

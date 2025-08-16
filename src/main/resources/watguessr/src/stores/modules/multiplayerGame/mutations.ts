@@ -33,11 +33,12 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   MG_SET_SHOULD_END(state, shouldEnd: boolean) {
     state.multiplayerGame_shouldEnd = shouldEnd;
   },
-  MG_RESET_GAME(state, userId: string) {
+  MG_RESET_GAME(state, {userId, username}: {userId: string, username: string}) {
     state.multiplayerGame_players = {
       [userId]: {
         score: 0,
-        status: 'loading'
+        status: 'loading',
+        username: username
       }};
     state.multiplayerGame_currentRound = 1;
     state.multiplayerGame_maxRounds = 5;

@@ -201,8 +201,32 @@ async function fetchSceneImage(roundId: string) {
 }
 
 // Handle game completion events
-function handleGameComplete(completionData: any) {
-  console.log('Game completed:', completionData);
-  // Navigate to game end screen
-  store.commit('gameInfo/SET_CURRENT_VIEW', 'GameEnd', { root: true });
+function handleGameComplete(completionData: MultiplayerGameStateDto) {
+  console.log('🏆 Game completed:', completionData);
+  
+  // Update the game state with final results
+  if (completionData.finalWinner) {
+    store.commit('multiplayerGame/MG_SET_FINAL_WINNER', completionData.finalWinner);
+  }
+  
+  if (completionData.shouldEnd) {
+    store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
+  }
+  
+  // Update players with final scores
+  if (completionData.players) {
+    const players: Record<string, { status: any; score: number; username: string }> = {};
+    Object.entries(completionData.players).forEach(([playerId, playerState]) => {
+      players[playerId] = {
+        status: playerState.status,
+        score: playerState.score,
+        username: playerState.username
+      };
+    });
+    store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+  }
+  
+  console.log('🎮 Navigating to multiplayer game end...');
+  // Navigate to multiplayer game end screen
+  window.location.href = '/multiplayer-game-end';
 }
