@@ -19,14 +19,24 @@ export default {
   data() {
     return {
       interval: null,
-      totalTime: 10000, // 60 seconds
     };
   },
 
   computed: {
+    ...mapGetters('gameInfo', ['getGameMode']),
+    ...mapGetters('singleplayerGame', ['singleplayerGame_getTimer']),
+    ...mapGetters('multiplayerGame', ['multiplayerGame_getTimer']),
     ...mapGetters('guess', ['getGuessTime']),
-
+    totalTime() {
+      if (this.getGameMode == 'singleplayer') {
+        return this.singleplayerGame_getTimer;
+      }
+      if (this.getGameMode == 'multiplayer') {
+        return this.multiplayerGame_getTimer;
+      }
+    },
     progressAngle() {
+      if (!this.totalTime) return 0;
       const percent = this.getGuessTime / this.totalTime;
       return percent * 360;
     },

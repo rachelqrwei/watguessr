@@ -8,7 +8,7 @@
         <h4>Campus Focused</h4>
         <p>Explore every corner of the University of Waterloo campus</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">
           <font-awesome-icon icon="clipboard" />
@@ -16,7 +16,7 @@
         <h4>Real-Time Scoring</h4>
         <p>Track your progress with dynamic scoring and leaderboards</p>
       </div>
-      
+
       <div class="feature-card">
         <div class="feature-icon">
           <font-awesome-icon icon="users" />
@@ -111,4 +111,4 @@ defineProps({
     max-width: 100%;
   }
 }
-</style> 
+</style>

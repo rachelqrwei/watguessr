@@ -8,6 +8,7 @@ export interface singleplayerGameState {
   singleplayerGame_finalWinner: string | null;
   singleplayerGame_shouldEnd: boolean;
   singleplayerGame_singleplayerScore?: number | null;
+  singleplayerGame_timer: number;
 }
 
 export const state = (): singleplayerGameState => ({
@@ -19,4 +20,5 @@ export const state = (): singleplayerGameState => ({
   singleplayerGame_finalWinner: null,
   singleplayerGame_shouldEnd: false,
   singleplayerGame_singleplayerScore: null,
+  singleplayerGame_timer: 30000
 });

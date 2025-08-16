@@ -16,15 +16,30 @@ export const mutations: MutationTree<MultiplayerGameState> = {
     state.multiplayerGame_currentRound++;
   },
   MG_IMPLEMENT_ROUND_RESULT(state,
-                            {playerId, roundResult}: { playerId: string, roundResult: {points: number, distance: number, shouldEnd: boolean} }) {
-    state.multiplayerGame_players[playerId].score += roundResult.points;
-    state.multiplayerGame_shouldEnd = roundResult.shouldEnd;
+                            {playerId, roundResult}: { playerId: string, roundResult: {points: number, distance: number} }) {
+    if (state.multiplayerGame_players[playerId]) {
+      state.multiplayerGame_players[playerId].score += roundResult.points;
+    }
   },
   MG_SET_FINAL_WINNER(state, multiplayerGame_finalWinner: string) {
     state.multiplayerGame_finalWinner = multiplayerGame_finalWinner;
   },
-  MG_RESET_GAME(state) {
-    state.multiplayerGame_players = {};
+  MG_SET_CURRENT_ROUND(state, currentRound: number) {
+    state.multiplayerGame_currentRound = currentRound;
+  },
+  MG_SET_MAX_ROUNDS(state, maxRounds: number) {
+    state.multiplayerGame_maxRounds = maxRounds;
+  },
+  MG_SET_SHOULD_END(state, shouldEnd: boolean) {
+    state.multiplayerGame_shouldEnd = shouldEnd;
+  },
+  MG_RESET_GAME(state, {userId, username}: {userId: string, username: string}) {
+    state.multiplayerGame_players = {
+      [userId]: {
+        score: 0,
+        status: 'loading',
+        username: username
+      }};
     state.multiplayerGame_currentRound = 1;
     state.multiplayerGame_maxRounds = 5;
     state.multiplayerGame_finalWinner = null;
