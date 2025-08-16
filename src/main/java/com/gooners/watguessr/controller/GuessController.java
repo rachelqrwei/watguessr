@@ -87,9 +87,4 @@ public class GuessController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping(value = "/get-all-guess")
-    public List<Guess> getAllGuess(@RequestParam UUID roundId) {
-        return guessService.findAllGuessByRoundId(roundId);
-    }
-
 }

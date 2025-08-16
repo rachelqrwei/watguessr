@@ -72,15 +72,6 @@ public class GuessService {
         return guessRepository.findAll();
     }
 
-    public List<Guess> findAllGuessByRoundId(UUID roundId) {
-        return guessRepository.findAllByRoundId(roundId);
-    }
-
-    String normalize(String input) {
-        return input.toLowerCase()
-                .replaceAll("[^a-z0-9 ]", "") // remove punctuation
-                .trim();
-    }
 
     public RoundResult evaluateGuess(Round round, Guess guess) {
         guess.setRound(round);
@@ -141,10 +132,5 @@ public class GuessService {
         int uiPoints = Math.abs(points);
         return new RoundResult(uiPoints, distance);
     }
-
-    public List<Object[]> findUserPointsByGame (UUID gameId) {
-        return guessRepository.findUserPointsByGame(gameId);
-    }
-
 
 }

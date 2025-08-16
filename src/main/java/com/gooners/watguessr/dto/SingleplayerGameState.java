@@ -9,15 +9,12 @@ public class SingleplayerGameState {
     private boolean shouldEnd;
     private boolean isGameEnded;
 
-    public SingleplayerGameState() {
-    }
-
     public SingleplayerGameState(UUID gameId, Integer currentScore, Integer roundsCompleted, boolean shouldEnd, boolean isGameEnded) {
         this.gameId = gameId;
         this.currentScore = currentScore;
         this.roundsCompleted = roundsCompleted;
         this.shouldEnd = shouldEnd;
-        this.isGameEnded = isGameEnded;
+        this.isGameEnded = isGameEnded; //is winner set?
     }
 
     public UUID getGameId() {
