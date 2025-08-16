@@ -59,23 +59,23 @@ export default {
 
   computed: {
     ...mapGetters('user', [
-      'currentUser'
+      'getCurrentUser'
     ]),
 
     getUserName() {
-      return this.currentUser?.username || 'Guest';
+      return this.getCurrentUser?.username || 'Guest';
     },
 
     getStreak() {
-      return this.currentUser?.streak || 0;
+      return this.getCurrentUser?.streak || 0;
     },
 
     loggedIn() {
-      return !!this.currentUser;
+      return !!this.getCurrentUser;
     },
 
     profileColors() {
-      const name = this.currentUser?.username || 'Guest';
+      const name = this.getCurrentUser?.username || 'Guest';
       return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 });
     }
   },
@@ -91,7 +91,7 @@ export default {
     handleProfile() {
       console.log('Navigating to profile...');
       this.dropdownOpen = false;
-      const userId = this.currentUser?.id;
+      const userId = this.getCurrentUser?.id;
       if (userId) {
         this.$router.push({ name: 'profile', params: { userId } });
       } else {
@@ -138,7 +138,7 @@ export default {
       console.log('User login status changed:', newVal);
     },
 
-    currentUser(newUser, oldUser) {
+    getCurrentUser(newUser, oldUser) {
       if (newUser && !oldUser) {
         console.log('✅ User logged in:', newUser.username);
       } else if (!newUser && oldUser) {

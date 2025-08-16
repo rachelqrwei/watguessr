@@ -6,7 +6,7 @@ import { connectToMultiplayerGame, disconnectFromMultiplayerGame, sendPlayerProg
 
 export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
     commit('MG_RESET_GAME', userId);
@@ -18,10 +18,10 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     const gameId = await response.json();
 
     commit('MG_SET_GAME_ID', gameId);
-    
+
     // Connect to WebSocket for real-time updates
     connectToMultiplayerGame(gameId);
-    
+
     dispatch('round/startRound', { gameId }, { root: true });
     commit('MG_SET_STATUS', {playerId: userId, status: 'playing'});
   },
@@ -29,7 +29,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     await dispatch('multiplayerGame_createMultiplayerGame');
   },
   multiplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
     console.log('🎯 Multiplayer round ended:', { userId, roundResult: payload.roundResult });
@@ -38,9 +38,9 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     // Ensure player exists in the game state
     if (!state.multiplayerGame_players[userId]) {
       console.warn('⚠️ Player not found in multiplayer game state, initializing...');
-      commit('MG_SET_PLAYERS', { 
-        ...state.multiplayerGame_players, 
-        [userId]: { score: 0, status: 'playing', username: 'Player' } 
+      commit('MG_SET_PLAYERS', {
+        ...state.multiplayerGame_players,
+        [userId]: { score: 0, status: 'playing', username: 'Player' }
       });
     }
 
@@ -57,7 +57,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
   async multiplayerGame_endGame({ state, commit, rootGetters }) {
     try {
-      const currentUser = rootGetters['user/currentUser'];
+      const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/multiplayer?gameId=${state.multiplayerGame_gameId}&userId=${userId}`, {
         method: 'POST'
@@ -69,7 +69,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
       await response.json();
       commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
-      
+
       // Disconnect from WebSocket
       disconnectFromMultiplayerGame();
     } catch (error) {
@@ -80,9 +80,9 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
   // Send player ready status
   multiplayerGame_setPlayerReady({ state, rootGetters }) {
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
-    
+
     if (userId && state.multiplayerGame_gameId) {
       sendPlayerReady(state.multiplayerGame_gameId, userId);
     }
@@ -90,9 +90,9 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
   // Send player status update
   multiplayerGame_updatePlayerStatus({ state, rootGetters }, { status }: { status: string }) {
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
-    
+
     if (userId && state.multiplayerGame_gameId) {
       const currentScore = state.multiplayerGame_players[userId]?.score || 0;
       sendPlayerProgress(state.multiplayerGame_gameId, userId, currentScore, status);
@@ -106,7 +106,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   // async multiplayerGame_checkMultiplayerState({ state, commit, dispatch, rootGetters }): Promise<boolean> {
   //   try {
   //     if (!state.multiplayerGame_players) return false;
-  //     const currentUser = rootGetters['user/currentUser'];
+  //     const currentUser = rootGetters['user/getCurrentUser'];
   //     const userId = currentUser?.id;
   //
   //     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/state/multiplayer?gameId=${state.multiplayerGame_gameId}&userId=${userId}`);

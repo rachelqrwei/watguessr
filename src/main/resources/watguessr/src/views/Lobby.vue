@@ -129,12 +129,12 @@ export default {
     }
   },
   mounted() {
-    const currentUser = this.$store.getters["user/currentUser"];
+    const currentUser = this.$store.getters["user/getCurrentUser"];
     this.myId = currentUser.id;
 
     if (this.gameModeLabel === 'multiplayer') {
       this.fetchLobbyInfo();
-      
+
       // Connect to lobby WebSocket
       connectLobby(
         (lobbyUpdate) => {
@@ -143,15 +143,15 @@ export default {
         (startInfo) => {
           this.gameStarted = true;
           this.SET_GAME_MODE("multiplayer");
-          
+
           // Connect to multiplayer game WebSocket and initialize game state
           if (this.lobbyId) {
             connectToMultiplayerGame(this.lobbyId);
-            
+
             // Set up multiplayer game state in Vuex
             this.$store.commit('multiplayerGame/MG_SET_GAME_ID', this.lobbyId);
             this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
-            
+
             // Initialize players in game state
             const players = {};
             startInfo.users.forEach(user => {
@@ -163,7 +163,7 @@ export default {
             });
             this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
           }
-          
+
           this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: this.lobbyId } });
         }
       );
@@ -319,11 +319,11 @@ export default {
     padding: 24px;
     margin: 0 16px;
   }
-  
+
   .lobby-title {
     font-size: 1.5rem;
   }
-  
+
   .lobby-subtitle {
     font-size: 1rem;
   }

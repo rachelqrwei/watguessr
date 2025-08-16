@@ -6,7 +6,7 @@ import type { GuessState } from './state';
 export const actions: ActionTree<GuessState, RootState> = {
   async submitGuess({ state, rootState, rootGetters, dispatch }) {
     // set user id from Vuex user module
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const currentUserId = currentUser?.id || null;
     state.user.id = currentUserId;
 

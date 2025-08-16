@@ -1,23 +1,23 @@
 <template>
   <div class="search-container">
     <div class="search-bar">
-      <input 
-        v-model="searchQuery" 
-        @input="onSearchInput" 
-        @focus="showSearchResults = true" 
+      <input
+        v-model="searchQuery"
+        @input="onSearchInput"
+        @focus="showSearchResults = true"
         @blur="onSearchBlur"
-        type="text" 
-        placeholder="Search for users..." 
-        class="search-input" 
+        type="text"
+        placeholder="Search for users..."
+        class="search-input"
       />
       <font-awesome-icon icon="search" class="search-icon" />
     </div>
 
     <div v-if="showSearchResults && searchResults.length > 0" class="search-dropdown">
-      <div 
-        v-for="user in searchResults" 
-        :key="user.id" 
-        @mousedown="selectUser(user)" 
+      <div
+        v-for="user in searchResults"
+        :key="user.id"
+        @mousedown="selectUser(user)"
         class="search-result-item"
       >
         <div class="result-avatar" :style="{ background: colorFor(user.username).bg, color: colorFor(user.username).fg }">{{ user.username.charAt(0).toUpperCase() }}</div>
@@ -36,7 +36,6 @@ import { colorPairFromName } from '@/utils/color'
 
 export default {
   name: 'SearchBar',
-  emits: ['user-selected'],
   data() {
     return {
       searchQuery: '',
@@ -107,7 +106,6 @@ export default {
       this.searchQuery = user.username
       this.showSearchResults = false
       this.SET_PROFILE_USER_ID(user.id)
-      this.$emit('user-selected', user)
     }
   },
 
