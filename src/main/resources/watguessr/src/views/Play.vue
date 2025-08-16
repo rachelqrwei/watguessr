@@ -34,7 +34,7 @@
 
     <PlayFloorPanel
       v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')"
-      :round="singleplayerGame_getCurrentRound"
+      :round="getCurrentRoundNumber"
       :building="getGuessBuilding"
       :lat="getGuessX"
       :lng="getGuessY"
@@ -112,7 +112,8 @@ export default {
       'multiplayerGame_getCurrentRound',
       'multiplayerGame_getMaxRounds',
       'multiplayerGame_getShouldEnd',
-      'multiplayerGame_getGameId'
+      'multiplayerGame_getGameId',
+      'multiplayerGame_getPlayers'
     ]),
     ...mapGetters('round', [
       'getWinner',
@@ -151,6 +152,17 @@ export default {
         return 'READY FOR NEXT ROUND';
       }
       return 'NEXT ROUND';
+    },
+
+    getCurrentRoundNumber() {
+      if (this.getGameMode === 'singleplayer') {
+        return this.singleplayerGame_getCurrentRound;
+      } else if (this.getGameMode === 'multiplayer') {
+        const currentRound = this.multiplayerGame_getCurrentRound;
+        console.log('🎮 Current multiplayer round number:', currentRound);
+        return currentRound;
+      }
+      return 1;
     }
 
   },
@@ -279,12 +291,18 @@ export default {
         }
 
         // Set player as ready for next round
+        console.log('🕹️ Setting player as ready for next round...');
         this.multiplayerGame_setPlayerReady();
         
         // The WebSocket will handle round progression when all players are ready
-        // For now, show a waiting message or disable the button
-        // The next round will start automatically via WebSocket
-        console.log('Player marked as ready for next round. Waiting for other players...');
+        console.log('⏳ Player marked as ready for next round. Waiting for other players...');
+        
+        // Debug: Check if round progression works properly
+        setTimeout(() => {
+          if (this.getCurrentView === 'RoundEnd') {
+            console.log('⚠️ Still on RoundEnd after 3 seconds. Check WebSocket connection.');
+          }
+        }, 3000);
       }
     },
 

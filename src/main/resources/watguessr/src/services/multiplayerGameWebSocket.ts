@@ -119,7 +119,7 @@ export function sendStartRound(gameId: string, sceneId: string) {
 
 // Handle incoming game state updates
 function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
-  console.log('Received game state update:', gameState);
+  console.log('📡 Received game state update:', gameState);
 
   // Convert backend DTO format to frontend store format
   const players: Record<string, { status: any; score: number }> = {};
@@ -130,6 +130,8 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
       score: playerState.score
     };
   });
+
+  console.log('🔄 Updating players state:', players);
 
   // Update Vuex store
   store.commit('multiplayerGame/MG_SET_GAME_ID', gameState.gameId);
@@ -174,8 +176,12 @@ function handleRoundStart(roundData: any) {
   
   // Update UI to show new round has started
   console.log('🗺️ Setting view to Map for new round');
-  store.commit('gameInfo/SET_CURRENT_VIEW', 'Map');
-  console.log('📋 Current view after change:', store.getters['gameInfo/getCurrentView']);
+  
+  // Force the view change with a small delay to ensure it takes effect
+  setTimeout(() => {
+    store.commit('gameInfo/SET_CURRENT_VIEW', 'Map');
+    console.log('📋 Current view after change:', store.getters['gameInfo/getCurrentView']);
+  }, 100);
 }
 
 // Helper function to fetch scene image
