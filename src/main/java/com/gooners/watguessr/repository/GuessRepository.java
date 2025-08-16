@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -17,6 +18,8 @@ public interface GuessRepository extends JpaRepository<Guess, UUID> {
      * Fetch all guesses belonging to the given round ID.
      */
     List<Guess> findAllByRoundId(UUID roundId);
+
+    Optional<Guess> findFirstByRoundIdAndUserId(UUID roundId, UUID userId);
 
     @Query("SELECT g.user.id, SUM(g.points)                         " +
             "  FROM Guess g                                             " +

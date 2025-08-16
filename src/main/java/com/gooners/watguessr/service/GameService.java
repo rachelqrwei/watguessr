@@ -1,5 +1,6 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.MatchHistoryItem;
 import com.gooners.watguessr.dto.SingleplayerGameState;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
@@ -7,6 +8,8 @@ import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.RoundRepository;
 import com.gooners.watguessr.utils.PointsCalculator;
 import com.gooners.watguessr.utils.EloCalculator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +17,7 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.gooners.watguessr.utils.PointsCalculator.*;
 
@@ -97,6 +101,42 @@ public class GameService {
         updateEloRatings(userPoints, averageElo);
 
         return userPoints;
+    }
+
+    /**
+     * Returns a paginated match history for the given user.
+     * For Singleplayer games, roundsSurvived is set (and won is null).
+     * For Multiplayer/Ranked games, won is set based on the game's winner (and roundsSurvived is null).
+     */
+    public List<MatchHistoryItem> getUserMatchHistory(UUID userId, Integer limit, Integer offset) {
+        int actualLimit = limit != null ? limit : 20;
+        int actualOffset = offset != null ? offset : 0;
+        int page = actualOffset / actualLimit;
+
+        Page<Game> gamesPage = gameRepository.findGamesByUser(userId, PageRequest.of(page, actualLimit));
+
+        return gamesPage.getContent().stream().map(game -> {
+            MatchHistoryItem item = new MatchHistoryItem();
+            item.setGameId(game.getId());
+            item.setGameMode(game.getGameMode());
+            item.setPlayedAt(game.getCreatedAt());
+
+            if ("Singleplayer".equalsIgnoreCase(game.getGameMode())) {
+                Integer rounds = roundService.getRoundCountForGame(game.getId());
+                item.setRoundsSurvived(rounds);
+                item.setWon(null);
+                item.setNumPlayers(null);
+            } else {
+                User winner = game.getWinner();
+                item.setWon(winner != null && winner.getId() != null && winner.getId().equals(userId));
+                item.setRoundsSurvived(null);
+                // number of players = distinct users who guessed in this game's rounds
+                int numPlayers = roundService.getUserPointsForGame(game.getId()).size();
+                item.setNumPlayers(numPlayers);
+            }
+
+            return item;
+        }).collect(Collectors.toList());
     }
 
     /**

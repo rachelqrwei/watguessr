@@ -10,6 +10,7 @@ public interface LeaderboardMapper {
 
     @Mapping(target = "gamesPlayed", constant = "0") 
     @Mapping(target = "gamesWon", constant = "0") 
-    @Mapping(target = "gamesLost", constant = "0") 
+    @Mapping(target = "gamesLost", constant = "0")
+    @Mapping(source = "createdAt", target = "createdAt")
     LeaderboardUser toLeaderboardUser(User user);
 } 

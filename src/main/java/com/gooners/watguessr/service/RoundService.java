@@ -55,8 +55,10 @@ public class RoundService {
         return roundRepository.findAll();
     }
 
-    public List<Round> findByGameId(UUID gameId) {
-        return roundRepository.findByGameId(gameId);
+    public List<Round> getRoundsForGame(UUID gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game not found with id: " + gameId));
+        return game.getRound();
     }
 
     List<Object[]> getUserPointsForGame(@Param("gameId") UUID gameId){ return roundRepository.getUserPointsForGame(gameId); }

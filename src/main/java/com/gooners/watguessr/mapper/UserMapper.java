@@ -13,7 +13,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "elo",      constant = "1000")     // default elo
+    @Mapping(target = "elo",      constant = "150")     // default elo
     @Mapping(target = "streak",   constant = "0")        // default streak
     @Mapping(target = "lastLoginAt", ignore = true)
     User toEntity(UserCreateDto dto);

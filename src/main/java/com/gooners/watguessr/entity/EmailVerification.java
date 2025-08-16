@@ -1,5 +1,6 @@
 package com.gooners.watguessr.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class EmailVerification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_email_verification_user"))
+    @JsonIgnoreProperties({"password"})
     private User user;
 
     @Column(name = "code")

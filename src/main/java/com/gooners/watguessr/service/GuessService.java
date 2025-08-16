@@ -114,7 +114,27 @@ public class GuessService {
                 userService.findById(guess.getUser().getId());
             }
 
-            guessRepository.save(guess);
+            // Upsert: if a guess already exists for (round, user), update it
+            if (guess.getUser() != null && guess.getUser().getId() != null && round.getId() != null) {
+                guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId())
+                        .ifPresent(existing -> {
+                            existing.setGuessX(guess.getGuessX());
+                            existing.setGuessY(guess.getGuessY());
+                            existing.setBuilding(guess.getBuilding());
+                            existing.setFloor(guess.getFloor());
+                            existing.setTime(guess.getTime());
+                            existing.setPoints(points);
+                            // persist update
+                            guessRepository.save(existing);
+                        });
+                // If none existed, save as new
+                if (!guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId()).isPresent()) {
+                    guessRepository.save(guess);
+                }
+            } else {
+                // If no user or round id, fallback to save incoming guess
+                guessRepository.save(guess);
+            }
         } catch (Exception ignored) {
         }
 

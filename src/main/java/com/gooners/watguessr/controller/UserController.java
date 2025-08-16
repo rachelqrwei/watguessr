@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import com.gooners.watguessr.service.GameService;
+import com.gooners.watguessr.dto.MatchHistoryItem;
+
 @RestController
 @RequestMapping("api/user")
 public class UserController {
@@ -24,10 +27,12 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final EmailVerificationService emailVerificationService;
-    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService) {
+    private final GameService gameService;
+    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService, GameService gameService) {
         this.userService = userService;
         this.userMapper = userMapper;
         this.emailVerificationService = emailVerificationService;
+        this.gameService = gameService;
     }
 
     @PostMapping(value = "/register")
@@ -86,5 +91,19 @@ public class UserController {
         } else {
             return ResponseEntity.status(400).build();
         }
+    }
+
+    @GetMapping(value = "/{id}/match-history")
+    public QueryResults<MatchHistoryItem> getUserMatchHistory(
+            @PathVariable UUID id,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "10") Integer limit) {
+        var results = gameService.getUserMatchHistory(id, limit, offset);
+        return new QueryResults<>(results);
+    }
+
+    @GetMapping(value = "/{id}/leaderboard")
+    public LeaderboardUser getLeaderboardUserById(@PathVariable UUID id) {
+        return userService.getLeaderboardUserById(id);
     }
 }

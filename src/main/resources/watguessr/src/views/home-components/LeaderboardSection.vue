@@ -3,43 +3,20 @@
     <div class="leaderboard-content">
       <h2>TOP PLAYERS THIS WEEK</h2>
       <div class="leaderboard-list">
-        <div class="leaderboard-item rank-1">
-          <div class="rank-badge">1</div>
+        <div
+          v-for="(player, index) in leaderboard"
+          :key="player.id || player.username + index"
+          class="leaderboard-item"
+          :class="getRankClass(index + 1)"
+          @click="goToProfile(player.id)"
+          style="cursor: pointer;"
+        >
+          <div class="rank-badge">{{ index + 1 }}</div>
           <div class="player-info">
-            <div class="player-name">UWaterloo_Legend</div>
-            <div class="player-score">24,750 pts</div>
+            <div class="player-name">{{ player.username }}</div>
+            <div class="player-score">{{ player.elo }} pts</div>
           </div>
-          <div class="player-medal">🥇</div>
-        </div>
-        <div class="leaderboard-item rank-2">
-          <div class="rank-badge">2</div>
-          <div class="player-info">
-            <div class="player-name">CampusExplorer</div>
-            <div class="player-score">23,180 pts</div>
-          </div>
-          <div class="player-medal">🥈</div>
-        </div>
-        <div class="leaderboard-item rank-3">
-          <div class="rank-badge">3</div>
-          <div class="player-info">
-            <div class="player-name">GeographyMaster</div>
-            <div class="player-score">21,940 pts</div>
-          </div>
-          <div class="player-medal">🥉</div>
-        </div>
-        <div class="leaderboard-item">
-          <div class="rank-badge">4</div>
-          <div class="player-info">
-            <div class="player-name">MapWizard2024</div>
-            <div class="player-score">19,850 pts</div>
-          </div>
-        </div>
-        <div class="leaderboard-item">
-          <div class="rank-badge">5</div>
-          <div class="player-info">
-            <div class="player-name">CampusGuru</div>
-            <div class="player-score">18,720 pts</div>
-          </div>
+          <div v-if="index + 1 <= 3" class="player-medal">{{ getRankMedal(index + 1) }}</div>
         </div>
       </div>
       <div class="leaderboard-cta">
@@ -51,14 +28,43 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { computed, onMounted } from 'vue'
 
 const router = useRouter()
+const store = useStore()
 
 defineProps({
   isLoaded: {
     type: Boolean,
     default: false
   }
+})
+
+const leaderboard = computed(() => store.getters['leaderboard/leaderboard'])
+
+const getRankClass = (rank) => {
+  if (rank === 1) return 'rank-1'
+  if (rank === 2) return 'rank-2'
+  if (rank === 3) return 'rank-3'
+  return ''
+}
+
+const getRankMedal = (rank) => {
+  if (rank === 1) return '🥇'
+  if (rank === 2) return '🥈'
+  if (rank === 3) return '🥉'
+  return ''
+}
+
+const goToProfile = (userId) => {
+  if (!userId) return
+  router.push({ name: 'profile', params: { userId } })
+}
+
+onMounted(() => {
+  // Fetch only the top 5 by elo for the preview
+  store.dispatch('leaderboard/fetchLeaderboard', { limit: 5, sortBy: 'elo', offset: 0 })
 })
 </script>
 
@@ -100,10 +106,11 @@ defineProps({
   margin-bottom: 27px;
   flex-wrap: nowrap;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   padding-bottom: 6px; /* space for scrollbar */
+  padding-top: 6px; /* space for hover lift */
   /* hide scrollbar cross-browser */
   -ms-overflow-style: none; /* IE and old Edge */
   scrollbar-width: none; /* Firefox */
@@ -124,11 +131,13 @@ defineProps({
   backdrop-filter: blur(6px);
   transition: all 0.3s ease;
   flex: 0 0 auto; /* prevent shrinking so items stay in one row */
+  position: relative;
 }
 
 .leaderboard-item:hover {
   transform: translateY(-3px);
   background: rgba(255, 255, 255, 0.08);
+  z-index: 2;
 }
 
 /* Optional: subtle scrollbar styling */
@@ -265,4 +274,4 @@ defineProps({
     font-size: 1.2rem;
   }
 }
-</style> 
+</style>

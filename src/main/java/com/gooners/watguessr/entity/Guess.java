@@ -1,5 +1,6 @@
 package com.gooners.watguessr.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.UUID;
@@ -15,6 +16,7 @@ public class Guess {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_guess_user"))
+    @JsonIgnoreProperties({"password"})
     private User user;
 
     @Column(name = "time", nullable = false)
@@ -33,7 +35,8 @@ public class Guess {
     private String floor;
 
     @ManyToOne
-    @JoinColumn(name = "round_id")
+    @JoinColumn(name = "round_id", foreignKey = @ForeignKey(name = "fk_guess_round"))
+    @JsonIgnoreProperties({"game"})
     private Round round;
 
     @Column(name = "points")

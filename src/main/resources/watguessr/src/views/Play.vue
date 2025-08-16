@@ -8,7 +8,6 @@
   <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
 
   <div class="game-container">
-    <!-- FLOOR SELECT DROPDOWN -->
     <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Image')">
         <font-awesome-icon icon="image" />

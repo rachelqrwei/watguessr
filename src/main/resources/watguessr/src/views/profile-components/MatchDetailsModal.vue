@@ -1,0 +1,304 @@
+<template>
+  <div v-if="visible" class="modal-backdrop" @click.self="close">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Match Details</h3>
+        <button class="close-btn" @click="close">✕</button>
+      </div>
+
+      <div class="modal-content" v-if="!isLoading && !errorMessage">
+        <div v-if="rounds.length === 0" class="empty">No rounds found.</div>
+        <div v-else class="round-list">
+          <div v-for="(round, idx) in rounds" :key="round.id" class="round-item">
+            <div class="round-header">Round {{ idx + 1 }}</div>
+            <div class="guesses">
+              <div v-for="g in guessesByRound[round.id] || []" :key="g.id" class="guess-row" :class="userClass(g.userId)">
+                <div class="guess-user">{{ usernameFor(g.userId) }}</div>
+                <div class="guess-metrics">
+                  <span class="pill" :class="{ positive: (g.points ?? 0) > 0, negative: (g.points ?? 0) < 0 }">{{ g.points ?? 0 }} pts</span>
+                  <span class="pill">{{ timeDisplay(g.time) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="isLoading" class="loading">
+        <div class="loading-spinner"></div>
+        <span>Loading match…</span>
+      </div>
+
+      <div v-else class="error">{{ errorMessage }}</div>
+    </div>
+  </div>
+
+</template>
+
+<script>
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'MatchDetailsModal',
+  props: {
+    visible: { type: Boolean, default: false },
+    gameId: { type: String, required: true },
+    userDirectory: { type: Object, default: () => ({}) }
+  },
+  data() {
+    return {
+      rounds: [],
+      guessesByRound: {},
+      isLoading: false,
+      errorMessage: null,
+      localUserDirectory: {},
+      userIndex: {}
+    }
+  },
+  computed: {
+    ...mapGetters('profile', ['getProfileUserId']),
+    gameIdComputed() {
+      return this.gameId || null
+    }
+  },
+  watch: {
+    visible(immediatelyOpen) {
+      if (immediatelyOpen && this.gameIdComputed) {
+        this.loadData()
+      }
+    },
+    gameIdComputed: {
+      handler(val) {
+        if (this.visible && val) {
+          this.loadData()
+        }
+      },
+      immediate: true
+    }
+  },
+  methods: {
+    close() {
+      this.$emit('close')
+    },
+    async loadData() {
+      if (!this.gameId) return
+      this.isLoading = true
+      this.errorMessage = null
+      this.rounds = []
+      this.guessesByRound = {}
+      this.localUserDirectory = {}
+      try {
+        // Single fetch that returns all rounds with their guesses
+        const res = await fetch(`/api/round/by-game-with-guesses?gameId=${this.gameId}`)
+        if (!res.ok) throw new Error('Failed to fetch match details')
+        const payload = await res.json()
+        const list = Array.isArray(payload) ? payload : []
+        // Build rounds array and map of guesses by round
+        this.rounds = list.map(item => ({ id: item.roundId }))
+        list.forEach(item => {
+          this.guessesByRound[item.roundId] = Array.isArray(item.guesses) ? item.guesses : []
+        })
+
+        // 3) build user directory for display (best-effort)
+        const userIds = new Set()
+        Object.values(this.guessesByRound).forEach((arr) => {
+          ;(arr || []).forEach((g) => {
+            if (g && g.userId) userIds.add(g.userId)
+          })
+        })
+        const fetches = Array.from(userIds).map(async (id) => {
+          try {
+            const resp = await fetch(`/api/user/${id}`)
+            if (resp.ok) {
+              const u = await resp.json()
+              if (u && u.id) this.localUserDirectory[u.id] = (u.username || u.id)
+            }
+          } catch (_) {}
+        })
+        await Promise.all(fetches)
+
+        // Build a stable index for users to alternate row colors consistently
+        const orderedIds = Array.from(userIds)
+        this.userIndex = {}
+        orderedIds.forEach((id, i) => {
+          this.userIndex[id] = i
+        })
+      } catch (e) {
+        this.errorMessage = e instanceof Error ? e.message : 'Failed to load match details'
+      } finally {
+        this.isLoading = false
+      }
+    },
+    timeDisplay(ms) {
+      if (typeof ms !== 'number') return '0s'
+      const seconds = Math.round(ms / 1000)
+      return `${seconds}s`
+    },
+    usernameFor(userId) {
+      if (!userId) return 'Unknown'
+      if (this.localUserDirectory && this.localUserDirectory[userId]) return this.localUserDirectory[userId]
+      if (this.userDirectory && this.userDirectory[userId]) return this.userDirectory[userId]
+      return userId
+    },
+    userClass(userId) {
+      const idx = this.userIndex && typeof this.userIndex[userId] === 'number' ? this.userIndex[userId] : 0
+      return idx % 2 === 0 ? 'user-a' : 'user-b'
+    }
+  }
+}
+</script>
+
+<style scoped>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.modal {
+  width: clamp(520px, 52vw, 820px);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(42, 42, 44, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  color: var(--white);
+
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  background: rgba(42, 42, 44, 0.95);
+  backdrop-filter: blur(6px);
+  z-index: 1;
+}
+
+.close-btn {
+  background: transparent;
+  color: var(--white);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-content {
+  padding: 16px 18px 22px 18px;
+  overflow: auto;
+  width: 100%;
+  flex: 1;
+  border-radius: 0;
+  border: none;
+}
+
+.loading,
+.error,
+.empty {
+  padding: 18px;
+  color: var(--light-grey);
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: 2px solid var(--yellow);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.round-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.round-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.round-header {
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.guesses {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guess-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.guess-row.user-a {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.guess-row.user-b {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.guess-user {
+  font-weight: 700;
+  min-width: 140px;
+}
+
+.guess-metrics {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+}
+
+.pill.positive {
+  background: rgba(182, 255, 127, 0.15);
+  color: #B6FF7F;
+  border-color: rgba(182, 255, 127, 0.35);
+}
+
+.pill.negative {
+  background: rgba(255, 127, 127, 0.15);
+  color: #FF7F7F;
+  border-color: rgba(255, 127, 127, 0.35);
+}
+</style>
+
+

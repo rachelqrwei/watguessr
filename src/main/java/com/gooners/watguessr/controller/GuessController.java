@@ -6,11 +6,9 @@ import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.entity.Guess;
-import com.gooners.watguessr.service.GameService;
 import com.gooners.watguessr.service.GuessService;
 import com.gooners.watguessr.service.RoundService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -34,11 +32,7 @@ public class GuessController {
         this.roundService = roundService;
         this.guessMapper = guessMapper;
     }
-//    @PostMapping
-//    public void guess(@RequestBody GuessDto guessDto) {
-//        guessService.create(guessDto);
-//    }
-
+    
     @PostMapping
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto

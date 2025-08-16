@@ -1,6 +1,8 @@
 package com.gooners.watguessr.repository;
 
 import com.gooners.watguessr.entity.Game;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,5 +28,12 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
            "JOIN Guess guess ON guess.round.id = r.id " +
            "WHERE guess.user.id = :userId AND g.gameMode <> 'Singleplayer'")
     Integer countNonSingleplayerGamesPlayedByUser(@Param("userId") UUID userId);
+
+    @Query("SELECT DISTINCT g FROM Game g " +
+           "JOIN Round r ON r.game.id = g.id " +
+           "JOIN Guess guess ON guess.round.id = r.id " +
+           "WHERE guess.user.id = :userId " +
+           "ORDER BY g.createdAt DESC")
+    Page<Game> findGamesByUser(@Param("userId") UUID userId, Pageable pageable);
     
 }

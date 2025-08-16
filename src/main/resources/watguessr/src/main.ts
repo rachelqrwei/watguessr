@@ -27,6 +27,7 @@ import {
   faFire,
   faChevronLeft,
   faChevronRight,
+  faUserGroup,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to the library
@@ -48,7 +49,13 @@ library.add(
   faFire,
   faChevronLeft,
   faChevronRight,
+  faUserGroup,
 )
+
+// Clear profile state on every route change
+router.afterEach(() => {
+  store.commit('profile/CLEAR_PROFILE_USER_ID')
+})
 
 const app = createApp(App)
   .use(store)

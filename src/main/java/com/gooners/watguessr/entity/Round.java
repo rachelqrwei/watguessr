@@ -20,7 +20,8 @@ public class Round {
     private Scene scene;
 
     @ManyToOne
-    @JoinColumn(name = "game_id")
+    @JoinColumn(name = "game_id", foreignKey = @ForeignKey(name = "fk_round_game"))
+    @JsonIgnoreProperties({"round"})
     private Game game;
 
     public UUID getId() {

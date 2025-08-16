@@ -37,6 +37,12 @@ const router = createRouter({
       name: 'multiplayerGameEnd',
       component: () => import('../views/game-end-components/MultiplayerGameEnd.vue'),
     },
+    {
+      path: '/profile/:userId?',
+      name: 'profile',
+      component: () => import('../views/Profile.vue'),
+      props: true
+    },
   ],
 })
 

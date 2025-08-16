@@ -8,7 +8,7 @@
     </div>
 
     <div class="profile-container flex-container" @click="dropdownOpen = !dropdownOpen">
-      <font-awesome-icon icon="user" class="profile-icon" />
+      <font-awesome-icon icon="user" class="profile-icon" :style="{ background: profileColors.bg, color: profileColors.fg }" />
       <p>{{ getUserName }}</p>
 
       <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
@@ -49,6 +49,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import AuthModalManager from '@/views/auth/AuthModalManager.vue';
+import { colorPairFromName } from '@/utils/color';
 
 export default {
   components: { AuthModalManager },
@@ -77,6 +78,11 @@ export default {
 
     loggedIn() {
       return !!this.currentUser;
+    },
+
+    profileColors() {
+      const name = this.currentUser?.username || 'Guest';
+      return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 });
     }
   },
 
@@ -90,7 +96,7 @@ export default {
 
     handleProfile() {
       console.log('Navigating to profile...');
-      this.showProfile = true;
+      this.$router.push({ name: 'profile' });
       this.dropdownOpen = false;
     },
 

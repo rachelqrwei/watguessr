@@ -1,5 +1,9 @@
 <template>
   <div class="leaderboard-page">
+    <div class="logo-container">
+      <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
+      <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+    </div>
     <div class="leaderboard-header">
       <h1>LEADERBOARD</h1>
       <p>Compete with the best WatGuessr players worldwide</p>
@@ -73,6 +77,8 @@
           :key="player.id"
           class="table-row"
           :class="{ 'top-player': getRank(index) <= 3 }"
+          @click="goToProfile(player.id)"
+          style="cursor: pointer;"
         >
           <div class="rank-col">
             <div class="rank-badge" :class="getRankClass(getRank(index))">
@@ -86,7 +92,6 @@
           <div class="player-col">
             <div class="player-info">
               <div class="player-name">{{ player.username }}</div>
-              <div class="player-id">#{{ player.id.substring(0, 8) }}</div>
             </div>
           </div>
 
@@ -156,8 +161,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import type { LeaderboardRequest } from '@/stores/modules/leaderboard/types.ts'
+import { RouterLink, useRouter } from 'vue-router'
 
 const store = useStore()
+const router = useRouter()
 
 // Local reactive state for form inputs
 const searchTerm = ref('')
@@ -228,6 +235,11 @@ const getWinRate = (player: any) => {
   return Math.round((player.gamesWon / player.gamesPlayed) * 100)
 }
 
+const goToProfile = (userId: string) => {
+  if (!userId) return
+  router.push({ name: 'profile', params: { userId: userId } })
+}
+
 // Initialize
 onMounted(() => {
   // Initialize local state from store
@@ -240,6 +252,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.logo-container {
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  z-index: 800;
+}
 .leaderboard-page {
   min-height: 100vh;
   background: var(--dark-grey);
@@ -561,12 +579,12 @@ onMounted(() => {
 }
 
 .wins {
-  color: #4CAF50;
+  color: #B6FF7F;
   font-weight: 700;
 }
 
 .losses {
-  color: #f44336;
+  color: #FF7F7F;
   font-weight: 700;
 }
 
@@ -593,7 +611,7 @@ onMounted(() => {
 
 .winrate-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, var(--yellow));
+  background: linear-gradient(90deg, #B6FF7F, var(--yellow));
   transition: width 0.3s ease;
 }
 
