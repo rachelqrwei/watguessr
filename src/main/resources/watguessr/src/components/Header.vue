@@ -59,15 +59,15 @@ export default {
 
   computed: {
     ...mapGetters('user', [
-      'currentUser'
+      'getCurrentUser'
     ]),
 
     getUserName() {
-      return this.currentUser?.username || 'Guest';
+      return this.getCurrentUser?.username || 'Guest';
     },
 
     getStreak() {
-      return this.currentUser?.streak || 0;
+      return this.getCurrentUser?.streak || 0;
     },
 
     loggedIn() {
@@ -138,7 +138,7 @@ export default {
       console.log('User login status changed:', newVal);
     },
 
-    currentUser(newUser, oldUser) {
+    getCurrentUser(newUser, oldUser) {
       if (newUser && !oldUser) {
         console.log('✅ User logged in:', newUser.username);
       } else if (!newUser && oldUser) {

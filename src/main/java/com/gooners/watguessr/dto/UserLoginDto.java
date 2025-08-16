@@ -1,6 +1,5 @@
 package com.gooners.watguessr.dto;
 
-
 public class UserLoginDto {
     private String username;
     private String password;

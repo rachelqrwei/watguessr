@@ -188,21 +188,4 @@ public class UserService {
         user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
     }
 
-
-    public void clearSession(){
-
-    }
-
-    public void clearToken() {
-
-    }
-
-    public void JWTTokenValidate() {
-
-    }
-
-    public void getMatchHistory() {
-
-    }
-
 }

@@ -3,20 +3,19 @@ package com.gooners.watguessr.controller;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
-
-import com.gooners.watguessr.entity.User;
-import com.gooners.watguessr.mapper.UserMapper;
-import com.gooners.watguessr.service.UserService;
-import com.gooners.watguessr.service.EmailVerificationService;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-
-import com.gooners.watguessr.dto.QueryResults;
-import com.gooners.watguessr.dto.LeaderboardUser;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gooners.watguessr.dto.LeaderboardUser;
+import com.gooners.watguessr.dto.QueryResults;
+import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.service.UserService;
 
 import com.gooners.watguessr.service.GameService;
 import com.gooners.watguessr.dto.MatchHistoryItem;
@@ -40,17 +39,9 @@ public class UserController {
     public void register(@RequestBody @Valid User user) {
         this.userService.create(user);
     }
-
-    @PutMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto loginDto) {
-        User user = userService.login(loginDto.getUsername(), loginDto.getPassword());
-        return ResponseEntity.ok(userMapper.toDto(user));
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
-        userService.signup(dto);
-        return ResponseEntity.ok("Account created");
+  
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping(value = "/{id}")
@@ -61,17 +52,6 @@ public class UserController {
     @GetMapping(value = "/all")
     public List<UserDto> getSorted(String keyword, String sortBy, int page, int pageSize) {
         return this.userService.findSorted(keyword, sortBy, page, pageSize).stream().map(userMapper::toDto).toList();
-    }
-
-    @PostMapping(value = "/send-email")
-    public void sendEmail() {
-        emailVerificationService.sendEmail("wukenny0126@gmail.com", "Test Subject", "Hello from WatGuessr!");
-    }
-
-    @PostMapping("/send-otp")
-    public String sendOtp(@RequestParam String to) {
-        emailVerificationService.prepareToSendEmail(to);
-        return "OTP sent to " + to;
     }
 
     @GetMapping(value = "/leaderboard")
