@@ -18,8 +18,8 @@ public class JwtService {
 
     public JwtService(
             JwtEncoder jwtEncoder,
-            @Value("${jwt.issuer}") String issuer,
-            @Value("${jwt.ttl}") long ttlSeconds
+            @Value("${JWT_ISSUER:watguessr}") String issuer,
+            @Value("${JWT_TTL:86400}") long ttlSeconds
     ) {
         this.jwtEncoder = jwtEncoder;
         this.issuer = issuer;

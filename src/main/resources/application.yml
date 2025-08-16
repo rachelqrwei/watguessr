@@ -37,10 +37,4 @@ spring:
     default-schema: watguessr
     liquibase-schema: watguessr
 
-# JWT Configuration
-jwt:
-  issuer: watguessr
-  ttl: 86400 # 24 hours in seconds
-  # RSA Keys for JWT signing (in src/main/resources/jwt/)
-  private-key: classpath:jwt/private-key.pem
-  public-key: classpath:jwt/public-key.pem
+

@@ -1,11 +1,8 @@
 package com.gooners.watguessr.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -13,6 +10,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -25,24 +25,22 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 @Configuration
 public class JwtConfig {
 
-    @Value("${jwt.private-key}")
+    @Value("${JWT_PRIVATE_KEY_PATH:jwt/private-key.pem}")
     private String privateKeyPath;
 
-    @Value("${jwt.public-key}")
+    @Value("${JWT_PUBLIC_KEY_PATH:jwt/public-key.pem}")
     private String publicKeyPath;
 
     @Bean
     public RSAPrivateKey privateKey() throws IOException {
         try {
-            // Remove 'classpath:' prefix if present
-            String resourcePath = privateKeyPath.replace("classpath:", "");
-            ClassPathResource resource = new ClassPathResource(resourcePath);
+            File privateKeyFile = new File(privateKeyPath);
             
-            if (!resource.exists()) {
-                throw new RuntimeException("Private key file not found: " + resourcePath);
+            if (!privateKeyFile.exists()) {
+                throw new RuntimeException("Private key file not found: " + privateKeyPath);
             }
             
-            String privateKeyPEM = new String(resource.getInputStream().readAllBytes());
+            String privateKeyPEM = new String(Files.readAllBytes(privateKeyFile.toPath()));
             
             // Remove PEM headers and whitespace
             privateKeyPEM = privateKeyPEM
@@ -63,15 +61,13 @@ public class JwtConfig {
     @Bean
     public RSAPublicKey publicKey() throws IOException {
         try {
-            // Remove 'classpath:' prefix if present
-            String resourcePath = publicKeyPath.replace("classpath:", "");
-            ClassPathResource resource = new ClassPathResource(resourcePath);
+            File publicKeyFile = new File(publicKeyPath);
             
-            if (!resource.exists()) {
-                throw new RuntimeException("Public key file not found: " + resourcePath);
+            if (!publicKeyFile.exists()) {
+                throw new RuntimeException("Public key file not found: " + publicKeyPath);
             }
             
-            String publicKeyPEM = new String(resource.getInputStream().readAllBytes());
+            String publicKeyPEM = new String(Files.readAllBytes(publicKeyFile.toPath()));
             
             // Remove PEM headers and whitespace
             publicKeyPEM = publicKeyPEM
