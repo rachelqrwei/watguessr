@@ -185,6 +185,11 @@ export default {
         this.selectedFloor = '';
         this.resetTimer();
       }
+    },
+    singleplayerGame_getShouldEnd(newVal) {
+      if (newVal) {
+        this.$router.push('/singleplayer-game-end');
+      }
     }
   },
   methods: {
@@ -243,12 +248,12 @@ export default {
       }
       this.errorMessage = "";
       this.SET_FLOOR(this.selectedFloor);
-      
+
       // For multiplayer, update status to indicate player is submitting
       if (this.getGameMode === 'multiplayer') {
         this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
       }
-      
+
       await this.submitGuess();
     },
 
@@ -280,7 +285,7 @@ export default {
           this.$router.push('/multiplayer-game-end');
           return;
         }
-        
+
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           // End the multiplayer game
@@ -292,10 +297,10 @@ export default {
         // Set player as ready for next round
         console.log('🕹️ Setting player as ready for next round...');
         this.multiplayerGame_setPlayerReady();
-        
+
         // The WebSocket will handle round progression when all players are ready
         console.log('⏳ Player marked as ready for next round. Waiting for other players...');
-        
+
         // Debug: Check if round progression works properly
         setTimeout(() => {
           if (this.getCurrentView === 'RoundEnd') {
@@ -324,19 +329,19 @@ export default {
       // For multiplayer, the game is already initialized from Lobby.vue
       // Get the gameId from the route query or store
       const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-      
+
       if (gameId) {
         // Start the first round for multiplayer
         this.startRound({ gameId });
       }
-      
+
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
-    
+
     // Disconnect from multiplayer WebSocket when leaving
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
