@@ -1,9 +1,5 @@
 <template>
   <div class="leaderboard-page">
-    <div class="logo-container">
-      <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-      <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
-    </div>
     <div class="leaderboard-header">
       <h1>LEADERBOARD</h1>
       <p>Compete with the best WatGuessr players worldwide</p>
@@ -252,12 +248,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.logo-container {
-  position: absolute;
-  top: 4%;
-  left: 3%;
-  z-index: 800;
-}
 .leaderboard-page {
   min-height: 100vh;
   background: var(--dark-grey);

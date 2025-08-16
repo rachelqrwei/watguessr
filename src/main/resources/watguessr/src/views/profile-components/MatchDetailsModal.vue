@@ -13,7 +13,7 @@
             <div class="round-header">Round {{ idx + 1 }}</div>
             <div class="guesses">
               <div v-for="g in guessesByRound[round.id] || []" :key="g.id" class="guess-row" :class="userClass(g.userId)">
-                <button type="button" class="guess-user" @click="goToUser(g.userId)">{{ usernameFor(g.userId) }}</button>
+                <button type="button" class="guess-user" :class="{ disabled: isCurrentUser(g.userId) }" :disabled="isCurrentUser(g.userId)" @click="goToUser(g.userId)">{{ usernameFor(g.userId) }}</button>
                 <div class="guess-metrics">
                   <span class="pill" :class="{ positive: (g.points ?? 0) > 0, negative: (g.points ?? 0) < 0 }">{{ g.points ?? 0 }} pts</span>
                   <span class="pill">{{ timeDisplay(g.time) }}</span>
@@ -82,8 +82,13 @@ export default {
     },
     goToUser(userId) {
       if (!userId) return
+      if (this.isCurrentUser(userId)) return
       this.$router.push({ name: 'profile', params: { userId } })
       this.$emit('close')
+    },
+    isCurrentUser(userId) {
+      if (!userId || !this.getProfileUserId) return false
+      return String(userId) === String(this.getProfileUserId)
     },
     async loadData() {
       if (!this.gameId) return
@@ -283,6 +288,11 @@ export default {
   color: var(--white);
   padding: 0;
   text-align: left;
+}
+
+.guess-user:disabled,
+.guess-user.disabled {
+  cursor: default;
 }
 
 .guess-metrics {

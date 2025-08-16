@@ -18,7 +18,7 @@
             <div class="player-2-trapezoid" @click="showLobbyBrowser = true">
               <div class="play-option-container">
                 <h3>PARTY</h3>
-                <p>JOIN PUBLIC LOBBIES OR CREATE PRIVATE ONES!</p>
+                <p>JOIN OR CREATE LOBBIES TO PLAY WITH FRIENDS!</p>
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default {
 .ranked-button:hover {
   transform: translateY(-5px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.4);
-  
+
 }
 
 .ranked-button:hover::before {
@@ -279,7 +279,7 @@ export default {
 
 .ranked-progress {
   flex-shrink: 0;
-  width: 126px; 
+  width: 126px;
   height: 162px;
   display: flex;
   align-items: center;
@@ -309,7 +309,7 @@ export default {
 
 .ranked-text h3 {
   font-weight: 900;
-  font-size: 28.8px; 
+  font-size: 28.8px;
   color: var(--white);
   text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.5),

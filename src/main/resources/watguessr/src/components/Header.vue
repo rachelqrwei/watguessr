@@ -20,13 +20,11 @@
             <li @click="handleProfile">Profile</li>
             <li @click="handleSettings">Settings</li>
             <li @click="handleLogout">Log Out</li>
-            <li @click="handleQuit">Quit Game</li>
           </template>
           <template v-else>
             <li @click="handleSettings">Settings</li>
             <li @click="handleLogin">Log in</li>
             <li @click="handleSignUp">Sign up</li>
-            <li @click="handleQuit">Quit Game</li>
           </template>
         </ul>
       </div>
@@ -40,10 +38,6 @@
       @openSignUp="() => { showSignUp = true; showLogin = false }"
     />
 
-<!--    <Profile -->
-<!--      :showProfile="showProfile"-->
-<!--      -->
-<!--    />-->
   </div>
 </template>
 <script>
@@ -96,8 +90,13 @@ export default {
 
     handleProfile() {
       console.log('Navigating to profile...');
-      this.$router.push({ name: 'profile' });
       this.dropdownOpen = false;
+      const userId = this.currentUser?.id;
+      if (userId) {
+        this.$router.push({ name: 'profile', params: { userId } });
+      } else {
+        this.$router.push({ name: 'profile' });
+      }
     },
 
     handleLogout() {
@@ -118,10 +117,7 @@ export default {
       this.dropdownOpen = false;
     },
 
-    handleQuit() {
-      console.log('Quitting game...');
-      this.dropdownOpen = false;
-    },
+    
 
     onClickOutside(event) {
       const dropdown = this.$el.querySelector('.dropdown-menu');

@@ -1,8 +1,5 @@
 <template>
-      <div class="logo-container">
-      <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-      <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
-    </div>
+      
   <div class="profile-background" aria-hidden="true"></div>
   <div class="profile-view">
 
@@ -149,13 +146,6 @@ export default {
   background: url('/ProfilePage.png') center top / cover no-repeat;
   opacity: 0.8;
   pointer-events: none;
-}
-
-.logo-container {
-  position: absolute;
-  top: 4%;
-  left: 3%;
-  z-index: 800;
 }
 
 .profile-view {

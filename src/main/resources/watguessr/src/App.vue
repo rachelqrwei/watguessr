@@ -1,6 +1,12 @@
 <template>
   <Header />
 
+  <!-- global page logo for Play, Leaderboard, and Profile pages -->
+  <div v-if="showPageLogo" class="page-logo">
+    <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
+    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+  </div>
+
   <div class="layout" :class="{ 'layout-with-sidebar': showHeader }">
     <div
       class="sidebar-trigger"
@@ -97,6 +103,12 @@ const isHomePage = computed(() => route.path === '/')
 const isPlayPage = computed(() => route.path === '/play')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 
+// Show top-left logo only on Play, Leaderboard, and Profile pages
+const showPageLogo = computed(() => {
+  const p = route.path
+  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile')
+})
+
 const navLinks = [
   { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
   { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
@@ -107,6 +119,16 @@ const navLinks = [
 </script>
 
 <style scoped>
+.page-logo {
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .layout {
   display: flex;
   min-height: 100vh;
