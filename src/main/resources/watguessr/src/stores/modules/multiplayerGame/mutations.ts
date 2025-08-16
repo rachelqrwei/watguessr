@@ -16,9 +16,10 @@ export const mutations: MutationTree<MultiplayerGameState> = {
     state.multiplayerGame_currentRound++;
   },
   MG_IMPLEMENT_ROUND_RESULT(state,
-                            {playerId, roundResult}: { playerId: string, roundResult: {points: number, distance: number, shouldEnd: boolean} }) {
-    state.multiplayerGame_players[playerId].score += roundResult.points;
-    state.multiplayerGame_shouldEnd = roundResult.shouldEnd;
+                            {playerId, roundResult}: { playerId: string, roundResult: {points: number, distance: number} }) {
+    if (state.multiplayerGame_players[playerId]) {
+      state.multiplayerGame_players[playerId].score += roundResult.points;
+    }
   },
   MG_SET_FINAL_WINNER(state, multiplayerGame_finalWinner: string) {
     state.multiplayerGame_finalWinner = multiplayerGame_finalWinner;

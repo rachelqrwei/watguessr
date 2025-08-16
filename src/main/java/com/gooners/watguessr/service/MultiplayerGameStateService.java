@@ -68,11 +68,15 @@ public class MultiplayerGameStateService {
 	}
 
 	public void setPlayerReady(UUID gameId, String userId, boolean ready) {
+		System.out.println("🎮 Setting player ready: " + userId + " -> " + ready);
 		setPlayerStatus(gameId, userId, ready ? "ready" : "ended");
 		
 		// Check if all players are ready to advance
 		if (checkAllPlayersReady(gameId)) {
+			System.out.println("✅ All players ready! Advancing to next round...");
 			advanceToNextRound(gameId);
+		} else {
+			System.out.println("⏳ Waiting for more players to be ready...");
 		}
 	}
 
@@ -141,6 +145,7 @@ public class MultiplayerGameStateService {
 						"roundNumber", currentRound + 1,
 						"sceneId", newRound.getScene().getId().toString()
 					);
+					System.out.println("🚀 Broadcasting round start: " + roundStartData);
 					messagingTemplate.convertAndSend("/topic/game/" + gameId + "/round-start", roundStartData);
 				} catch (Exception e) {
 					System.err.println("Failed to create new round: " + e.getMessage());

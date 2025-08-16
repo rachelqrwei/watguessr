@@ -32,19 +32,27 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     const currentUser = rootGetters['user/currentUser'];
     const userId = currentUser?.id;
 
-    commit('MG_IMPLEMENT_ROUND_RESULT', { userId, roundResult: payload.roundResult });
+    console.log('🎯 Multiplayer round ended:', { userId, roundResult: payload.roundResult });
+    console.log('🎮 Current multiplayer players:', state.multiplayerGame_players);
+
+    // Ensure player exists in the game state
+    if (!state.multiplayerGame_players[userId]) {
+      console.warn('⚠️ Player not found in multiplayer game state, initializing...');
+      commit('MG_SET_PLAYERS', { 
+        ...state.multiplayerGame_players, 
+        [userId]: { score: 0, status: 'playing' } 
+      });
+    }
+
+    commit('MG_IMPLEMENT_ROUND_RESULT', { playerId: userId, roundResult: payload.roundResult });
 
     // Send progress update via WebSocket
     const currentScore = state.multiplayerGame_players[userId]?.score || 0;
+    console.log('📊 Updated score for player:', userId, 'new score:', currentScore);
     sendPlayerProgress(state.multiplayerGame_gameId, userId, currentScore, 'ended');
 
-    dispatch('multiplayerGame_checkMultiplayerState').then((shouldEnd) => {
-      if (shouldEnd) {
-        commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
-      } else {
-        commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
-      }
-    });
+    // Always go to RoundEnd view after submitting a guess in multiplayer
+    commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
   },
 
   async multiplayerGame_endGame({ state, commit, rootGetters }) {
