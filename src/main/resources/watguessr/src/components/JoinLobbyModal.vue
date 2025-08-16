@@ -74,6 +74,7 @@ export default {
         };
 
         const lobby = await LobbyManager.joinLobby(request);
+        console.log(lobby);
 
         this.$emit('lobby-joined', lobby);
         this.closeModal();
