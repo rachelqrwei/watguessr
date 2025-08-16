@@ -1,25 +1,35 @@
 import type { UserState, User } from './state';
 
 export const actions = {
-  async fetchUsers({ state }: { state: UserState }) {
-    state.loading = true;
-    state.error = null;
+  async fetchUsers({ state, commit }: { state: UserState; commit: any }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user`, {
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch users');
       state.users = await response.json();
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Unknown error';
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  async fetchUserById({ state }: { state: UserState }, id: string) {
-    state.loading = true;
-    state.error = null;
+  async fetchUserById({ state, commit }: { state: UserState; commit: any }, id: string) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/${id}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch user');
       const user = await response.json();
       const index = state.users.findIndex(u => u.id === id);
@@ -30,19 +40,19 @@ export const actions = {
       }
       return user;
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Unknown error';
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  async signUpUser({ state }: { state: UserState }, payload: { email: string; username: string; password: string }) {
-    state.loading = true;
-    state.error = null;
+  async signUpUser({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string; password: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/signup`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -57,18 +67,19 @@ export const actions = {
       return response.text();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed';
-      state.error = message;
+      commit('SET_ERROR', message);
       throw new Error(message);
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  async login({ state }: { state: UserState }, payload: { username: string; password: string }) {
-    state.loading = true;
-    state.error = null;
+  async login({ commit }: { state: UserState; commit: any }, payload: { username: string; password: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/login`, {
+      // Use the auth endpoint instead of user endpoint for login
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -80,31 +91,41 @@ export const actions = {
         throw new Error(message);
       }
 
-      const user = await response.json();
-      state.currentUser = user;
-      return user;
+      const authResponse = await response.json();
+
+      // Extract token and user from the response
+      const { token, user } = authResponse;
+
+      // Store token and user in state
+      commit('SET_TOKEN', token);
+      commit('SET_CURRENT_USER', user);
+
+      return { token, user };
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Login failed';
-      throw new Error(state.error);
+      const message = err instanceof Error ? err.message : 'Login failed';
+      commit('SET_ERROR', message);
+      throw new Error(message);
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  logout({ state }: { state: UserState }) {
-    state.currentUser = null;
+  logout({ commit }: { state: UserState; commit: any }) {
+    commit('CLEAR_AUTH');
   },
 
-  async updateUser({ state }: { state: UserState }, payload: { id: string; updates: Partial<User> }) {
-    state.loading = true;
-    state.error = null;
+  async updateUser({ state, commit }: { state: UserState; commit: any }, payload: { id: string; updates: Partial<User> }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${payload.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload.updates)
       });
-
       if (!response.ok) throw new Error('Failed to update user');
       const updatedUser = await response.json();
 
@@ -113,44 +134,59 @@ export const actions = {
         state.users[index] = updatedUser;
       }
       if (state.currentUser?.id === payload.id) {
-        state.currentUser = updatedUser;
+        commit('SET_CURRENT_USER', updatedUser);
       }
       return updatedUser;
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Unknown error';
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  async sendOtp({ state }: { state: UserState }, to: string) {
-    state.loading = true;
-    state.error = null;
+  async sendOtp({ commit }: { state: UserState; commit: any }, to: string) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/user/send-otp?to=${encodeURIComponent(to)}`;
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/send-otp?to=${encodeURIComponent(to)}`;
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to send OTP');
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Unknown error';
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
   },
 
-  async verifyOtp({ state }: { state: UserState }, payload: { email: string; submittedOtp: string }) {
-    state.loading = true;
-    state.error = null;
+  async verifyOtp({ commit }: { state: UserState; commit: any }, payload: { email: string; submittedOtp: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
     try {
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/user/verify-otp?email=${encodeURIComponent(payload.email)}&submittedOtp=${encodeURIComponent(payload.submittedOtp)}`;
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/verify-otp?email=${encodeURIComponent(payload.email)}&submittedOtp=${encodeURIComponent(payload.submittedOtp)}`;
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to verify user');
       return 'verified';
     } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Unknown error';
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
     } finally {
-      state.loading = false;
+      commit('SET_LOADING', false);
     }
+  },
+
+  // Initialize authentication state on app startup
+  initializeAuth({ commit }: { state: UserState; commit: any }) {
+    commit('INITIALIZE_AUTH');
+  },
+
+  // Get stored token (useful for other parts of the app)
+  getToken({ state }: { state: UserState }) {
+    return state.token;
+  },
+
+  // Check if user is authenticated
+  isAuthenticated({ state }: { state: UserState }) {
+    return state.isAuthenticated;
   }
 };
