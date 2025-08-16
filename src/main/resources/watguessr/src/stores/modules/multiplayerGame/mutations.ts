@@ -23,6 +23,15 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   MG_SET_FINAL_WINNER(state, multiplayerGame_finalWinner: string) {
     state.multiplayerGame_finalWinner = multiplayerGame_finalWinner;
   },
+  MG_SET_CURRENT_ROUND(state, currentRound: number) {
+    state.multiplayerGame_currentRound = currentRound;
+  },
+  MG_SET_MAX_ROUNDS(state, maxRounds: number) {
+    state.multiplayerGame_maxRounds = maxRounds;
+  },
+  MG_SET_SHOULD_END(state, shouldEnd: boolean) {
+    state.multiplayerGame_shouldEnd = shouldEnd;
+  },
   MG_RESET_GAME(state, userId: string) {
     state.multiplayerGame_players = {
       [userId]: {

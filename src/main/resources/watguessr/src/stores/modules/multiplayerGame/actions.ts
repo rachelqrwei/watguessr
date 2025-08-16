@@ -2,6 +2,7 @@
 import type { ActionTree } from 'vuex';
 import type { RootState } from '../../index';
 import type { MultiplayerGameState } from './state';
+import { connectToMultiplayerGame, disconnectFromMultiplayerGame, sendPlayerProgress, sendPlayerReady } from '../../../services/multiplayerGameWebSocket';
 
 export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
@@ -17,6 +18,10 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     const gameId = await response.json();
 
     commit('MG_SET_GAME_ID', gameId);
+    
+    // Connect to WebSocket for real-time updates
+    connectToMultiplayerGame(gameId);
+    
     dispatch('round/startRound', { gameId }, { root: true });
     commit('MG_SET_STATUS', {playerId: userId, status: 'playing'});
   },
@@ -29,9 +34,13 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
     commit('MG_IMPLEMENT_ROUND_RESULT', { userId, roundResult: payload.roundResult });
 
+    // Send progress update via WebSocket
+    const currentScore = state.multiplayerGame_players[userId]?.score || 0;
+    sendPlayerProgress(state.multiplayerGame_gameId, userId, currentScore, 'ended');
+
     dispatch('multiplayerGame_checkMultiplayerState').then((shouldEnd) => {
       if (shouldEnd) {
-        commit('MG_SET_STATUS', 'ended');
+        commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
       } else {
         commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
       }
@@ -51,12 +60,40 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
       }
 
       await response.json();
-      commit('MG_SET_STATUS', 'ended');
+      commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
+      
+      // Disconnect from WebSocket
+      disconnectFromMultiplayerGame();
     } catch (error) {
       console.error('Error finishing game:', error);
       throw error;
     }
+  },
 
+  // Send player ready status
+  multiplayerGame_setPlayerReady({ state, rootGetters }) {
+    const currentUser = rootGetters['user/currentUser'];
+    const userId = currentUser?.id;
+    
+    if (userId && state.multiplayerGame_gameId) {
+      sendPlayerReady(state.multiplayerGame_gameId, userId);
+    }
+  },
+
+  // Send player status update
+  multiplayerGame_updatePlayerStatus({ state, rootGetters }, { status }: { status: string }) {
+    const currentUser = rootGetters['user/currentUser'];
+    const userId = currentUser?.id;
+    
+    if (userId && state.multiplayerGame_gameId) {
+      const currentScore = state.multiplayerGame_players[userId]?.score || 0;
+      sendPlayerProgress(state.multiplayerGame_gameId, userId, currentScore, status);
+    }
+  },
+
+  // Disconnect from WebSocket when leaving
+  multiplayerGame_disconnect() {
+    disconnectFromMultiplayerGame();
   }
   // async multiplayerGame_checkMultiplayerState({ state, commit, dispatch, rootGetters }): Promise<boolean> {
   //   try {

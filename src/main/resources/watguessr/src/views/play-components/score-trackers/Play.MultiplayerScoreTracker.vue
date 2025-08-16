@@ -54,9 +54,7 @@ export default {
   position: fixed;
   z-index: 999;
   bottom: 9%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90vw;
+  width: 20vw;
   color: white;
   display: flex;
   flex-direction: column;

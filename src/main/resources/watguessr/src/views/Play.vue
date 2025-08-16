@@ -52,7 +52,7 @@
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
-      {{ singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND' }}
+      {{ getNextRoundButtonText }}
     </button>
   </div>
 
@@ -108,7 +108,11 @@ export default {
       'singleplayerGame_getShouldEnd',
     ]),
     ...mapGetters('multiplayerGame', [
-      'multiplayerGame_getTimer'
+      'multiplayerGame_getTimer',
+      'multiplayerGame_getCurrentRound',
+      'multiplayerGame_getMaxRounds',
+      'multiplayerGame_getShouldEnd',
+      'multiplayerGame_getGameId'
     ]),
     ...mapGetters('round', [
       'getWinner',
@@ -131,6 +135,22 @@ export default {
       const b = this.getBuildingsMap?.[buildingName];
       const floors = b?.floors || [];
       return Array.isArray(floors) ? floors.map(f => String(f)) : [];
+    },
+
+    getNextRoundButtonText() {
+      if (this.getGameMode === 'singleplayer') {
+        return this.singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND';
+      } else if (this.getGameMode === 'multiplayer') {
+        if (this.multiplayerGame_getShouldEnd) {
+          return 'VIEW RESULTS';
+        }
+        // Check if this is the last round
+        if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
+          return 'FINISH GAME';
+        }
+        return 'READY FOR NEXT ROUND';
+      }
+      return 'NEXT ROUND';
     }
 
   },
@@ -145,6 +165,15 @@ export default {
         const floors = this.availableFloors;
         this.selectedFloor = (floors && floors.length > 0) ? floors[0] : '';
       }
+    },
+    getCurrentView(newVal, oldVal) {
+      // Reset selections when starting a new round (view changes back to 'Map')
+      if (newVal === 'Map' && oldVal === 'RoundEnd') {
+        console.log('New round started, resetting selections');
+        this.selectedBuilding = '';
+        this.selectedFloor = '';
+        this.resetTimer();
+      }
     }
   },
   methods: {
@@ -156,7 +185,11 @@ export default {
     ...mapActions('multiplayerGame', [
       'multiplayerGame_createMultiplayerGame',
       'multiplayerGame_endCurrentRound',
-      'multiplayerGame_checkMultiplayerState'
+      'multiplayerGame_checkMultiplayerState',
+      'multiplayerGame_updatePlayerStatus',
+      'multiplayerGame_setPlayerReady',
+      'multiplayerGame_disconnect',
+      'multiplayerGame_endGame'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -188,7 +221,7 @@ export default {
       }
     },
 
-    handleSubmit() {
+    async handleSubmit() {
       if (!this.getGuessBuilding) {
         this.errorMessage = "Please select a building.";
         return;
@@ -199,29 +232,60 @@ export default {
       }
       this.errorMessage = "";
       this.SET_FLOOR(this.selectedFloor);
-      this.submitGuess();
+      
+      // For multiplayer, update status to indicate player is submitting
+      if (this.getGameMode === 'multiplayer') {
+        this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
+      }
+      
+      await this.submitGuess();
     },
 
     async nextRoundOrEndGame() {
-      if (this.singleplayerGame_getShouldEnd) {
-        this.$router.push('/singleplayer-game-end');
-        return;
+      if (this.getGameMode === 'singleplayer') {
+        // Handle singleplayer logic
+        if (this.singleplayerGame_getShouldEnd) {
+          this.$router.push('/singleplayer-game-end');
+          return;
+        }
+
+        const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
+        if (shouldEnd) {
+          this.$router.push('/singleplayer-game-end')
+          return;
+        }
+
+        this.selectedBuilding = null;
+        this.selectedFloor = '';
+        this.resetTimer();
+
+        await this.startRound({gameId: this.singleplayerGame_getGameId});
+        this.SG_INCREMENT_ROUND();
+
+        this.SET_CURRENT_VIEW("Map");
+      } else if (this.getGameMode === 'multiplayer') {
+        // Handle multiplayer logic
+        if (this.multiplayerGame_getShouldEnd) {
+          this.$router.push('/multiplayer-game-end');
+          return;
+        }
+
+        // Check if this is the last round
+        if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
+          // End the multiplayer game
+          await this.multiplayerGame_endGame();
+          this.$router.push('/multiplayer-game-end');
+          return;
+        }
+
+        // Set player as ready for next round
+        this.multiplayerGame_setPlayerReady();
+        
+        // The WebSocket will handle round progression when all players are ready
+        // For now, show a waiting message or disable the button
+        // The next round will start automatically via WebSocket
+        console.log('Player marked as ready for next round. Waiting for other players...');
       }
-
-      const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
-      if (shouldEnd) {
-        this.$router.push('/singleplayer-game-end')
-        return;
-      }
-
-      this.selectedBuilding = null;
-      this.selectedFloor = '';
-      this.resetTimer();
-
-      await this.startRound({gameId: this.singleplayerGame_getGameId});
-      this.SG_INCREMENT_ROUND();
-
-      this.SET_CURRENT_VIEW("Map");
     },
 
     handleBuildingSelected(payload) {
@@ -240,12 +304,26 @@ export default {
       this.singleplayerGame_createSingleplayerGame();
     }
     else if (this.getGameMode == 'multiplayer') {
-      this.multiplayerGame_createMultiplayerGame();
+      // For multiplayer, the game is already initialized from Lobby.vue
+      // Get the gameId from the route query or store
+      const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
+      
+      if (gameId) {
+        // Start the first round for multiplayer
+        this.startRound({ gameId });
+      }
+      
+      // Update player status to 'playing'
+      this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
-
+    
+    // Disconnect from multiplayer WebSocket when leaving
+    if (this.getGameMode === 'multiplayer') {
+      this.multiplayerGame_disconnect();
+    }
   }
 }
 </script>

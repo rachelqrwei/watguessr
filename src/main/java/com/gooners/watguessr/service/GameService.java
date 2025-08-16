@@ -31,16 +31,18 @@ public class GameService {
     private final RoundRepository roundRepository;
     private final LobbyService lobbyService;
     private final UserMapper userMapper;
+    private final MultiplayerGameStateService multiplayerGameStateService;
 
     public GameService(GameRepository gameRepository,
                        UserService userService, RoundService roundService, RoundRepository roundRepository,
-                       LobbyService lobbyService, UserMapper userMapper) {
+                       LobbyService lobbyService, UserMapper userMapper, MultiplayerGameStateService multiplayerGameStateService) {
         this.gameRepository = gameRepository;
         this.userService = userService;
         this.roundService = roundService;
         this.roundRepository = roundRepository;
         this.lobbyService = lobbyService;
         this.userMapper = userMapper;
+        this.multiplayerGameStateService = multiplayerGameStateService;
     }
 
     public UUID createSingleplayerGame() {
