@@ -74,8 +74,11 @@ export default {
     ]),
     ...mapGetters('guess', [
       'getGuessTime',
+      'getGuessX',
+      'getGuessY'
     ]),
     ...mapGetters('round', [
+      "getRoundId",
       'getRoundResult',
     ]),
     displayTimeTaken() {
@@ -97,13 +100,10 @@ export default {
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-      // Example coordinates (lng, lat)
-      const point1 = [-79.3832, 43.6532]; // Toronto
+      const guessCoordinates = [this.getGuessX, this.getGuessY];
       const point2 = [-73.5673, 45.5017]; // Montreal
 
       const defaultCenter = [-80.54478250141877, 43.47247223467783];
-      // const center = this.getMapCenter ?? defaultCenter;
-      // const zoom = this.getMapZoom ?? 17;
 
       const map = new mapboxgl.Map({
         container: 'answer-map',
@@ -113,11 +113,16 @@ export default {
       });
 
       this.guessMarker = new mapboxgl.Marker({ color: 'blue' })
-        .setLngLat(point1)
+        .setLngLat(guessCoordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25, color: 'black' })
+          .setHTML('<span style="color: black; font-weight: bold;">Guess</span>')
+        ) // Label
         .addTo(map);
 
       this.answerMarker = new mapboxgl.Marker({ color: 'red' })
         .setLngLat(point2)
+        .setPopup(new mapboxgl.Popup({ offset: 25 })
+          .setHTML('<span style="color: black; font-weight: bold;">Answer</span>')) // Label
         .addTo(map);
 
       map.on('load', () => {
