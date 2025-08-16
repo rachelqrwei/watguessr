@@ -7,12 +7,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface GuessRepository extends JpaRepository<Guess, UUID> {
     // JpaRepository provides save(), findById(), findAll(), delete(), etc.
     // No need for custom create() and update() methods
+
+    Optional<Guess> findFirstByRoundIdAndUserId(UUID roundId, UUID userId);
 
     @Query("SELECT g.user.id, SUM(g.points)                         " +
             "  FROM Guess g                                             " +

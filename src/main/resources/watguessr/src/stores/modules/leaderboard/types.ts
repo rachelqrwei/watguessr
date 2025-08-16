@@ -8,6 +8,7 @@ export interface LeaderboardUser {
   gamesPlayed: number;
   gamesWon: number;
   gamesLost: number;
+  createdAt: string;
 }
 
 export interface LeaderboardRequest {

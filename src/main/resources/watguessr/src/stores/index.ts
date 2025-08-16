@@ -8,6 +8,7 @@ import buildingModule from './modules/building/index';
 import gameInfoModule from './modules/gameInfo/index';
 import singleplayerGameModule from "@/stores/modules/singleplayerGame";
 import multiplayerGameModule from "@/stores/modules/multiplayerGame";
+import profileModule from './modules/profile/index';
 
 import type { RoundState } from './modules/round/state';
 import type { singleplayerGameState } from '@/stores/modules/singleplayerGame/state';
@@ -16,6 +17,7 @@ import type { UserState } from './modules/user/state';
 import type { BuildingState } from '@/stores/modules/building/state';
 import type { MultiplayerGameState } from "@/stores/modules/multiplayerGame/state.ts";
 import type { GameInfoState } from "@/stores/modules/gameInfo/state.ts";
+import type { ProfileState } from './modules/profile/state';
 
 export interface LeaderboardState {
   leaderboardData: any;
@@ -33,6 +35,7 @@ export interface RootState {
   gameInfo: GameInfoState;
   singleplayerGame: singleplayerGameState;
   multiplayerGame: MultiplayerGameState;
+  profile: ProfileState;
 }
 
 const store = createStore<RootState>({
@@ -44,7 +47,8 @@ const store = createStore<RootState>({
     building: buildingModule as Module<BuildingState, RootState>,
     gameInfo: gameInfoModule as Module<GameInfoState, RootState>,
     singleplayerGame: singleplayerGameModule as Module<singleplayerGameState, RootState>,
-    multiplayerGame: multiplayerGameModule as Module<MultiplayerGameState, RootState>
+    multiplayerGame: multiplayerGameModule as Module<MultiplayerGameState, RootState>,
+    profile: profileModule as Module<ProfileState, RootState>
   },
 });
 

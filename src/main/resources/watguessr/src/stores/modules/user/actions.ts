@@ -1,24 +1,6 @@
 import type { UserState, User } from './state';
 
 export const actions = {
-  async fetchUsers({ state, commit }: { state: UserState; commit: any }) {
-    commit('SET_LOADING', true);
-    commit('SET_ERROR', null);
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch users');
-      state.users = await response.json();
-    } catch (err) {
-      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      commit('SET_LOADING', false);
-    }
-  },
 
   async fetchUserById({ state, commit }: { state: UserState; commit: any }, id: string) {
     commit('SET_LOADING', true);
@@ -47,6 +29,50 @@ export const actions = {
     }
   },
 
+  async fetchLeaderboardForUserId({ state }: { state: UserState }, userId: string) {
+    if (!userId) return null;
+    state.loading = true;
+    state.error = null;
+    try {
+      const response = await fetch(`/api/user/${userId}/leaderboard`);
+      if (!response.ok) throw new Error(`Failed to fetch leaderboard for user: ${response.status}`);
+      return await response.json();
+    } catch (err) {
+      state.error = err instanceof Error ? err.message : 'Failed to fetch leaderboard';
+      return null;
+    } finally {
+      state.loading = false;
+    }
+  },
+
+  async fetchUserMatchHistory(
+    { state }: { state: UserState },
+    payload: { userId: string; offset: number; limit: number }
+  ) {
+    const { userId, offset, limit } = payload;
+    if (!userId) return { results: [], hasNext: false };
+
+    state.loading = true;
+    state.error = null;
+    try {
+      const params = new URLSearchParams();
+      params.set('offset', String(offset));
+      params.set('limit', String(limit));
+
+      const res = await fetch(`/api/user/${userId}/match-history?${params.toString()}`);
+      if (!res.ok) throw new Error(`Failed to fetch match history: ${res.status}`);
+
+      const data: { results: any[] } = await res.json();
+      const results = data.results || [];
+      return { results, hasNext: (results.length || 0) === limit };
+    } catch (err) {
+      state.error = err instanceof Error ? err.message : 'Failed to fetch match history';
+      return { results: [], hasNext: false };
+    } finally {
+      state.loading = false;
+    }
+  },
+    
   async signUpUser({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string; password: string }) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);

@@ -73,6 +73,8 @@
           :key="player.id"
           class="table-row"
           :class="{ 'top-player': getRank(index) <= 3 }"
+          @click="goToProfile(player.id)"
+          style="cursor: pointer;"
         >
           <div class="rank-col">
             <div class="rank-badge" :class="getRankClass(getRank(index))">
@@ -155,8 +157,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import type { LeaderboardRequest } from '@/stores/modules/leaderboard/types.ts'
+import { RouterLink, useRouter } from 'vue-router'
 
 const store = useStore()
+const router = useRouter()
 
 // Local reactive state for form inputs
 const searchTerm = ref('')
@@ -225,6 +229,11 @@ const getRankMedal = (rank: number) => {
 const getWinRate = (player: any) => {
   if (player.gamesPlayed === 0) return 0
   return Math.round((player.gamesWon / player.gamesPlayed) * 100)
+}
+
+const goToProfile = (userId: string) => {
+  if (!userId) return
+  router.push({ name: 'profile', params: { userId: userId } })
 }
 
 // Initialize
@@ -560,12 +569,12 @@ onMounted(() => {
 }
 
 .wins {
-  color: #4CAF50;
+  color: #B6FF7F;
   font-weight: 700;
 }
 
 .losses {
-  color: #f44336;
+  color: #FF7F7F;
   font-weight: 700;
 }
 
@@ -592,7 +601,7 @@ onMounted(() => {
 
 .winrate-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, var(--yellow));
+  background: linear-gradient(90deg, #B6FF7F, var(--yellow));
   transition: width 0.3s ease;
 }
 

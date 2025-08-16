@@ -1,14 +1,10 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
-  <div class="logo-container">
-    <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
-  </div>
+  
 
   <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
 
   <div class="game-container">
-    <!-- FLOOR SELECT DROPDOWN -->
     <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Image')">
         <font-awesome-icon icon="image" />
@@ -74,7 +70,7 @@ import PlayRankedScoreTracker from "@/views/play-components/score-trackers/Play.
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
-import { RouterLink, useRouter } from 'vue-router'
+ 
 
 export default {
   components: {
@@ -87,7 +83,6 @@ export default {
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
     PlayFloorPanel,
-    RouterLink,
   },
   data() {
     return {
@@ -418,13 +413,6 @@ export default {
 
 .test-end-btn:hover {
   color: white;
-}
-
-.logo-container {
-  position: absolute;
-  top: 4%;
-  left: 3%;
-  z-index: 1000;
 }
 
 .submit-button {

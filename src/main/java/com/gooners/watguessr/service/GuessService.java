@@ -108,15 +108,13 @@ public class GuessService {
                 userService.findById(guess.getUser().getId());
             }
 
-            guessRepository.save(guess);
-            
             // Update multiplayer game state if this is a multiplayer game
             UUID gameId = round.getGame().getId();
             String gameMode = round.getGame().getGameMode();
             if ("Multiplayer".equals(gameMode) && guess.getUser() != null) {
                 // Calculate total score for this user in this game
                 Integer totalScore = PointsCalculator.getCurrentMultiplayerScore(gameId, guess.getUser().getId(), roundRepository);
-                
+
                 // Update player progress
                 multiplayerGameStateService.updatePlayerProgress(
                     gameId,
@@ -124,6 +122,27 @@ public class GuessService {
                     totalScore,
                     "ended" // Player completed this round
                 );
+            }
+            // Upsert: if a guess already exists for (round, user), update it
+            if (guess.getUser() != null && guess.getUser().getId() != null && round.getId() != null) {
+                guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId())
+                        .ifPresent(existing -> {
+                            existing.setGuessX(guess.getGuessX());
+                            existing.setGuessY(guess.getGuessY());
+                            existing.setBuilding(guess.getBuilding());
+                            existing.setFloor(guess.getFloor());
+                            existing.setTime(guess.getTime());
+                            existing.setPoints(points);
+                            // persist update
+                            guessRepository.save(existing);
+                        });
+                // If none existed, save as new
+                if (!guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId()).isPresent()) {
+                    guessRepository.save(guess);
+                }
+            } else {
+                // If no user or round id, fallback to save incoming guess
+                guessRepository.save(guess);
             }
         } catch (Exception ignored) {
         }

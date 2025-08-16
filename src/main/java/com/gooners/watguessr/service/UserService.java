@@ -154,6 +154,11 @@ public class UserService {
         return queryResults;
     }
 
+    public LeaderboardUser getLeaderboardUserById(UUID userId) {
+        User user = findById(userId);
+        return convertToLeaderboardUser(user);
+    }
+
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 

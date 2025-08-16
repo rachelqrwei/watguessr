@@ -42,6 +42,12 @@ const router = createRouter({
       name: 'rankedGameEnd',
       component: () => import('../views/game-end-components/RankedGameEnd.vue'),
     },
+    {
+      path: '/profile/:userId?',
+      name: 'profile',
+      component: () => import('../views/Profile.vue'),
+      props: true
+    },
   ],
 })
 

@@ -17,8 +17,8 @@
 
             <div class="player-2-trapezoid" @click="showLobbyBrowser = true">
               <div class="play-option-container">
-                <h3>MULTIPLAYER</h3>
-                <p>JOIN PUBLIC LOBBIES OR CREATE PRIVATE ONES!</p>
+                <h3>PARTY</h3>
+                <p>JOIN OR CREATE LOBBIES TO PLAY WITH FRIENDS!</p>
               </div>
             </div>
           </div>
@@ -108,7 +108,7 @@ export default {
 
 .section-header {
   text-align: left;
-  margin-bottom: 15px;
+  margin-bottom: 6px;
 }
 
 .section-header h2 {
@@ -187,7 +187,7 @@ export default {
 .player-1-trapezoid:hover,
 .player-2-trapezoid:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
 }
 
 .player-1-trapezoid:hover::before,
@@ -259,7 +259,8 @@ export default {
 
 .ranked-button:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.4);
+
 }
 
 .ranked-button:hover::before {
@@ -278,8 +279,8 @@ export default {
 
 .ranked-progress {
   flex-shrink: 0;
-  width: 126px; /* 140 * 0.9 */
-  height: 162px; /* match container height */
+  width: 126px;
+  height: 162px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -292,7 +293,7 @@ export default {
   width: 80%;
   height: 80%;
   object-fit: contain;
-  margin-left: -0.7vw;
+  margin-left: -0.8vw;
 }
 
 .ranked-text {
@@ -308,7 +309,7 @@ export default {
 
 .ranked-text h3 {
   font-weight: 900;
-  font-size: 28.8px; /* 32 * 0.9 */
+  font-size: 28.8px;
   color: var(--white);
   text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.5),
@@ -372,8 +373,7 @@ export default {
   }
 
   .game-modes {
-    flex-direction: column;
-    gap: 15px;
+    display: none;
   }
 
   .trapezoid-pair {

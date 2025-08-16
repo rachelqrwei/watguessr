@@ -27,6 +27,7 @@ import {
   faFire,
   faChevronLeft,
   faChevronRight,
+  faUserGroup,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Polyfills for Node.js globals (needed for WebSocket libraries)
@@ -59,7 +60,17 @@ library.add(
   faFire,
   faChevronLeft,
   faChevronRight,
+  faUserGroup,
 )
+
+// clear profile state only when navigating away from the profile page
+router.afterEach((to, from) => {
+  const isToProfile = typeof to?.path === 'string' && to.path.startsWith('/profile')
+  const isFromProfile = typeof from?.path === 'string' && from.path.startsWith('/profile')
+  if (isFromProfile && !isToProfile) {
+    store.commit('profile/CLEAR_PROFILE_USER_ID')
+  }
+})
 
 const app = createApp(App)
   .use(store)

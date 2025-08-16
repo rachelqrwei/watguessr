@@ -18,7 +18,7 @@ public class BuildingController {
         this.buildingService = buildingService;
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all") //used in game state to check for available floors.
     public List<Building> getAllBuildings() {
         return buildingService.findAll();
     }

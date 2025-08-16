@@ -8,7 +8,7 @@
     </div>
 
     <div class="profile-container flex-container" @click="dropdownOpen = !dropdownOpen">
-      <font-awesome-icon icon="user" class="profile-icon" />
+      <font-awesome-icon icon="user" class="profile-icon" :style="{ background: profileColors.bg, color: profileColors.fg }" />
       <p>{{ getUserName }}</p>
 
       <font-awesome-icon icon="chevron-down" class="dropdown-icon" />
@@ -20,13 +20,11 @@
             <li @click="handleProfile">Profile</li>
             <li @click="handleSettings">Settings</li>
             <li @click="handleLogout">Log Out</li>
-            <li @click="handleQuit">Quit Game</li>
           </template>
           <template v-else>
             <li @click="handleSettings">Settings</li>
             <li @click="handleLogin">Log in</li>
             <li @click="handleSignUp">Sign up</li>
-            <li @click="handleQuit">Quit Game</li>
           </template>
         </ul>
       </div>
@@ -40,15 +38,12 @@
       @openSignUp="() => { showSignUp = true; showLogin = false }"
     />
 
-<!--    <Profile -->
-<!--      :showProfile="showProfile"-->
-<!--      -->
-<!--    />-->
   </div>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import AuthModalManager from '@/views/auth/AuthModalManager.vue';
+import { colorPairFromName } from '@/utils/color';
 
 export default {
   components: { AuthModalManager },
@@ -76,7 +71,12 @@ export default {
     },
 
     loggedIn() {
-      return !!this.getCurrentUser;
+      return !!this.currentUser;
+    },
+
+    profileColors() {
+      const name = this.currentUser?.username || 'Guest';
+      return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 });
     }
   },
 
@@ -90,8 +90,13 @@ export default {
 
     handleProfile() {
       console.log('Navigating to profile...');
-      this.showProfile = true;
       this.dropdownOpen = false;
+      const userId = this.currentUser?.id;
+      if (userId) {
+        this.$router.push({ name: 'profile', params: { userId } });
+      } else {
+        this.$router.push({ name: 'profile' });
+      }
     },
 
     handleLogout() {
@@ -112,10 +117,7 @@ export default {
       this.dropdownOpen = false;
     },
 
-    handleQuit() {
-      console.log('Quitting game...');
-      this.dropdownOpen = false;
-    },
+    
 
     onClickOutside(event) {
       const dropdown = this.$el.querySelector('.dropdown-menu');

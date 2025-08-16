@@ -4,10 +4,7 @@ import com.gooners.watguessr.dto.JoinLobbyDto;
 import com.gooners.watguessr.dto.LobbyCreateDto;
 import com.gooners.watguessr.dto.LobbyDto;
 import com.gooners.watguessr.dto.SingleplayerGameState;
-import com.gooners.watguessr.entity.Game;
-import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.service.GameService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;

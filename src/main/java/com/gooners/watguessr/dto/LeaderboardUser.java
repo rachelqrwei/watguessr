@@ -1,5 +1,6 @@
 package com.gooners.watguessr.dto;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class LeaderboardUser {
@@ -66,4 +67,5 @@ public class LeaderboardUser {
     public void setGamesLost(int gamesLost) {
         this.gamesLost = gamesLost;
     }
+
 }

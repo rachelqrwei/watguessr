@@ -1,5 +1,6 @@
 package com.gooners.watguessr.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
@@ -23,6 +24,7 @@ public class Game {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "winner_user_id", foreignKey = @ForeignKey(name = "fk_game_winner_user"))
+    @JsonIgnoreProperties({"password"})
     private User winner;
 
     @Column(name = "ranked_average_elo")
@@ -47,7 +49,8 @@ public class Game {
     private Integer maxPlayers = 8;
 
     @OneToMany(mappedBy = "game")
-    private List<Round> round;
+    @JsonIgnoreProperties({"game"})
+    private List<Round> rounds;
 
     public UUID getId() {
         return id;
@@ -103,6 +106,10 @@ public class Game {
 
     public void setMultiplayerRoundCount(Integer multiplayerRoundCount) {
         this.multiplayerRoundCount = multiplayerRoundCount;
+    }
+
+    public List<Round> getRounds() {
+        return rounds;
     }
 
     public String getLobbyCode() {
