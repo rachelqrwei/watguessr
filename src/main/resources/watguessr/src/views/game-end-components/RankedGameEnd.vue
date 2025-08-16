@@ -122,22 +122,22 @@ export default {
     ...mapGetters('user', ["currentUser"])
   },
   methods: {
-    ...mapActions('singleplayerGame', { 
-      doRestartGame: "singleplayerGame_restartGame" 
+    ...mapActions('singleplayerGame', {
+      doRestartGame: "singleplayerGame_restartGame"
     }),
-    
+
     rematch() {
       // TODO: Implement rematch functionality
       console.log('Rematch requested');
       this.$router.push('/play?mode=ranked');
     },
-    
+
     playRanked() {
       // TODO: Start a new ranked game
       console.log('Starting new ranked game');
       this.$router.push('/play?mode=ranked');
     },
-    
+
     goHome() {
       this.$router.push('/');
     }
@@ -408,7 +408,7 @@ export default {
 }
 
 .ranked-btn {
-  background: var(--blue);
+  background: rebeccapurple;
   color: var(--white);
 }
 
@@ -433,25 +433,25 @@ export default {
     flex-direction: column;
     gap: 24px;
   }
-  
+
   .vs-divider {
     width: 60px;
     height: 60px;
   }
-  
+
   .vs-text {
     font-size: 16px;
   }
-  
+
   .stats-section {
     gap: 20px;
   }
-  
+
   .button-section {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .btn {
     width: 100%;
   }
