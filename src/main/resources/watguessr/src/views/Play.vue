@@ -59,6 +59,7 @@
   <div id="score-tracker">
     <PlaySingleplayerScoreTracker v-if="getGameMode === 'singleplayer'" />
     <PlayMultiplayerScoreTracker v-if="getGameMode === 'multiplayer'" />
+    <PlayRankedScoreTracker v-if="getGameMode === 'ranked'" />
   </div>
 
 </template>
@@ -69,6 +70,7 @@ import PlayMapView from '@/views/play-components/Play.Map.vue'
 import PlayImageView from '@/views/play-components/Play.Image.vue'
 import PlaySingleplayerScoreTracker from '@/views/play-components/score-trackers/Play.SingleplayerScoreTracker.vue'
 import PlayMultiplayerScoreTracker from '@/views/play-components/score-trackers/Play.MultiplayerScoreTracker.vue'
+import PlayRankedScoreTracker from "@/views/play-components/score-trackers/Play.RankedScoreTracker.vue";
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
@@ -81,6 +83,7 @@ export default {
     PlayImageView,
     PlaySingleplayerScoreTracker,
     PlayMultiplayerScoreTracker,
+    PlayRankedScoreTracker,
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
     PlayFloorPanel,
