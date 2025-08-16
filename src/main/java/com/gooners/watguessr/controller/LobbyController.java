@@ -9,6 +9,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
+import java.util.UUID;
+
 @Controller
 public class LobbyController {
 
@@ -24,7 +26,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/join")
 	public void joinLobby(@Payload JoinLobbyRequest request) {
-		lobbyService.joinLobby(request.getLobbyId(), request.getUser());
+		lobbyService.joinLobby(UUID.fromString(request.getLobbyId()), request.getUser());
 	}
 
 	/**
@@ -32,7 +34,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/leave")
 	public void leaveLobby(@Payload JoinLobbyRequest request) {
-		lobbyService.leaveLobby(request.getLobbyId(), request.getUser());
+		lobbyService.leaveLobby(UUID.fromString(request.getLobbyId()), request.getUser());
 	}
 
 	/**
@@ -40,7 +42,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/start")
 	public void startGame(@Payload StartGameRequest request) {
-		lobbyService.tryStartGame(request.getLobbyId());
+		lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()));
 	}
 
 	/**

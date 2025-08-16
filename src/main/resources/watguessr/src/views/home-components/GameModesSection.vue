@@ -15,10 +15,10 @@
               </div>
             </div>
 
-            <div class="player-2-trapezoid" @click="goDuels">
+            <div class="player-2-trapezoid" @click="showLobbyBrowser = true">
               <div class="play-option-container">
-                <h3>DUELS</h3>
-                <p>PLAY AGAINST A FRIEND AND COMPETE FOR POINTS!</p>
+                <h3>MULTIPLAYER</h3>
+                <p>JOIN PUBLIC LOBBIES OR CREATE PRIVATE ONES!</p>
               </div>
             </div>
           </div>
@@ -35,29 +35,46 @@
           </div>
         </div>
       </div>
+
+      <!-- Lobby Browser Modal -->
+      <div v-if="showLobbyBrowser" class="lobby-browser-overlay" @click="closeLobbyBrowser">
+        <div class="lobby-browser-container" @click.stop>
+          <button class="close-lobby-browser" @click="closeLobbyBrowser">&times;</button>
+          <LobbyBrowser />
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script>
 import {mapMutations} from "vuex";
+import LobbyBrowser from '@/components/LobbyBrowser.vue';
 
 export default {
+  components: {
+    LobbyBrowser
+  },
   props: {
     isLoaded: {
       type: Boolean,
       default: false
     }
   },
+  data() {
+    return {
+      showLobbyBrowser: false
+    };
+  },
   methods: {
     goSolo() {
       this.$router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } });
     },
-    goDuels() {
-      this.$router.push({ name: 'lobby', query: { gameMode: 'multiplayer' } });
-    },
     goRanked() {
       this.$router.push({ name: 'lobby', query: { gameMode: 'ranked' } });
+    },
+    closeLobbyBrowser() {
+      this.showLobbyBrowser = false;
     }
   }
 };
@@ -303,6 +320,52 @@ export default {
   text-align: right;
 }
 
+/* Lobby Browser Modal Styles */
+.lobby-browser-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.lobby-browser-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close-lobby-browser {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-lobby-browser:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 @media (max-width: 768px) {
   .section-header h2 {
     font-size: 1.8rem;
@@ -365,6 +428,15 @@ export default {
   }
   .ranked-text {
     transform: translateY(-4px);
+  }
+
+  .lobby-browser-overlay {
+    padding: 10px;
+  }
+
+  .close-lobby-browser {
+    top: -50px;
+    right: 10px;
   }
 }
 </style>

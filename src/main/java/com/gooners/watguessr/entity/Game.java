@@ -34,6 +34,18 @@ public class Game {
     @Column(name = "multiplayer_round_count")
     private Integer multiplayerRoundCount;
 
+    @Column(name = "lobby_code", length = 8)
+    private String lobbyCode;
+
+    @Column(name = "is_private", nullable = false)
+    private Boolean isPrivate = false;
+
+    @Column(name = "lobby_name", length = 100)
+    private String lobbyName;
+
+    @Column(name = "max_players", nullable = false)
+    private Integer maxPlayers = 8;
+
     @OneToMany(mappedBy = "game")
     private List<Round> round;
 
@@ -93,4 +105,35 @@ public class Game {
         this.multiplayerRoundCount = multiplayerRoundCount;
     }
 
+    public String getLobbyCode() {
+        return lobbyCode;
+    }
+
+    public void setLobbyCode(String lobbyCode) {
+        this.lobbyCode = lobbyCode;
+    }
+
+    public Boolean getIsPrivate() {
+        return isPrivate;
+    }
+
+    public void setIsPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
+    public String getLobbyName() {
+        return lobbyName;
+    }
+
+    public void setLobbyName(String lobbyName) {
+        this.lobbyName = lobbyName;
+    }
+
+    public Integer getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public void setMaxPlayers(Integer maxPlayers) {
+        this.maxPlayers = maxPlayers;
+    }
 }
