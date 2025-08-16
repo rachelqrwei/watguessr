@@ -119,7 +119,7 @@ export default {
     ...mapGetters('gameInfo', [
       'getGameMode'
     ]),
-    ...mapGetters('user', ["currentUser"])
+    ...mapGetters('user', ["getCurrentUser"])
   },
   methods: {
     ...mapActions('singleplayerGame', {

@@ -23,7 +23,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
   },
 
   singleplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
-    const currentUser = rootGetters['user/currentUser'];
+    const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
     commit('SG_ADD_SINGLEPLAYER_PENALTY', { userId, roundResult: payload.roundResult });
@@ -40,7 +40,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
   async singleplayerGame_checkSingleplayerState({ state, commit, dispatch, rootGetters }): Promise<boolean> {
     try {
       if (!state.singleplayerGame_gameId) return false;
-      const currentUser = rootGetters['user/currentUser'];
+      const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/state/singleplayer?gameId=${state.singleplayerGame_gameId}&userId=${userId}`);
       if (!response.ok) {
@@ -68,7 +68,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
   async singleplayerGame_endGame({ state, commit, rootGetters }) {
     try {
-      const currentUser = rootGetters['user/currentUser'];
+      const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/singleplayer?gameId=${state.singleplayerGame_gameId}&userId=${userId}`, {
         method: 'POST'

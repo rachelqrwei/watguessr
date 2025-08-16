@@ -21,7 +21,7 @@
         <tr
           v-for="(player, index) in finalLeaderboard"
           :key="player.id"
-          :class="{ 
+          :class="{
             highlight: player.id === myPlayerId,
             winner: index === 0,
             'top-three': index < 3
@@ -83,13 +83,13 @@ export default {
       "multiplayerGame_getMaxRounds",
       "multiplayerGame_getFinalWinner"
     ]),
-    ...mapGetters("user", ["currentUser"]),
+    ...mapGetters("user", ["getCurrentUser"]),
     myPlayerId() {
-      return this.currentUser?.id;
+      return this.getCurrentUser?.id;
     },
     finalLeaderboard() {
       if (!this.multiplayerGame_getPlayers) return [];
-      
+
       // Convert players object to array and sort by score
       return Object.entries(this.multiplayerGame_getPlayers)
         .map(([playerId, playerData]) => ({

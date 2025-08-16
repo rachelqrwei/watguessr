@@ -58,7 +58,7 @@ export default {
     };
   },
   mounted() {
-    const currentUser = this.$store.getters['user/currentUser'];
+    const currentUser = this.$store.getters['user/getCurrentUser'];
     if (currentUser) {
       this.form.userId = currentUser.id;
     }

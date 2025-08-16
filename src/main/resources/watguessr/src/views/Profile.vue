@@ -1,10 +1,10 @@
 <template>
-      
+
   <div class="profile-background" aria-hidden="true"></div>
   <div class="profile-view">
 
 
-    <SearchBar @user-selected="selectUser" />
+    <SearchBar />
 
     <div v-if="!getProfileUserId && !isLoading && !errorMessage" class="profile-hint">
       Search for a user or log in to view profile...
@@ -64,16 +64,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('user', ['currentUser', 'getUserById']),
+    ...mapGetters('user', ['getCurrentUser', 'getUserById']),
     ...mapGetters('profile', ['getProfileUserId']),
 
   },
 
   watch: {
-    currentUser() {
-      if (this.currentUser) {
+    getCurrentUser() {
+      if (this.getCurrentUser) {
         if (!this.getProfileUserId) {
-          this.SET_PROFILE_USER_ID(this.currentUser.id)
+          this.SET_PROFILE_USER_ID(this.getCurrentUser.id)
         }
       }
     },
@@ -100,8 +100,8 @@ export default {
   mounted() {
     if (this.userId) {
       this.SET_PROFILE_USER_ID(this.userId)
-    } else if (this.currentUser) {
-      this.SET_PROFILE_USER_ID(this.currentUser.id)
+    } else if (this.getCurrentUser) {
+      this.SET_PROFILE_USER_ID(this.getCurrentUser.id)
     }
   }
 }
