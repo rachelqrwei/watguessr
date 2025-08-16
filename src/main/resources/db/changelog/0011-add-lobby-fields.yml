@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11
+      author: lkim
+      changes:
+        - addColumn:
+            tableName: "game"
+            columns:
+              - column:
+                  name: lobby_code
+                  type: varchar(8)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_private
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lobby_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: max_players
+                  type: integer
+                  defaultValueNumeric: 8
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: "game"
+            indexName: "idx_game_lobby_code"
+            columns:
+              - column:
+                  name: lobby_code
+        - createIndex:
+            tableName: "game"
+            indexName: "idx_game_is_private"
+            columns:
+              - column:
+                  name: is_private
