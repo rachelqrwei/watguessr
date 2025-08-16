@@ -49,9 +49,11 @@
       <div class="sidebar-footer">
         <div class="report-bug-sidebar">
           <h4>REPORT A BUG</h4>
-          <p>To leave feedback, please
-            <span class="link" @click="showLogin = true">LOG IN</span>
-          </p>
+          <div v-if="!getCurrentUser">
+            <p>To leave feedback, please
+              <span class="link" @click="showLogin = true">LOG IN</span>
+            </p>
+          </div>
         </div>
         <div class="version-info">v1.0.0</div>
       </div>
@@ -103,6 +105,7 @@ const showSignUp = ref(false);
 const isHomePage = computed(() => route.path === '/')
 const isPlayPage = computed(() => route.path === '/play')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
+const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
 
 // Show top-left logo only on Play, Leaderboard, and Profile pages
 const showPageLogo = computed(() => {
@@ -325,6 +328,10 @@ onMounted(() => {
 
 .report-bug-sidebar {
   margin-bottom: 16px;
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .report-bug-sidebar h4 {
