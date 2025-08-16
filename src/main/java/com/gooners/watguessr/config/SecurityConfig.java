@@ -9,8 +9,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
-import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
+//import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+//import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.config.Customizer;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -29,13 +29,13 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(STATELESS))
-                .oauth2ResourceServer(server -> server
-                        .jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(
-                                new BearerTokenAuthenticationEntryPoint())
-                        .accessDeniedHandler(
-                                new BearerTokenAccessDeniedHandler())
-                )
+//                .oauth2ResourceServer(server -> server
+//                        .jwt(Customizer.withDefaults())
+//                        .authenticationEntryPoint(
+//                                new BearerTokenAuthenticationEntryPoint())
+//                        .accessDeniedHandler(
+//                                new BearerTokenAccessDeniedHandler())
+//                )
                 .build();
     }
 
