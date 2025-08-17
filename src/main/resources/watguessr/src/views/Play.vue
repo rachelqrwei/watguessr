@@ -216,10 +216,9 @@ export default {
       'multiplayerGame_checkMultiplayerState',
       'multiplayerGame_updatePlayerStatus',
       'multiplayerGame_setPlayerReady',
+      'multiplayerGame_setPlayerCompleted',
       'multiplayerGame_disconnect',
-      'multiplayerGame_endGame',
-      'multiplayerGame_startDisconnectionCheck',
-      'multiplayerGame_stopDisconnectionCheck'
+      'multiplayerGame_endGame'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -302,9 +301,9 @@ export default {
 
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
-          // End the multiplayer game
-          await this.multiplayerGame_endGame();
-          this.$router.push('/multiplayer-game-end');
+          // End the multiplayer game - send completed status
+          console.log('🎯 Final round reached, sending player completed status');
+          this.multiplayerGame_setPlayerCompleted();
           return;
         }
 
@@ -360,9 +359,6 @@ export default {
 
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
-
-      // Start disconnection monitoring
-      this.$store.dispatch('multiplayerGame/multiplayerGame_startDisconnectionCheck');
     }
   },
   beforeUnmount() {
@@ -371,7 +367,6 @@ export default {
     // Disconnect from multiplayer WebSocket when leaving
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
-      this.$store.dispatch('multiplayerGame/multiplayerGame_stopDisconnectionCheck');
     }
   }
 }

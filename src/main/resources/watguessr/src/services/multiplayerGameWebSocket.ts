@@ -21,7 +21,7 @@ export interface PlayerStateDto {
   userId: string;
   username: string;
   score: number;
-  status: 'idle' | 'loading' | 'playing' | 'ended';
+  status: 'idle' | 'loading' | 'playing' | 'ended' | 'ready' | 'completed';
   roundNumber: number;
   completionTime: number | null;
   isReady: boolean;
@@ -100,6 +100,21 @@ export function sendPlayerReady(gameId: string, userId: string) {
   };
 
   stompClient.send('/app/game/ready', {}, JSON.stringify(readyData));
+}
+
+// Send player ready status
+export function sendPlayerCompleted(gameId: string, userId: string) {
+  if (!stompClient || !stompClient.connected) {
+    console.warn('WebSocket not connected, cannot send completed');
+    return;
+  }
+
+  const completedData = {
+    gameId: gameId,
+    userId: userId
+  };
+
+  stompClient.send('/app/game/completed', {}, JSON.stringify(completedData));
 }
 
 // Send round start request
@@ -226,9 +241,22 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
         username: playerState.username
       };
     });
-    store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+
+    const finalGameData = {
+      players: players,
+      finalWinner: completionData.finalWinner,
+      gameId: completionData.gameId,
+      currentRound: completionData.currentRound,
+      maxRounds: completionData.maxRounds
+    };
+
+    store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
   }
 
   // Navigate to multiplayer game end screen
-  window.location.href = '/multiplayer-game-end';
+  console.log('🚀 Navigating to multiplayer game end screen');
+  // Use window.location for now since Vue Router context is not available here
+  if (window.location.pathname !== '/multiplayer-game-end') {
+    window.location.href = '/multiplayer-game-end';
+  }
 }

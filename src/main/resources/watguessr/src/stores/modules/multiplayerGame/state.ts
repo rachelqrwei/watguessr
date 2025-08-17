@@ -1,6 +1,6 @@
 // src/stores/modules/multiplayerGame/state.ts
 
-export type PlayerStatus = 'idle' | 'loading' | 'playing' | 'ended' | 'disconnected';
+export type PlayerStatus = 'idle' | 'loading' | 'playing' | 'ended' | 'ready' | 'completed' | 'disconnected';
 
 export interface PlayerInfo {
   status: PlayerStatus;

@@ -2,7 +2,13 @@
 import type { ActionTree } from 'vuex';
 import type { RootState } from '../../index';
 import type { MultiplayerGameState } from './state';
-import { connectToMultiplayerGame, disconnectFromMultiplayerGame, sendPlayerProgress, sendPlayerReady } from '../../../services/multiplayerGameWebSocket';
+import {
+  connectToMultiplayerGame,
+  disconnectFromMultiplayerGame,
+  sendPlayerCompleted,
+  sendPlayerProgress,
+  sendPlayerReady
+} from '../../../services/multiplayerGameWebSocket';
 
 export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
@@ -64,8 +70,8 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
       await response.json();
       commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
-      commit('MG_RESET_GAME', {playerId: userId, status: 'ended'});
-      commit('game/RESET_GAME', null, {root: true});
+      commit('MG_RESET_GAME');
+      commit('gameInfo/RESET_GAME', null, {root: true});
       commit('round/RESET_ROUND', null, {root: true});
 
       // Disconnect from WebSocket
@@ -84,6 +90,31 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     if (userId && state.multiplayerGame_gameId) {
       sendPlayerReady(state.multiplayerGame_gameId, userId);
     }
+  },
+
+  // Send player completed status
+  multiplayerGame_setPlayerCompleted({ state, rootGetters }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
+    console.log('🎮 Setting player completed status:', { userId, gameId: state.multiplayerGame_gameId });
+
+    if (userId && state.multiplayerGame_gameId) {
+      console.log('📤 Sending player completed via WebSocket');
+      sendPlayerCompleted(state.multiplayerGame_gameId, userId);
+    } else {
+      console.warn('⚠️ Cannot send player completed: userId or gameId missing', { userId, gameId: state.multiplayerGame_gameId });
+    }
+  },
+
+  // Load final game data from localStorage
+  multiplayerGame_loadFinalGameData({ commit }) {
+    commit('MG_LOAD_FINAL_GAME_DATA');
+  },
+
+  // Clear final game data
+  multiplayerGame_clearFinalGameData({ commit }) {
+    commit('MG_CLEAR_FINAL_GAME_DATA');
   },
 
   // Send player status update
