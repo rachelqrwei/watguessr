@@ -8,9 +8,13 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
     const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
+    const username = currentUser?.username || 'Player';
 
-    commit('MG_RESET_GAME', userId);
-    commit('MG_SET_STATUS',  {playerId: userId, status: 'loading'});
+    // Reset the game and initialize the current player
+    commit('MG_RESET_GAME', { userId, username });
+    
+    // Now we can safely set the status since the player exists
+    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
     commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
@@ -23,7 +27,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     connectToMultiplayerGame(gameId);
 
     dispatch('round/startRound', { gameId }, { root: true });
-    commit('MG_SET_STATUS', {playerId: userId, status: 'playing'});
+    commit('MG_SET_STATUS', { playerId: userId, status: 'playing' });
   },
   async multiplayerGame_restartGame({ state, commit, dispatch }) {
     await dispatch('multiplayerGame_createMultiplayerGame');

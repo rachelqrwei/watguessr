@@ -149,21 +149,32 @@ export default {
             this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
             this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 5);
 
-            this.multiplayerGame_createMultiplayerGame();
-
-            // Initialize players in game state
-            const players = {};
-            startInfo.users.forEach(user => {
-              players[user.id] = {
-                status: 'loading',
-                score: 0,
-                username: user.username
-              };
+            // Create the multiplayer game and get the actual gameId
+            this.multiplayerGame_createMultiplayerGame().then(() => {
+              // Get the actual gameId from the store after game creation
+              const actualGameId = this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
+              
+              if (actualGameId) {
+                // Initialize players in game state
+                const players = {};
+                startInfo.users.forEach(user => {
+                  players[user.id] = {
+                    status: 'loading',
+                    score: 0,
+                    username: user.username
+                  };
+                });
+                this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+                
+                // Navigate to play with the actual gameId
+                this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: actualGameId } });
+              } else {
+                console.error('No gameId found after creating multiplayer game');
+              }
+            }).catch(error => {
+              console.error('Failed to create multiplayer game:', error);
             });
-            this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
           }
-
-          this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: this.gameId } });
         }
       );
 
