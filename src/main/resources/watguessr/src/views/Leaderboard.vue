@@ -1,64 +1,80 @@
 <template>
   <div class="leaderboard-page">
-    <div class="leaderboard-header">
-      <h1>LEADERBOARD</h1>
-      <p>Compete with the best WatGuessr players worldwide</p>
+    <!-- Authentication Required Message -->
+    <div v-if="!isAuthenticated || !userToken || !hasUserRole" class="auth-required">
+      <div class="auth-message">
+        <font-awesome-icon icon="lock" class="lock-icon" />
+        <h2>Authentication Required</h2>
+        <p v-if="!isAuthenticated">You must be logged in to view the leaderboard</p>
+        <p v-else-if="!userToken">Your session has expired. Please log in again.</p>
+        <p v-else-if="!hasUserRole">You don't have permission to access this resource.</p>
+        <div class="auth-actions">
+          <button @click="showLoginModal = true" class="login-btn">Log In</button>
+          <button @click="showSignupModal = true" class="signup-btn">Sign Up</button>
+        </div>
+      </div>
     </div>
 
-    <div class="leaderboard-controls">
-      <div class="search-section">
-        <div class="search-input-wrapper">
-          <font-awesome-icon icon="search" class="search-icon" />
-          <input
-            v-model="searchTerm"
-            type="text"
-            placeholder="Search players..."
-            class="search-input"
-            @input="handleSearch"
-          />
+    <!-- Loading State -->
+    <div v-else-if="isLoading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading leaderboard...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="hasError" class="error-state">
+      <font-awesome-icon icon="exclamation-triangle" class="error-icon" />
+      <p>{{ error }}</p>
+      <div class="error-actions">
+        <button @click="retryFetch" class="retry-button">Try Again</button>
+        <button v-if="isAuthError" @click="handleReauth" class="reauth-button">Re-authenticate</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Content (only shown when fully authenticated) -->
+    <div v-else-if="isAuthenticated && userToken && hasUserRole" class="leaderboard-content">
+      <div class="leaderboard-header">
+        <h1>LEADERBOARD</h1>
+        <p>Compete with the best WatGuessr players worldwide</p>
+      </div>
+
+      <div class="leaderboard-controls">
+        <div class="search-section">
+          <div class="search-input-wrapper">
+            <font-awesome-icon icon="search" class="search-icon" />
+            <input
+              v-model="searchTerm"
+              type="text"
+              placeholder="Search players..."
+              class="search-input"
+              @input="handleSearch"
+            />
+          </div>
+        </div>
+
+        <div class="sort-section">
+          <label for="sort-select">Sort by:</label>
+          <select
+            id="sort-select"
+            v-model="sortBy"
+            class="sort-select"
+            @change="handleSort"
+          >
+            <option value="elo">Highest ELO</option>
+            <option value="streakDesc">Highest Streak</option>
+            <option value="gamesWonDesc">Most Games Won</option>
+            <option value="gamesPlayedDesc">Most Games Played</option>
+            <option value="gamesLostDesc">Most Games Lost</option>
+            <option value="winRateDesc">Highest Win Rate</option>
+            <option value="winRateAsc">Lowest Win Rate</option>
+            <option value="createdAtAsc">Oldest Players</option>
+            <option value="createdAtDesc">Newest Players</option>
+          </select>
         </div>
       </div>
 
-      <div class="sort-section">
-        <label for="sort-select">Sort by:</label>
-        <select
-          id="sort-select"
-          v-model="sortBy"
-          class="sort-select"
-          @change="handleSort"
-        >
-          <option value="elo">Highest ELO</option>
-          <option value="streakDesc">Highest Streak</option>
-          <option value="gamesWonDesc">Most Games Won</option>
-          <option value="gamesPlayedDesc">Most Games Played</option>
-          <option value="gamesLostDesc">Most Games Lost</option>
-          <option value="winRateDesc">Highest Win Rate</option>
-          <option value="winRateAsc">Lowest Win Rate</option>
-          <option value="createdAtAsc">Oldest Players</option>
-          <option value="createdAtDesc">Newest Players</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="leaderboard-content">
-      <div v-if="isLoading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>Loading leaderboard...</p>
-      </div>
-
-      <div v-else-if="hasError" class="error-state">
-        <font-awesome-icon icon="exclamation-triangle" class="error-icon" />
-        <p>{{ error }}</p>
-        <button @click="retryFetch" class="retry-button">Try Again</button>
-      </div>
-
-      <div v-else-if="leaderboard && leaderboard.length === 0" class="empty-state">
-        <font-awesome-icon icon="trophy" class="empty-icon" />
-        <p>No players found</p>
-        <p class="empty-subtitle">Try adjusting your search or filters</p>
-      </div>
-
-      <div v-else class="leaderboard-table">
+      <!-- Leaderboard Table -->
+      <div v-if="leaderboard && leaderboard.length > 0" class="leaderboard-table">
         <div class="table-header">
           <div class="rank-col">Rank</div>
           <div class="player-col">Player</div>
@@ -126,6 +142,14 @@
         </div>
       </div>
 
+      <!-- Empty State -->
+      <div v-else class="empty-state">
+        <font-awesome-icon icon="trophy" class="empty-icon" />
+        <p>No players found</p>
+        <p class="empty-subtitle">Try adjusting your search or filters</p>
+      </div>
+
+      <!-- Pagination -->
       <div v-if="leaderboard && leaderboard.length > 0" class="pagination">
         <button
           @click="previousPage"
@@ -142,7 +166,7 @@
 
         <button
           @click="nextPage"
-          :disabled="!leaderboard || leaderboard.length < (currentQuery.limit || 20)"
+          :disabled="!hasNextPage"
           class="pagination-button"
         >
           Next
@@ -150,17 +174,32 @@
         </button>
       </div>
     </div>
+
+    <!-- Auth Modals -->
+    <AuthModalManager
+      :showLogin="showLoginModal"
+      :showSignUp="showSignupModal"
+      @closeLogin="showLoginModal = false"
+      @closeSignUp="showSignupModal = false"
+      @openLogin="() => { showLoginModal = true; showSignupModal = false }"
+      @openSignUp="() => { showSignupModal = true; showLoginModal = false }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import type { LeaderboardRequest } from '@/stores/modules/leaderboard/types.ts'
 import { RouterLink, useRouter } from 'vue-router'
+import AuthModalManager from '@/views/auth/AuthModalManager.vue'
 
 const store = useStore()
 const router = useRouter()
+
+// Modal state
+const showLoginModal = ref(false)
+const showSignupModal = ref(false)
 
 // Local reactive state for form inputs
 const searchTerm = ref('')
@@ -173,38 +212,96 @@ const hasError = computed(() => store.getters['leaderboard/hasError'])
 const error = computed(() => store.getters['leaderboard/error'])
 const currentQuery = computed(() => store.getters['leaderboard/currentQuery'])
 const currentPage = computed(() => store.getters['leaderboard/currentPage'])
+const hasNextPage = computed(() => store.getters['leaderboard/hasNextPage'])
+
+// User authentication state
+const isAuthenticated = computed(() => store.getters['user/isAuthenticated'])
+const currentUser = computed(() => store.getters['user/getCurrentUser'])
+const userToken = computed(() => store.getters['user/getToken'])
+
+// Role checking - extract role from JWT token
+const userRole = computed(() => {
+  if (!userToken.value) return null
+
+  try {
+    // Decode JWT token to extract role information
+    const tokenParts = userToken.value.split('.')
+    if (tokenParts.length === 3) {
+      const payload = JSON.parse(atob(tokenParts[1]))
+      // Look for 'role' claim (single string) instead of 'authorities' (array)
+      return payload.role || null
+    }
+  } catch (error) {
+    console.error('Error decoding JWT token:', error)
+  }
+  return null
+})
+
+// Check if user has ROLE_USER
+const hasUserRole = computed(() => {
+  return userRole.value === 'ROLE_USER' || userRole.value === 'USER'
+})
+
+// Check if error is authentication-related
+const isAuthError = computed(() => {
+  const errorMsg = error.value?.toLowerCase() || ''
+  return errorMsg.includes('authentication') ||
+    errorMsg.includes('unauthorized') ||
+    errorMsg.includes('forbidden') ||
+    errorMsg.includes('login') ||
+    errorMsg.includes('403') ||
+    errorMsg.includes('401')
+})
 
 // Methods
 const handleSearch = () => {
+  if (!isAuthenticated.value || !userToken.value || !hasUserRole.value) return
+
   const query: LeaderboardRequest = {
     ...currentQuery.value,
     searchTerm: searchTerm.value,
-    offset: 0 // Reset to first page when searching
+    offset: 0
   }
   store.dispatch('leaderboard/updateQuery', query)
   store.dispatch('leaderboard/fetchLeaderboard', query)
 }
 
 const handleSort = () => {
+  if (!isAuthenticated.value || !userToken.value || !hasUserRole.value) return
+
   const query: LeaderboardRequest = {
     ...currentQuery.value,
     sortBy: sortBy.value,
-    offset: 0 // Reset to first page when sorting
+    offset: 0
   }
   store.dispatch('leaderboard/updateQuery', query)
   store.dispatch('leaderboard/fetchLeaderboard', query)
 }
 
 const retryFetch = () => {
+  if (!isAuthenticated.value || !userToken.value || !hasUserRole.value) return
+
   store.dispatch('leaderboard/clearError')
   store.dispatch('leaderboard/fetchLeaderboard', currentQuery.value)
 }
 
+const handleReauth = () => {
+  store.dispatch('user/logout')
+  showLoginModal.value = true
+}
+
+const handleLogout = () => {
+  store.dispatch('user/logout')
+  router.push('/')
+}
+
 const nextPage = () => {
+  if (!isAuthenticated.value || !userToken.value || !hasUserRole.value) return
   store.dispatch('leaderboard/nextPage')
 }
 
 const previousPage = () => {
+  if (!isAuthenticated.value || !userToken.value || !hasUserRole.value) return
   store.dispatch('leaderboard/previousPage')
 }
 
@@ -232,18 +329,28 @@ const getWinRate = (player: any) => {
 }
 
 const goToProfile = (userId: string) => {
-  if (!userId) return
+  if (!userId || !isAuthenticated.value || !userToken.value || !hasUserRole.value) return
   router.push({ name: 'profile', params: { userId: userId } })
 }
 
+// Watch for authentication changes
+watch([isAuthenticated, userToken, hasUserRole], ([newAuth, newToken, newRole]) => {
+  if (newAuth && newToken && newRole) {
+    // User is fully authenticated with proper role, fetch leaderboard
+    store.dispatch('leaderboard/fetchLeaderboard')
+  }
+})
+
 // Initialize
 onMounted(() => {
-  // Initialize local state from store
-  const currentState = store.getters['leaderboard/currentQuery']
-  searchTerm.value = currentState.searchTerm || ''
-  sortBy.value = currentState.sortBy || 'elo'
+  // Only initialize if user is fully authenticated with proper role
+  if (isAuthenticated.value && userToken.value && hasUserRole.value) {
+    const currentState = store.getters['leaderboard/currentQuery']
+    searchTerm.value = currentState.searchTerm || ''
+    sortBy.value = currentState.sortBy || 'elo'
 
-  store.dispatch('leaderboard/fetchLeaderboard')
+    store.dispatch('leaderboard/fetchLeaderboard')
+  }
 })
 </script>
 
@@ -252,6 +359,69 @@ onMounted(() => {
   min-height: 100vh;
   background: var(--dark-grey);
   padding: 40px 20px;
+}
+
+.auth-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--dark-grey);
+  padding: 40px 20px;
+}
+
+.auth-message {
+  text-align: center;
+  padding: 40px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  max-width: 600px;
+  width: 100%;
+}
+
+.lock-icon {
+  font-size: 3rem;
+  color: var(--yellow);
+  margin-bottom: 20px;
+}
+
+.auth-message h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--white);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.auth-message p {
+  font-size: 1.1rem;
+  color: var(--light-grey);
+  margin-bottom: 20px;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.login-btn, .signup-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--yellow);
+  color: var(--dark-grey);
+}
+
+.login-btn:hover, .signup-btn:hover {
+  background: #e6b800;
+  transform: translateY(-2px);
 }
 
 .leaderboard-header {
@@ -298,28 +468,26 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: var(--light-grey);
-  font-size: 1rem;
 }
 
 .search-input {
   width: 100%;
   padding: 12px 15px 12px 45px;
-  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--white);
   font-size: 1rem;
-  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--light-grey);
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--yellow);
-  box-shadow: 0 0 0 2px rgba(255, 203, 59, 0.2);
-}
-
-.search-input::placeholder {
-  color: var(--light-grey);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
 }
 
 .sort-section {
@@ -331,29 +499,21 @@ onMounted(() => {
 .sort-section label {
   color: var(--white);
   font-weight: 600;
-  white-space: nowrap;
 }
 
 .sort-select {
-  padding: 12px 40px 12px 15px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--white);
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
 }
 
 .sort-select:focus {
   outline: none;
   border-color: var(--yellow);
-  box-shadow: 0 0 0 2px rgba(255, 203, 59, 0.2);
 }
 
 .leaderboard-content {
@@ -361,18 +521,16 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.loading-state,
-.error-state,
-.empty-state {
+.loading-state {
   text-align: center;
-  padding: 80px 20px;
-  color: var(--white);
+  padding: 60px 20px;
+  color: var(--light-grey);
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(255, 203, 59, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.1);
   border-top: 3px solid var(--yellow);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -384,116 +542,133 @@ onMounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-.error-icon,
-.empty-icon {
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--white);
+}
+
+.error-icon {
   font-size: 3rem;
+  color: #ff4757;
+  margin-bottom: 20px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.retry-button, .reauth-button {
+  background: var(--yellow);
+  color: var(--dark-grey);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover, .reauth-button:hover {
+  background: #e6b800;
+  transform: translateY(-2px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--light-grey);
+}
+
+.empty-icon {
+  font-size: 4rem;
   color: var(--yellow);
   margin-bottom: 20px;
 }
 
-.retry-button {
-  background: var(--yellow);
-  color: var(--dark-grey);
-  padding: 12px 24px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
-}
-
-.retry-button:hover {
-  background: var(--yellow);
-}
-
 .empty-subtitle {
-  color: var(--light-grey);
-  font-size: 1rem;
+  font-size: 0.9rem;
   margin-top: 10px;
 }
 
 .leaderboard-table {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 140px 120px;
+  grid-template-columns: 80px 2fr 1fr 1fr 1fr 1fr;
   gap: 20px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   font-weight: 700;
   color: var(--white);
-  text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 140px 120px;
+  grid-template-columns: 80px 2fr 1fr 1fr 1fr 1fr;
   gap: 20px;
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
+  color: var(--white);
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  transform: translateX(5px);
 }
 
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.top-player {
-  background: rgba(255, 203, 59, 0.1);
+.table-row.top-player {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
   border-left: 4px solid var(--yellow);
 }
 
 .rank-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .rank-badge {
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.1);
   color: var(--white);
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.rank-badge.rank-1 {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  border-color: #FFD700;
+.rank-1 {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
   color: var(--dark-grey);
 }
 
-.rank-badge.rank-2 {
-  background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
-  border-color: #C0C0C0;
+.rank-2 {
+  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
   color: var(--dark-grey);
 }
 
-.rank-badge.rank-3 {
-  background: linear-gradient(135deg, #CD7F32, #A0522D);
-  border-color: #CD7F32;
+.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #daa520);
   color: var(--white);
 }
 
 .rank-medal {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
 }
 
 .player-col {
@@ -502,41 +677,27 @@ onMounted(() => {
 }
 
 .player-name {
+  font-weight: 600;
   font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 2px;
 }
 
-.player-id {
-  font-size: 0.8rem;
-  color: var(--light-grey);
-  font-family: monospace;
-}
-
-.elo-col {
+.elo-col, .streak-col, .games-col, .winrate-col {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .elo-value {
-  font-size: 1.2rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--yellow);
-}
-
-.streak-col {
-  display: flex;
-  align-items: center;
+  font-size: 1.1rem;
 }
 
 .streak-value {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--white);
+  font-weight: 600;
 }
 
 .streak-value.hot-streak {
@@ -545,63 +706,50 @@ onMounted(() => {
 
 .streak-icon {
   color: #ff6b35;
-  font-size: 1rem;
-}
-
-.games-col {
-  display: flex;
-  align-items: center;
 }
 
 .games-stats {
-  text-align: left;
+  text-align: center;
 }
 
 .games-played {
   font-size: 0.9rem;
   color: var(--light-grey);
-  margin-bottom: 2px;
+  margin-bottom: 5px;
 }
 
 .games-record {
   display: flex;
   gap: 8px;
-}
-
-.wins {
-  color: #B6FF7F;
-  font-weight: 700;
-}
-
-.losses {
-  color: #FF7F7F;
-  font-weight: 700;
-}
-
-.winrate-col {
-  display: flex;
-  flex-direction: column;
   justify-content: center;
 }
 
+.wins {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.losses {
+  color: #f44336;
+  font-weight: 600;
+}
+
 .winrate-value {
-  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--white);
   margin-bottom: 5px;
 }
 
 .winrate-bar {
-  width: 100%;
+  width: 60px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .winrate-fill {
   height: 100%;
-  background: linear-gradient(90deg, #B6FF7F, var(--yellow));
+  background: var(--yellow);
   transition: width 0.3s ease;
 }
 
@@ -611,7 +759,6 @@ onMounted(() => {
   align-items: center;
   gap: 20px;
   margin-top: 40px;
-  padding: 20px;
 }
 
 .pagination-button {
@@ -619,9 +766,9 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--white);
   font-weight: 600;
   cursor: pointer;
@@ -632,6 +779,7 @@ onMounted(() => {
   background: var(--yellow);
   color: var(--dark-grey);
   border-color: var(--yellow);
+  transform: translateY(-2px);
 }
 
 .pagination-button:disabled {
@@ -640,37 +788,56 @@ onMounted(() => {
 }
 
 .page-info {
-  color: var(--white);
+  color: var(--light-grey);
   font-weight: 600;
 }
 
 @media (max-width: 768px) {
-  .leaderboard-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-section {
-    max-width: none;
-  }
-
-  .sort-section {
-    justify-content: space-between;
-  }
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 60px 1fr 80px 80px 100px 80px;
-    gap: 10px;
-    padding: 15px;
+  .leaderboard-page {
+    padding: 20px 10px;
   }
 
   .leaderboard-header h1 {
     font-size: 2rem;
   }
 
-  .games-played {
-    display: none;
+  .leaderboard-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .search-section {
+    max-width: 100%;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1.5fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 15px 10px;
+  }
+
+  .rank-badge {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .elo-value,
+  .streak-value {
+    font-size: 0.9rem;
+  }
+
+  .games-stats {
+    font-size: 0.8rem;
+  }
+
+  .winrate-bar {
+    width: 40px;
   }
 }
 </style>

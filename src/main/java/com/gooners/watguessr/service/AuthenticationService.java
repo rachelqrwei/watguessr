@@ -38,7 +38,7 @@ public class AuthenticationService {
                 .authenticate(authToken);
 
         // Generate JWT token
-        final var token = jwtService.generateToken(request.getUsername());
+        final var token = jwtService.generateToken(authentication);
         
         // Return token and user info
         return new AuthenticationResponseDto(token, userMapper.toDto(user));

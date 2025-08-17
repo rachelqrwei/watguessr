@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -32,11 +34,21 @@ public class JwtService {
     //Issuer: Your app name ("watguessr")
     //Expiration: 24 hours from creation
     //Claims: Any additional user data you want to embed
-    public String generateToken(final String username) {
+    public String generateToken(Authentication authentication) {
+        String username = authentication.getName();
+
+        // Extract the single role from authenticated user
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("ROLE_USER"); // fallback if none found
+
+        // Build claims with single role
         final var claimsSet = JwtClaimsSet.builder()
                 .subject(username)
                 .issuer(issuer)
                 .expiresAt(Instant.now().plus(Duration.ofSeconds(ttlSeconds)))
+                .claim("role", role)
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet))
