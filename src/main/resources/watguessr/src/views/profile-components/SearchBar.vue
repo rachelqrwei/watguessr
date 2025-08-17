@@ -214,8 +214,14 @@ export default {
 }
 
 .result-elo {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 0.7rem;
+  letter-spacing: 0.8px;
   color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   opacity: 0.9;
 }
 </style>

@@ -153,98 +153,120 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useStore } from 'vuex'
-import type { LeaderboardRequest } from '@/stores/modules/leaderboard/types.ts'
-import { RouterLink, useRouter } from 'vue-router'
+<script>
+import { mapGetters, mapActions } from 'vuex'
+import { RouterLink } from 'vue-router'
 
-const store = useStore()
-const router = useRouter()
+export default {
+  components: {
+    RouterLink
+  },
 
-// Local reactive state for form inputs
-const searchTerm = ref('')
-const sortBy = ref('elo')
+  data() {
+    return {
+      router: this.$router,
+      searchTerm: '',
+      sortBy: 'elo'
+    }
+  },
 
-// Computed properties from store
-const leaderboard = computed(() => store.getters['leaderboard/leaderboard'])
-const isLoading = computed(() => store.getters['leaderboard/isLoading'])
-const hasError = computed(() => store.getters['leaderboard/hasError'])
-const error = computed(() => store.getters['leaderboard/error'])
-const currentQuery = computed(() => store.getters['leaderboard/currentQuery'])
-const currentPage = computed(() => store.getters['leaderboard/currentPage'])
+  computed: {
+    ...mapGetters({
+      leaderboard: 'leaderboard/leaderboard',
+      isLoading: 'leaderboard/isLoading',
+      hasError: 'leaderboard/hasError',
+      error: 'leaderboard/error',
+      currentQuery: 'leaderboard/currentQuery',
+      currentPage: 'leaderboard/currentPage'
+    })
+  },
 
-// Methods
-const handleSearch = () => {
-  const query: LeaderboardRequest = {
-    ...currentQuery.value,
-    searchTerm: searchTerm.value,
-    offset: 0 // Reset to first page when searching
+  methods: {
+    ...mapActions({
+      updateQuery: 'leaderboard/updateQuery',
+      fetchLeaderboard: 'leaderboard/fetchLeaderboard',
+      clearError: 'leaderboard/clearError'
+    }),
+
+    handleSearch() {
+      const query = {
+        ...this.currentQuery,
+        searchTerm: this.searchTerm,
+        offset: 0 // Reset to first page when searching
+      }
+      this.updateQuery(query)
+      this.fetchLeaderboard(query)
+    },
+
+    handleSort() {
+      const query = {
+        ...this.currentQuery,
+        sortBy: this.sortBy,
+        offset: 0 // Reset to first page when sorting
+      }
+      this.updateQuery(query)
+      this.fetchLeaderboard(query)
+    },
+
+    retryFetch() {
+      this.clearError()
+      this.fetchLeaderboard(this.currentQuery)
+    },
+
+    previousPage() {
+      const newOffset = Math.max(0, (this.currentPage - 2) * (this.currentQuery.limit || 20))
+      const query = {
+        ...this.currentQuery,
+        offset: newOffset
+      }
+      this.updateQuery(query)
+      this.fetchLeaderboard(query)
+    },
+
+    nextPage() {
+      const newOffset = this.currentPage * (this.currentQuery.limit || 20)
+      const query = {
+        ...this.currentQuery,
+        offset: newOffset
+      }
+      this.updateQuery(query)
+      this.fetchLeaderboard(query)
+    },
+
+    goToProfile(userId) {
+      if (!userId) return
+      this.router.push({ name: 'profile', params: { userId } })
+    },
+
+    getRank(index) {
+      return (this.currentPage - 1) * (this.currentQuery.limit || 20) + index + 1
+    },
+
+    getRankClass(rank) {
+      if (rank === 1) return 'rank-1'
+      if (rank === 2) return 'rank-2'
+      if (rank === 3) return 'rank-3'
+      return ''
+    },
+
+    getRankMedal(rank) {
+      if (rank === 1) return '🥇'
+      if (rank === 2) return '🥈'
+      if (rank === 3) return '🥉'
+      return ''
+    },
+
+    getWinRate(player) {
+      if (!player || player.gamesPlayed === 0) return 0
+      return Math.round((player.gamesWon / player.gamesPlayed) * 100)
+    }
+  },
+
+  mounted() {
+    // Initial fetch
+    this.fetchLeaderboard(this.currentQuery)
   }
-  store.dispatch('leaderboard/updateQuery', query)
-  store.dispatch('leaderboard/fetchLeaderboard', query)
 }
-
-const handleSort = () => {
-  const query: LeaderboardRequest = {
-    ...currentQuery.value,
-    sortBy: sortBy.value,
-    offset: 0 // Reset to first page when sorting
-  }
-  store.dispatch('leaderboard/updateQuery', query)
-  store.dispatch('leaderboard/fetchLeaderboard', query)
-}
-
-const retryFetch = () => {
-  store.dispatch('leaderboard/clearError')
-  store.dispatch('leaderboard/fetchLeaderboard', currentQuery.value)
-}
-
-const nextPage = () => {
-  store.dispatch('leaderboard/nextPage')
-}
-
-const previousPage = () => {
-  store.dispatch('leaderboard/previousPage')
-}
-
-const getRank = (index: number) => {
-  return (currentQuery.value.offset || 0) + index + 1
-}
-
-const getRankClass = (rank: number) => {
-  if (rank === 1) return 'rank-1'
-  if (rank === 2) return 'rank-2'
-  if (rank === 3) return 'rank-3'
-  return ''
-}
-
-const getRankMedal = (rank: number) => {
-  if (rank === 1) return '🥇'
-  if (rank === 2) return '🥈'
-  if (rank === 3) return '🥉'
-  return ''
-}
-
-const getWinRate = (player: any) => {
-  if (player.gamesPlayed === 0) return 0
-  return Math.round((player.gamesWon / player.gamesPlayed) * 100)
-}
-
-const goToProfile = (userId: string) => {
-  if (!userId) return
-  router.push({ name: 'profile', params: { userId: userId } })
-}
-
-// Initialize
-onMounted(() => {
-  // Initialize local state from store
-  const currentState = store.getters['leaderboard/currentQuery']
-  searchTerm.value = currentState.searchTerm || ''
-  sortBy.value = currentState.sortBy || 'elo'
-
-  store.dispatch('leaderboard/fetchLeaderboard')
-})
 </script>
 
 <style scoped>

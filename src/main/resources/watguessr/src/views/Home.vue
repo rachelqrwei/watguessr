@@ -1,70 +1,181 @@
-<script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+<script>
+import { useRouter } from 'vue-router'
 import HeroSection from '@/views/home-components/HeroSection.vue'
 import GameModesSection from '@/views/home-components/GameModesSection.vue'
 import FeaturesSection from '@/views/home-components/FeaturesSection.vue'
 import LeaderboardSection from '@/views/home-components/LeaderboardSection.vue'
 import TestimonialsSection from '@/views/home-components/TestimonialsSection.vue'
+import LobbyBrowser from '@/components/LobbyBrowser.vue'
+import CreateLobbyModal from '@/components/CreateLobbyModal.vue'
+import JoinLobbyModal from '@/components/JoinLobbyModal.vue'
 
-const isLoaded = ref(false)
-const showGeese = ref(true)
+export default {
+  components: {
+    HeroSection,
+    GameModesSection,
+    FeaturesSection,
+    LeaderboardSection,
+    TestimonialsSection,
+    LobbyBrowser,
+    CreateLobbyModal,
+    JoinLobbyModal
+  },
 
-function evaluateGeeseVisibility() {
-  const w = window.innerWidth
-  const h = window.innerHeight
-  const ratio = w / Math.max(h, 1)
+  data() {
+    return {
+      router: useRouter(),
+      isLoaded: false,
+      showGeese: true,
+      showLobbyBrowser: false,
+      showCreateModal: false,
+      showJoinModal: false
+    }
+  },
 
-  const tooWide = ratio >= 1.9
-  const tooShort = h <= 720
-  const ultraWide = w >= 1800 && ratio >= 1.7
-  const extremeZoomOut = w >= 1600 && h <= 850
+  methods: {
+    evaluateGeeseVisibility() {
+      const w = window.innerWidth
+      const h = window.innerHeight
+      const ratio = w / Math.max(h, 1)
 
-  showGeese.value = !(tooWide || tooShort || ultraWide || extremeZoomOut)
+      const tooWide = ratio >= 1.9
+      const tooShort = h <= 720
+      const ultraWide = w >= 1800 && ratio >= 1.7
+      const extremeZoomOut = w >= 1600 && h <= 850
+
+      this.showGeese = !(tooWide || tooShort || ultraWide || extremeZoomOut)
+    },
+
+    openLobbyBrowser() {
+      this.showLobbyBrowser = true
+    },
+
+    closeLobbyBrowser() {
+      this.showLobbyBrowser = false
+    },
+
+    openCreateModal() {
+      this.showCreateModal = true
+    },
+
+    closeCreateModal() {
+      this.showCreateModal = false
+    },
+
+    openJoinModal() {
+      this.showJoinModal = true
+    },
+
+    closeJoinModal() {
+      this.showJoinModal = false
+    },
+
+    handleLobbyCreated(lobby) {
+      console.log('Lobby created:', lobby)
+      this.closeCreateModal()
+      this.closeLobbyBrowser()
+      // Navigate to the lobby
+      this.router.push({
+        name: 'lobby',
+        query: {
+          gameMode: 'multiplayer',
+          lobbyId: lobby.id,
+          lobbyCode: lobby.lobbyCode
+        }
+      })
+    },
+
+    handleLobbyJoined(lobby) {
+      console.log('Lobby joined:', lobby)
+      this.closeJoinModal()
+      this.closeLobbyBrowser()
+      // Navigate to the lobby
+      this.router.push({
+        name: 'lobby',
+        query: {
+          gameMode: 'multiplayer',
+          lobbyId: lobby.id,
+          lobbyCode: lobby.lobbyCode
+        }
+      })
+    }
+  },
+
+  mounted() {
+    setTimeout(() => {
+      this.isLoaded = true
+    }, 100)
+
+    this.evaluateGeeseVisibility()
+    window.addEventListener('resize', this.evaluateGeeseVisibility)
+  },
+
+  unmounted() {
+    window.removeEventListener('resize', this.evaluateGeeseVisibility)
+  }
 }
-
-onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
-
-  evaluateGeeseVisibility()
-  window.addEventListener('resize', evaluateGeeseVisibility)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', evaluateGeeseVisibility)
-})
 </script>
 
 <template>
   <div class="home-container">
     <div class="home-content-scale">
       <HeroSection :isLoaded="isLoaded" />
-      <GameModesSection :isLoaded="isLoaded" />
-<!--     <FeaturesSection :isLoaded="isLoaded" />-->
+      <GameModesSection :isLoaded="isLoaded" @open-lobby-browser="openLobbyBrowser" />
+     <FeaturesSection :isLoaded="isLoaded" />
 
-<!--     <div class="section-with-goose goose1-wrapper">-->
-<!--       <LeaderboardSection :isLoaded="isLoaded" />-->
-<!--       <img-->
-<!--         class="goose-decor goose1"-->
-<!--         src="/Goose1.png"-->
-<!--         alt=""-->
-<!--         aria-hidden="true"-->
-<!--         v-if="showGeese"-->
-<!--       />-->
-<!--     </div>-->
+     <div class="section-with-goose goose1-wrapper">
+       <LeaderboardSection :isLoaded="isLoaded" />
+       <img
+         class="goose-decor goose1"
+         src="/Goose1.png"
+         alt=""
+         aria-hidden="true"
+         v-if="showGeese"
+       />
+     </div>
 
-<!--     <div class="section-with-goose goose2-wrapper">-->
-<!--       <TestimonialsSection :isLoaded="isLoaded" />-->
-<!--       <img-->
-<!--         class="goose-decor goose2"-->
-<!--         src="/Goose2.png"-->
-<!--         alt=""-->
-<!--         aria-hidden="true"-->
-<!--         v-if="showGeese"-->
-<!--/>-->
-<!--     </div>-->
+     <div class="section-with-goose goose2-wrapper">
+       <TestimonialsSection :isLoaded="isLoaded" />
+       <img
+         class="goose-decor goose2"
+         src="/Goose2.png"
+         alt=""
+         aria-hidden="true"
+         v-if="showGeese"
+/>
+     </div>
     </div>
+
+    <!-- Lobby Browser Modal -->
+    <Transition name="modal-fade">
+      <div v-if="showLobbyBrowser" class="lobby-browser-overlay" @click="closeLobbyBrowser">
+        <div class="lobby-browser-container" @click.stop>
+          <button class="close-lobby-browser" @click="closeLobbyBrowser">&times;</button>
+          <LobbyBrowser
+            @open-create-modal="openCreateModal"
+            @open-join-modal="openJoinModal"
+            @lobby-created="handleLobbyCreated"
+            @lobby-joined="handleLobbyJoined"
+          />
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Create Lobby Modal -->
+    <CreateLobbyModal
+      v-if="showCreateModal"
+      :isVisible="showCreateModal"
+      @close="closeCreateModal"
+      @lobby-created="handleLobbyCreated"
+    />
+
+    <!-- Join Private Lobby Modal -->
+    <JoinLobbyModal
+      v-if="showJoinModal"
+      :isVisible="showJoinModal"
+      @close="closeJoinModal"
+      @lobby-joined="handleLobbyJoined"
+    />
   </div>
 </template>
 
@@ -142,4 +253,70 @@ onUnmounted(() => {
     display: none;
   }
 }
+
+/* Lobby Browser Modal Styles */
+.lobby-browser-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 20px;
+}
+
+.lobby-browser-container {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.close-lobby-browser {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-lobby-browser:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .lobby-browser-overlay {
+    padding: 10px;
+  }
+
+  .lobby-browser-container {
+    width: 95vw;
+  }
+
+  .close-lobby-browser {
+    top: -50px;
+    right: 10px;
+  }
+}
+
+
 </style>
