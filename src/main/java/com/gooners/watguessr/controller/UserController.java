@@ -5,18 +5,22 @@ import com.gooners.watguessr.dto.*;
 import java.util.List;
 import java.util.UUID;
 
-import com.gooners.watguessr.mapper.UserMapper;
-import com.gooners.watguessr.service.EmailVerificationService;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
+import com.gooners.watguessr.dto.LeaderboardUser;
+import com.gooners.watguessr.dto.MatchHistoryItem;
+import com.gooners.watguessr.dto.QueryResults;
+import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.mapper.UserMapper;
+import com.gooners.watguessr.service.EmailVerificationService;
+import com.gooners.watguessr.service.GameService;
 import com.gooners.watguessr.service.UserService;
 
-import com.gooners.watguessr.service.GameService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/user")
@@ -52,13 +56,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/leaderboard")
-    public QueryResults<LeaderboardUser> getLeaderboard(
+    public ResponseEntity<QueryResults<LeaderboardUser>>getLeaderboard(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
 
-        return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
+        return ResponseEntity.ok(userService.getLeaderboard(searchTerm, sortBy, limit, offset));
     }
 
     @PostMapping("/verify-otp")

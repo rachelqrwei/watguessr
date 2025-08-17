@@ -34,7 +34,11 @@ export const actions = {
     state.loading = true;
     state.error = null;
     try {
-      const response = await fetch(`/api/user/${userId}/leaderboard`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/leaderboard`, {
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+        }
+      });
       if (!response.ok) throw new Error(`Failed to fetch leaderboard for user: ${response.status}`);
       return await response.json();
     } catch (err) {
@@ -59,7 +63,12 @@ export const actions = {
       params.set('offset', String(offset));
       params.set('limit', String(limit));
 
-      const res = await fetch(`/api/user/${userId}/match-history?${params.toString()}`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/match-history?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${state.token}`,
+        }
+      });
+
       if (!res.ok) throw new Error(`Failed to fetch match history: ${res.status}`);
 
       const data: { results: any[] } = await res.json();
@@ -72,7 +81,7 @@ export const actions = {
       state.loading = false;
     }
   },
-    
+
   async signUpUser({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string; password: string }) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
@@ -200,19 +209,4 @@ export const actions = {
       commit('SET_LOADING', false);
     }
   },
-
-  // Initialize authentication state on app startup
-  initializeAuth({ commit }: { state: UserState; commit: any }) {
-    commit('INITIALIZE_AUTH');
-  },
-
-  // Get stored token (useful for other parts of the app)
-  getToken({ state }: { state: UserState }) {
-    return state.token;
-  },
-
-  // Check if user is authenticated
-  isAuthenticated({ state }: { state: UserState }) {
-    return state.isAuthenticated;
-  }
 };
