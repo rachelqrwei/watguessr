@@ -139,8 +139,14 @@ export default {
 }
 
 .selection-coords {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 11px;
+  letter-spacing: 0.8px;
   color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
 }
 

@@ -1,9 +1,13 @@
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useStore } from 'vuex';
+<script>
+import { mapGetters } from 'vuex'
 
-const store = useStore();
-const imageUrl = computed(() => store.getters['round/getImageUrl']);
+export default {
+  computed: {
+    ...mapGetters({
+      imageUrl: 'round/getImageUrl'
+    })
+  }
+}
 </script>
 
 <template>

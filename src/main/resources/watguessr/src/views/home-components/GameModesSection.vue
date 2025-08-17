@@ -15,7 +15,7 @@
               </div>
             </div>
 
-            <div class="player-2-trapezoid" @click="showLobbyBrowser = true">
+            <div class="player-2-trapezoid" @click="openLobbyBrowser">
               <div class="play-option-container">
                 <h3>PARTY</h3>
                 <p>JOIN OR CREATE LOBBIES TO PLAY WITH FRIENDS!</p>
@@ -36,35 +36,18 @@
         </div>
       </div>
 
-      <!-- Lobby Browser Modal -->
-      <div v-if="showLobbyBrowser" class="lobby-browser-overlay" @click="closeLobbyBrowser">
-        <div class="lobby-browser-container" @click.stop>
-          <button class="close-lobby-browser" @click="closeLobbyBrowser">&times;</button>
-          <LobbyBrowser />
-        </div>
-      </div>
+
     </div>
   </section>
 </template>
 
 <script>
-import {mapMutations} from "vuex";
-import LobbyBrowser from '@/components/LobbyBrowser.vue';
-
 export default {
-  components: {
-    LobbyBrowser
-  },
   props: {
     isLoaded: {
       type: Boolean,
       default: false
     }
-  },
-  data() {
-    return {
-      showLobbyBrowser: false
-    };
   },
   methods: {
     goSolo() {
@@ -73,8 +56,8 @@ export default {
     goRanked() {
       this.$router.push({ name: 'lobby', query: { gameMode: 'ranked' } });
     },
-    closeLobbyBrowser() {
-      this.showLobbyBrowser = false;
+    openLobbyBrowser() {
+      this.$emit('open-lobby-browser');
     }
   }
 };
@@ -116,9 +99,9 @@ export default {
   font-weight: 600;
   color: var(--white);
   margin-bottom: 7px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  text-shadow: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .game-modes {
@@ -171,7 +154,7 @@ export default {
   width: 100%;
   height: 100%;
   background-image: var(--player-1-gradient);
-  opacity: 0.8;
+  opacity: 0.75;
   z-index: -1;
   transition: opacity 0.3s ease;
 }
@@ -206,9 +189,9 @@ export default {
   font-weight: 900;
   font-size: 38px;
   color: var(--white);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(255, 255, 255, 0.2);
   letter-spacing: -1px;
   text-transform: uppercase;
@@ -218,7 +201,7 @@ export default {
   font-size: 12px;
   font-weight: 700;
   color: var(--white);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   line-height: 1.3;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
@@ -321,51 +304,7 @@ export default {
   text-align: right;
 }
 
-/* Lobby Browser Modal Styles */
-.lobby-browser-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
 
-.lobby-browser-container {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.close-lobby-browser {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 32px;
-  cursor: pointer;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.close-lobby-browser:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
 
 @media (max-width: 768px) {
   .section-header h2 {
@@ -430,13 +369,6 @@ export default {
     transform: translateY(-4px);
   }
 
-  .lobby-browser-overlay {
-    padding: 10px;
-  }
 
-  .close-lobby-browser {
-    top: -50px;
-    right: 10px;
-  }
 }
 </style>

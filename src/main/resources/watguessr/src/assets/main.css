@@ -129,3 +129,38 @@
 .link:hover {
   text-decoration: underline;
 }
+
+/* Global Modal Transition Styles */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from {
+  opacity: 0;
+}
+
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active .modal-content,
+.modal-fade-leave-active .modal-content,
+.modal-fade-enter-active .modal,
+.modal-fade-leave-active .modal,
+.modal-fade-enter-active .lobby-browser-container,
+.modal-fade-leave-active .lobby-browser-container {
+  transition: all 0.3s ease;
+}
+
+.modal-fade-enter-from .modal-content,
+.modal-fade-enter-from .modal,
+.modal-fade-enter-from .lobby-browser-container {
+  transform: translateY(-20px) scale(0.95);
+}
+
+.modal-fade-leave-to .modal-content,
+.modal-fade-leave-to .modal,
+.modal-fade-leave-to .lobby-browser-container {
+  transform: translateY(20px) scale(0.95);
+}
