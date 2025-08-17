@@ -78,6 +78,10 @@ public class UserService {
             throw new CustomException("Username already exists");
         }
 
+        if (userRepository.existsByEmailAddress(dto.getEmail())) {
+            throw new CustomException("Email already exists");
+        }
+
         if (dto.getUsername().length() < 8) {
             throw new CustomException("Username must be at least 8 characters");
         }
@@ -89,13 +93,7 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
-        try {
-            User savedUser = userRepository.save(user);
-            System.out.println("After save: " + savedUser);
-        } catch (Exception e) {
-            System.err.println("Exception during user save: " + e.getMessage());
-            e.printStackTrace();
-        }
+        userRepository.save(user);
     }
 
     public User login(String username, String rawPassword) {
