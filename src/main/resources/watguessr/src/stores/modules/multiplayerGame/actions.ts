@@ -107,6 +107,16 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     }
   },
 
+  // Load final game data from localStorage
+  multiplayerGame_loadFinalGameData({ commit }) {
+    commit('MG_LOAD_FINAL_GAME_DATA');
+  },
+
+  // Clear final game data
+  multiplayerGame_clearFinalGameData({ commit }) {
+    commit('MG_CLEAR_FINAL_GAME_DATA');
+  },
+
   // Send player status update
   multiplayerGame_updatePlayerStatus({ state, rootGetters }, { status }: { status: string }) {
     const currentUser = rootGetters['user/getCurrentUser'];

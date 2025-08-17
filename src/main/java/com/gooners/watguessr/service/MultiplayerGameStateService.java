@@ -65,21 +65,20 @@ public class MultiplayerGameStateService {
 	public void setPlayerStatus(UUID gameId, String userId, String status) {
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
-			gameState.getPlayers().get(userId).setStatus(status);
+			PlayerStateDto player = gameState.getPlayers().get(userId);
+			player.setStatus(status);
 			broadcastGameState(gameId);
+		} else {
+			System.err.println("❌ Failed to set player status: gameState=" + (gameState != null) + ", playerExists=" + (gameState != null && gameState.getPlayers().containsKey(userId)));
 		}
 	}
 
 	public void setPlayerReady(UUID gameId, String userId, boolean ready) {
-		System.out.println("🎮 Setting player ready: " + userId + " -> " + ready);
 		setPlayerStatus(gameId, userId, ready ? "ready" : "ended");
 		
 		// Check if all players are ready to advance
 		if (checkAllPlayersReady(gameId)) {
-			System.out.println("✅ All players ready! Advancing to next round...");
 			advanceToNextRound(gameId);
-		} else {
-			System.out.println("⏳ Waiting for more players to be ready...");
 		}
 	}
 
@@ -222,6 +221,12 @@ public class MultiplayerGameStateService {
 				// Game completed
 				MultiplayerGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
+					// Log final player states
+					System.out.println("📊 Final player states:");
+					gameState.getPlayers().forEach((playerId, player) -> {
+						System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + player.getScore() + ", status=" + player.getStatus());
+					});
+					
 					gameState.setGameStatus("game-complete");
 					gameState.setShouldEnd(true);
 

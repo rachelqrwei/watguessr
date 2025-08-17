@@ -113,8 +113,27 @@ export default {
       return winner ? winner.name : "Unknown";
     }
   },
+  watch: {
+    multiplayerGame_getPlayers: {
+      immediate: true
+    }
+  },
+  mounted() {
+    // Load final game data from localStorage if store is empty
+    if (!this.multiplayerGame_getPlayers || Object.keys(this.multiplayerGame_getPlayers).length === 0) {
+      this.multiplayerGame_loadFinalGameData();
+    }
+  },
+  beforeUnmount() {
+    // Clean up localStorage data when leaving
+    this.multiplayerGame_clearFinalGameData();
+  },
   methods: {
-    ...mapActions("multiplayerGame", ["multiplayerGame_disconnect"]),
+    ...mapActions("multiplayerGame", [
+      "multiplayerGame_disconnect",
+      "multiplayerGame_loadFinalGameData",
+      "multiplayerGame_clearFinalGameData"
+    ]),
     getPlayerName(playerId) {
       const player = this.multiplayerGame_getPlayers[playerId];
       return player?.username || `Player`;
