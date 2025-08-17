@@ -33,6 +33,21 @@ export default {
     ])
   },
 
+  watch: {
+    getGuessX(newVal) {
+      // Clear marker when coordinates are reset (null/undefined)
+      if (newVal === null || newVal === undefined) {
+        this.clearMarker();
+      }
+    },
+    getGuessY(newVal) {
+      // Clear marker when coordinates are reset (null/undefined)
+      if (newVal === null || newVal === undefined) {
+        this.clearMarker();
+      }
+    }
+  },
+
   mounted() {
     this.renderMap();
     window.addEventListener('keydown', this.onKeyDown);
@@ -93,6 +108,13 @@ export default {
         }
       } catch (error) {
         return 'Unknown Building';
+      }
+    },
+
+    clearMarker() {
+      if (this.marker) {
+        this.marker.remove();
+        this.marker = null;
       }
     },
     // Helper function to calculate screen pixel distance between a feature and a mouse click point
@@ -248,6 +270,12 @@ export default {
           });
         });
       });
+    },
+    clearMarker() {
+      if (this.marker) {
+        this.marker.remove();
+        this.marker = null;
+      }
     }
   }
 };
