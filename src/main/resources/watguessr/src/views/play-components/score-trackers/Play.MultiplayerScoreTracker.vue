@@ -11,6 +11,7 @@
         <span v-if="player.status === 'ended'" class="player-status completed">✓</span>
         <span v-else-if="player.status === 'playing'" class="player-status playing">●</span>
         <span v-else-if="player.status === 'ready'" class="player-status ready">⏳</span>
+        <span v-else-if="player.status === 'disconnected'" class="player-status disconnected">❌</span>
       </div>
       <div class="player-score-bar-container">
         <div
@@ -105,9 +106,20 @@ export default {
   color: #2196F3; /* Blue hourglass for ready */
 }
 
+.player-status.disconnected {
+  color: #f44336; /* Red X for disconnected */
+  animation: fadeOut 2s infinite;
+}
+
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
   100% { opacity: 1; }
 }
 
