@@ -1,11 +1,12 @@
 // src/stores/modules/multiplayerGame/state.ts
 
-export type PlayerStatus = 'idle' | 'loading' | 'playing' | 'ended';
+export type PlayerStatus = 'idle' | 'loading' | 'playing' | 'ended' | 'disconnected';
 
 export interface PlayerInfo {
   status: PlayerStatus;
   score: number;
   username: string;
+  lastSeen?: number; // timestamp when player was last seen
 }
 
 export interface MultiplayerGameState {
@@ -16,6 +17,7 @@ export interface MultiplayerGameState {
   multiplayerGame_timer: number;
   multiplayerGame_finalWinner: string | null;
   multiplayerGame_shouldEnd: boolean;
+  disconnectionCheckInterval?: number; // interval ID for disconnection checking
 }
 
 export const state = (): MultiplayerGameState => ({

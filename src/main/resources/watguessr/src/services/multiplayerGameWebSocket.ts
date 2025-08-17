@@ -121,6 +121,9 @@ export function sendStartRound(gameId: string, sceneId: string) {
 function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   console.log('📡 Received game state update:', gameState);
 
+  // Get current players from store to detect disconnections
+  const currentPlayers = store.getters['multiplayerGame/multiplayerGame_getPlayers'] || {};
+  
   // Convert backend DTO format to frontend store format
   const players: Record<string, { status: any; score: number; username: string }> = {};
 
@@ -133,6 +136,14 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   });
 
   console.log('🔄 Updating players state:', players);
+
+  // Check for disconnected players
+  Object.keys(currentPlayers).forEach(playerId => {
+    if (!players[playerId]) {
+      console.log('🔌 Player disconnected:', playerId);
+      store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
+    }
+  });
 
   // Update Vuex store
   store.commit('multiplayerGame/MG_SET_GAME_ID', gameState.gameId);
