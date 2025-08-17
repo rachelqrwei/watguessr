@@ -32,7 +32,7 @@ export const mutations: MutationTree<singleplayerGameState> = {
   SG_RESET_GAME(state) {
     state.singleplayerGame_gameId = null;
     state.singleplayerGame_status = 'idle';
-    state.singleplayerGame_currentRound = 1;
+    state.singleplayerGame_currentRound = 0;
     state.singleplayerGame_scores = {};
     state.singleplayerGame_finalWinner = null;
     state.singleplayerGame_shouldEnd = false;

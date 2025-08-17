@@ -1,14 +1,13 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
 
-  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image') && showStopwatch" />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image') && showStopwatch"/>
 
   <!-- Player Disconnection Alert -->
   <PlayerDisconnectionAlert v-if="getGameMode === 'multiplayer'" />
 
-  <!-- Countdown Timer for Multiplayer Games -->
+  <!-- Countdown Timer for All Games -->
   <CountdownTimer
-    v-if="getGameMode === 'multiplayer'"
     :isVisible="showCountdown"
     @countdown-complete="onCountdownComplete"
   />
@@ -54,15 +53,6 @@
 
   <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
-
-    <!-- Development: Test disconnection button for multiplayer -->
-    <button
-      v-if="getGameMode === 'multiplayer'"
-      class="test-disconnect-btn"
-      @click="testPlayerDisconnection"
-    >
-      🧪 Test Disconnection
-    </button>
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
@@ -296,6 +286,10 @@ export default {
     },
 
     async nextRoundOrEndGame() {
+      // Show countdown before starting next round
+      this.showCountdown = true;
+      this.showStopwatch = false;
+
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
@@ -313,9 +307,6 @@ export default {
         this.selectedFloor = '';
         this.resetTimer();
 
-        await this.startRound({gameId: this.singleplayerGame_getGameId});
-        this.SG_INCREMENT_ROUND();
-
         this.SET_CURRENT_VIEW("Map");
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
@@ -327,7 +318,6 @@ export default {
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           // End the multiplayer game - send completed status
-          console.log('🎯 Final round reached, sending player completed status');
           this.multiplayerGame_setPlayerCompleted();
           return;
         }
@@ -351,30 +341,19 @@ export default {
       this.timeLeft = 60000
     },
 
-    // Development: Test player disconnection
-    testPlayerDisconnection() {
-      const players = this.multiplayerGame_getPlayers;
-      const playerIds = Object.keys(players);
-
-      if (playerIds.length > 1) {
-        // Simulate another player disconnecting
-        const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
-        if (otherPlayerId) {
-          this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
-        }
-      }
-    },
-
     onCountdownComplete() {
       this.showCountdown = false;
       this.showStopwatch = true;
 
-      // Start the first round
+      // Start the round
       if (this.getGameMode === 'multiplayer') {
         const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
         if (gameId) {
           this.startRound({ gameId });
         }
+      }
+      else if (this.getGameMode === 'singleplayer'){
+        this.startSingleplayerRound();
       }
     },
 
@@ -388,11 +367,26 @@ export default {
           this.countdownShown = true;
         }
       }
+    },
+
+    async startSingleplayerRound() {
+      try {
+        await this.startRound({ gameId: this.singleplayerGame_getGameId });
+
+        this.SG_INCREMENT_ROUND();
+        this.SET_CURRENT_VIEW("Map");
+      } catch (error) {
+        console.error('Failed to start singleplayer round:', error);
+      }
     }
   },
   mounted() {
     this.fetchAllBuildings();
     window.addEventListener('keydown', this.onGlobalKeyDown);
+
+    // Show countdown for singleplayer mode
+    this.showCountdown = true;
+    this.showStopwatch = false;
 
     if (this.getGameMode == 'singleplayer') {
       this.singleplayerGame_createSingleplayerGame();
@@ -401,15 +395,6 @@ export default {
       // For multiplayer, the game is already initialized from Lobby.vue
       // Get the gameId from the route query or store
       const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-
-      if (gameId) {
-        // Show countdown before starting the first round
-        console.log('🎮 Multiplayer game ready, showing countdown...');
-        console.log('🎮 GameId:', gameId);
-        console.log('🎮 Current players:', this.multiplayerGame_getPlayers);
-        this.showCountdown = true;
-        this.countdownShown = true;
-      }
 
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });

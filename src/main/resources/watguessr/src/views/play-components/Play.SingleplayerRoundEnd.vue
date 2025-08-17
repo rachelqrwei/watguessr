@@ -22,35 +22,63 @@
         </div>
       </div>
 
+      <div class="flex-container justify-between columns-12">
+        <!-- Correct Answer Section -->
+        <div class="answer-section" v-if="correctAnswer">
+          <div class="answer-header">
+            <span class="answer-label">CORRECT ANSWER</span>
+          </div>
+          <div class="answer-details">
+            <div class="answer-item">
+              <span class="answer-detail-label">Building:</span>
+              <span class="answer-detail-value">{{ correctAnswer.buildingName }}</span>
+            </div>
+            <div class="answer-item">
+              <span class="answer-detail-label">Floor:</span>
+              <span class="answer-detail-value">{{ correctAnswer.floor }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player's Guess Section -->
+        <div class="guess-section" v-if="playerGuess">
+          <div class="guess-header">
+            <span class="guess-label">YOUR GUESS</span>
+          </div>
+          <div class="guess-details">
+            <div class="guess-item">
+              <span class="guess-detail-label">Building:</span>
+              <span class="guess-detail-value">{{ playerGuess.building || 'Not selected' }}</span>
+            </div>
+            <div class="guess-item">
+              <span class="guess-detail-label">Floor:</span>
+              <span class="guess-detail-value">{{ playerGuess.floor || 'Not selected' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <div class="map-section">
-        <svg width="100%" height="220" viewBox="0 0 400 220">
-          <defs>
-            <radialGradient id="guessGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ff4136" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ff4136" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="actualGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <line x1="80" y1="110" x2="320" y2="170" stroke="#ffe066" stroke-width="6" stroke-dasharray="10,8" />
-          <circle cx="80" cy="110" r="22" fill="url(#actualGlow)" />
-          <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
-          <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
-          <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
-          <circle cx="320" y="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
-          <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
-        </svg>
+        <div id="answer-map">
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import 'mapbox-gl/dist/mapbox-gl.css';
 import {mapGetters} from "vuex";
+import mapboxgl from "mapbox-gl";
 
 export default {
+  data() {
+    return {
+      answerMarker: null,
+      guessMarker: null,
+    }
+  },
   props: {
     points: {
       type: Number,
@@ -61,16 +89,45 @@ export default {
       required: true
     }
   },
+  mounted() {
+    this.renderMap();
+    window.addEventListener('keydown', this.onKeyDown);
+  },
+
+  // beforeUnmount() {
+  //   window.removeEventListener('keydown', this.onKeyDown);
+  //
+  //   // persist map position when leaving the map view
+  //   if (this.map) {
+  //     const c = this.map.getCenter();
+  //     const z = this.map.getZoom();
+  //     this.SET_MAP_CENTER([c.lng, c.lat]);
+  //     this.SET_MAP_ZOOM(z);
+  //   }
+  // },
   computed: {
     ...mapGetters("singleplayerGame", [
       "singleplayerGame_getCurrentRound"
     ]),
     ...mapGetters('guess', [
       'getGuessTime',
+      'getGuessX',
+      'getGuessY'
     ]),
     ...mapGetters('round', [
+      "getRoundId",
       'getRoundResult',
+      'getCorrectAnswer'
     ]),
+    correctAnswer() {
+      return this.getCorrectAnswer;
+    },
+    playerGuess() {
+      return {
+        building: this.$store.getters['guess/getGuessBuilding'],
+        floor: this.$store.getters['guess/getGuessFloor']
+      };
+    },
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
       const totalSeconds = Math.floor(this.getGuessTime / 1000);
@@ -86,6 +143,74 @@ export default {
       return this.points;
     },
   },
+  methods: {
+    renderMap() {
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+      const guessCoordinates = [this.getGuessX, this.getGuessY];
+      const answerCoordinates = [this.getCorrectAnswer.locationX, this.getCorrectAnswer.locationY];
+
+      const defaultCenter = [-80.54478250141877, 43.47247223467783];
+
+      const map = new mapboxgl.Map({
+        container: 'answer-map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: defaultCenter,
+        zoom: 17,
+      });
+
+      this.guessMarker = new mapboxgl.Marker({ color: 'blue' })
+        .setLngLat(guessCoordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25, color: 'black' })
+          .setHTML('<span style="color: black; font-weight: bold;">Guess</span>')
+        ) // Label
+        .addTo(map);
+
+      this.answerMarker = new mapboxgl.Marker({ color: 'red' })
+        .setLngLat(answerCoordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 })
+          .setHTML('<span style="color: black; font-weight: bold;">Answer</span>')) // Label
+        .addTo(map);
+
+      map.on('load', () => {
+        map.resize();
+
+        // Compute bounds that include both markers
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(this.guessMarker.getLngLat());
+        bounds.extend(this.answerMarker.getLngLat());
+
+        // Animate zooming/panning to fit both points
+        map.fitBounds(bounds, {
+          padding: 80,       // space around markers
+          duration: 2000,    // animation length (ms)
+          easing: (t) => t,  // linear easing (you can play with easing functions)
+        });
+
+        map.addSource('line', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [guessCoordinates, answerCoordinates]
+            }
+          }
+        });
+
+        map.addLayer({
+          id: 'line',
+          type: 'line',
+          source: 'line',
+          layout: {},
+          paint: {
+            'line-color': 'black',
+            'line-width': 3
+          }
+        });
+      });
+    }
+  }
 };
 </script>
 
@@ -197,5 +322,114 @@ export default {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 12px;
+}
+
+.answer-section {
+  width: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.answer-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.answer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.answer-label {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.answer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.answer-detail-label {
+  display: block;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.answer-detail-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.guess-section {
+  width: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.guess-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.guess-label {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.guess-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.guess-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guess-detail-label {
+  display: block;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.guess-detail-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+#answer-map {
+  width: 100%;
+  height: 300px;
 }
 </style>

@@ -1,6 +1,7 @@
 package com.gooners.watguessr.dto;
 
 public class RoundResult {
+
     private int points;
     private double distance;
 

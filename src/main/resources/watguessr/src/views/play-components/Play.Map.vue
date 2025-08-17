@@ -33,6 +33,21 @@ export default {
     ])
   },
 
+  watch: {
+    getGuessX(newVal) {
+      // Clear marker when coordinates are reset (null/undefined)
+      if (newVal === null || newVal === undefined) {
+        this.clearMarker();
+      }
+    },
+    getGuessY(newVal) {
+      // Clear marker when coordinates are reset (null/undefined)
+      if (newVal === null || newVal === undefined) {
+        this.clearMarker();
+      }
+    }
+  },
+
   mounted() {
     this.renderMap();
     window.addEventListener('keydown', this.onKeyDown);
@@ -95,6 +110,13 @@ export default {
         return 'Unknown Building';
       }
     },
+
+    clearMarker() {
+      if (this.marker) {
+        this.marker.remove();
+        this.marker = null;
+      }
+    },
     // Helper function to calculate screen pixel distance between a feature and a mouse click point
     distanceToPoint(coord, point, map) {
       const pixel = map.project(coord);
@@ -103,6 +125,7 @@ export default {
       return Math.sqrt(dx * dx + dy * dy);
     },
     renderMap() {
+      console.log(this.getGuessX, this.getGuessY);
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
       const defaultCenter = [-80.54478250141877, 43.47247223467783];
@@ -247,6 +270,12 @@ export default {
           });
         });
       });
+    },
+    clearMarker() {
+      if (this.marker) {
+        this.marker.remove();
+        this.marker = null;
+      }
     }
   }
 };

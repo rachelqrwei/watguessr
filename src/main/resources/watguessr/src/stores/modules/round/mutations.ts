@@ -18,6 +18,14 @@ export const mutations: MutationTree<RoundState> = {
       distance: roundResult.distance
     };
   },
+  SET_CORRECT_ANSWER(state, correctAnswer: {buildingName: string, locationX: number, locationY: number, floor: string}) {
+    state.correctAnswer = {
+      buildingName: correctAnswer.buildingName,
+      locationX: correctAnswer.locationX,
+      locationY: correctAnswer.locationY,
+      floor: correctAnswer.floor
+    };
+  },
   RESET_ROUND(state) {
     state.roundId = null;
     state.imageUrl = null;
@@ -25,6 +33,12 @@ export const mutations: MutationTree<RoundState> = {
     state.roundResult = {
       points: 0,
       distance: 0
+    };
+    state.correctAnswer = {
+      buildingName: null,
+      locationX: null,
+      locationY: null,
+      floor: null
     };
   },
 };

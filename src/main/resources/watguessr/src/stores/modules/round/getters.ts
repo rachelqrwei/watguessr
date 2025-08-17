@@ -8,4 +8,5 @@ export const getters: GetterTree<RoundState, RootState> = {
   getWinner: (state) => state.winner,
   getRoundResult: (state) => state.roundResult,
   getImageUrl: (state) => state.imageUrl,
+  getCorrectAnswer: (state) => state.correctAnswer,
 };
