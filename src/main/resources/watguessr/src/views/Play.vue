@@ -53,15 +53,6 @@
 
   <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
-
-    <!-- Development: Test disconnection button for multiplayer -->
-    <button
-      v-if="getGameMode === 'multiplayer'"
-      class="test-disconnect-btn"
-      @click="testPlayerDisconnection"
-    >
-      🧪 Test Disconnection
-    </button>
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
@@ -348,20 +339,6 @@ export default {
 
     resetTimer() {
       this.timeLeft = 60000
-    },
-
-    // Development: Test player disconnection
-    testPlayerDisconnection() {
-      const players = this.multiplayerGame_getPlayers;
-      const playerIds = Object.keys(players);
-
-      if (playerIds.length > 1) {
-        // Simulate another player disconnecting
-        const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
-        if (otherPlayerId) {
-          this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
-        }
-      }
     },
 
     onCountdownComplete() {
