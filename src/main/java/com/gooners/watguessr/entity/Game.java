@@ -48,8 +48,7 @@ public class Game {
     @Column(name = "max_players", nullable = false)
     private Integer maxPlayers = 8;
 
-    @OneToMany(mappedBy = "game")
-    @JsonIgnoreProperties({"game"})
+    @OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE, orphanRemoval = true)    @JsonIgnoreProperties({"game"})
     private List<Round> rounds;
 
     public UUID getId() {

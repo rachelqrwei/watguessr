@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -336,5 +337,17 @@ public class GameService {
 
     public List<Game> findAll() {
         return gameRepository.findAll();
+    }
+
+    public int cleanupExpiredGames() {
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(24); // 24 hours before now
+        List<Game> oldGames = gameRepository.findByWinnerIsNullAndCreatedAtBefore(cutoff);
+
+        if (!oldGames.isEmpty()) {
+            gameRepository.deleteAll(oldGames);
+            System.out.println("Deleted " + oldGames.size() + " old unfinished games");
+        }
+
+        return oldGames.size();
     }
 }
