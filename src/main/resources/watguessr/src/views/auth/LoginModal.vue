@@ -79,7 +79,7 @@ export default {
 
 <style scoped>
 .error-message {
-  color: #ff6b6b;
+  color: #FF7F7F;
   font-size: 0.85rem;
   margin-top: 0.25rem;
   margin-bottom: 1rem;
@@ -97,8 +97,10 @@ export default {
 }
 
 .modal-content {
-  background-color: #2b2b2b;
-  padding: 3rem;
+  background: rgba(42, 42, 44, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 3rem 2rem;
   border-radius: 10px;
   width: 300px;
   color: #fff;
@@ -149,20 +151,26 @@ export default {
 
 .login-btn {
   padding: 0.6rem 1.2rem;
-  background-color: #00d8ff;
+  background-color: var(--yellow);
   color: black;
-  font-weight: bold;
+  font-weight: bold !important;
   font-size: 0.95rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   display: block;
   margin: 1rem auto 0;
-  margin-top: 3rem;
+  margin-top: 1.25rem;
+  transition: transform 0.06s ease, filter 0.2s ease, background-color 0.2s ease;
 }
 
 .login-btn:hover {
-  background-color: #00c4e4;
+  background-color: #ffd24d;
+  transform: translateY(-2px);
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
 }
 
 .checkbox-wrapper {
@@ -212,11 +220,11 @@ export default {
 .floating-label input:focus + label,
 .floating-label input:not(:placeholder-shown) + label,
 .floating-label input:valid + label {
-  top: 0.1rem;
+  top: -0.2rem;
   left: 0.2rem;
   font-size: 0.6rem;
   color: #aaa;
-  padding: 0 0.4rem;
+  padding: 0.3rem 0.4rem;
   z-index: 2;
 }
 

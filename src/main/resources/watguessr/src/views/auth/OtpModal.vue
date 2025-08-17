@@ -169,6 +169,6 @@ export default {
 .link-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* messages */
-.error   { margin-top: 12px; color: #ff6b6b; text-align: center; }
-.success { margin-top: 12px; color: #4ade80; text-align: center; }
+.error   { margin-top: 12px; color: #FF7F7F; text-align: center; }
+.success { margin-top: 12px; color: #B6FF7F; text-align: center; }
 </style>

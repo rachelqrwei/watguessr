@@ -52,27 +52,15 @@
 
         <p v-if="showSuccess" class="success-message">{{ successMessage }}</p>
 
-<!--        <button :disabled="loading" class="login-btn">-->　
-<!--          <span v-if="loading">Signing up...</span>-->
-<!--          <span v-else>Sign Up</span>-->
-<!--        </button>-->
-<!--        -->
 
-        <StatusModal
-          v-if="showStatus"
-          :message="statusMessage"
-          :type="statusType"
-          @close="showStatus = false"
-        />
-
-        <button :disabled="loading || !passwordChecks.allValid" class="login-btn">
-          <span v-if="loading">Signing up...</span>
-          <span v-else>SIGN UP</span>
+        <button type="submit" :disabled="loading || !passwordChecks.allValid" class="login-btn">
+          <div v-if="loading">Signing up...</div>
+          <div v-else>SIGN UP</div>
         </button>
 
         <div class="sign-up">
-          <label>Already a Watguessr?
-            <span class="link" @click="$emit('openLogin')">LOGIN</span>
+          <label>Already have an account?
+            <span class="link" @click="$emit('openLogin')">LOG IN</span>
           </label>
         </div>
       </form>
@@ -90,12 +78,11 @@
 <script lang="ts">
 import { mapGetters, mapActions } from 'vuex';
 import OtpModal from "@/views/auth/OtpModal.vue";
-import StatusModal from "@/views/auth/StatusModal.vue";
+
 export default {
   props: ['visible'],
   components: {
-    OtpModal,
-    StatusModal
+    OtpModal
   },
   data() {
     return {
@@ -107,9 +94,6 @@ export default {
       loading: false,
       successMessage: '',
       showSuccess: false,
-      statusMessage: '',
-      showStatus: false,
-      statusType: 'success', // or 'error'
       showPassword: false,
       userEmail: '',
       showOtpModal: false
@@ -144,11 +128,7 @@ export default {
       try {
         const result = await this.signUpUser({ email, username, password });
 
-        this.statusMessage = "Login successful!";
-        this.statusType = "success";
-        this.showStatus = true;
-
-        this.successMessage = result;
+        this.successMessage = "Account created successfully! Please check your email for verification.";
         this.showSuccess = true;
 
         // call OTP Modal
@@ -193,10 +173,12 @@ export default {
 }
 
 .modal-content {
-  background-color: #2b2b2b;
-  padding: 3rem;
+  background: rgba(42, 42, 44, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 3rem 2rem;
   border-radius: 10px;
-  width: 400px;
+  width: 380px;
   color: #fff;
   font-family: 'Segoe UI', sans-serif;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
@@ -251,20 +233,30 @@ export default {
 
 .login-btn {
   padding: 0.6rem 1.2rem;
-  background-color: #00d8ff;
+  background-color: var(--yellow);
   color: black;
-  font-weight: bold;
+  font-weight: bold !important;
   font-size: 0.95rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   display: block;
   margin: 1rem auto 0;
-  margin-top: 3rem
+  margin-top: 1.25rem;
+  transition: transform 0.06s ease, filter 0.2s ease, background-color 0.2s ease;
+}
+
+.login-btn div {
+  font-weight: bold !important;
 }
 
 .login-btn:hover {
-  background-color: #00c4e4;
+  background-color: #ffd24d;
+  transform: translateY(-2px);
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
 }
 
 .sign-up {
@@ -284,7 +276,7 @@ export default {
 }
 
 .error-message {
-  color: #ff6b6b;
+  color: #FF7F7F;
   font-size: 0.85rem;
   margin-top: 0.25rem;
   margin-bottom: 1rem;
@@ -309,7 +301,7 @@ export default {
   }
 }
 .input-error {
-  color: #e57373;
+  color: #FF7F7F;
   font-size: 0.875rem; /* slightly smaller text */
   margin-top: 0;
   display: block;
@@ -337,7 +329,7 @@ button:disabled {
 }
 
 .password-checklist li.valid {
-  color: #00ffae;
+  color: #B6FF7F;
 }
 
 .password-wrapper {
@@ -391,11 +383,11 @@ button:disabled {
 .floating-label input:focus + label,
 .floating-label input:not(:placeholder-shown) + label,
 .floating-label input:valid + label {
-  top: 0.1rem;
+  top: -0.2rem;
   left: 0.2rem;
   font-size: 0.6rem;
   color: #aaa;
-  padding: 0 0.4rem;
+  padding: 0.3rem 0.4rem;
   z-index: 2;
 }
 
