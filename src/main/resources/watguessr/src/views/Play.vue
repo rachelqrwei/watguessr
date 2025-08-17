@@ -6,6 +6,13 @@
   <!-- Player Disconnection Alert -->
   <PlayerDisconnectionAlert v-if="getGameMode === 'multiplayer'" />
 
+  <!-- Countdown Timer for Multiplayer Games -->
+  <CountdownTimer
+    v-if="getGameMode === 'multiplayer'"
+    :isVisible="showCountdown"
+    @countdown-complete="onCountdownComplete"
+  />
+
   <div class="game-container">
     <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Image')">
@@ -82,6 +89,7 @@ import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerR
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
+import CountdownTimer from '@/components/CountdownTimer.vue'
 
 
 export default {
@@ -96,6 +104,7 @@ export default {
     PlayMultiplayerRoundEnd,
     PlayFloorPanel,
     PlayerDisconnectionAlert,
+    CountdownTimer,
   },
   data() {
     return {
@@ -103,7 +112,9 @@ export default {
       selectedBuilding: '',
       selectedFloor: '',
       nextRoundOrEndGameButtonText: 'NEXT ROUND',
-      errorMessage: ''
+      errorMessage: '',
+      showCountdown: false,
+      countdownShown: false,
     }
   },
   computed: {
@@ -202,6 +213,19 @@ export default {
       if (newVal) {
         this.$router.push('/singleplayer-game-end');
       }
+    },
+    // Watch for when the game is ready to start (all players ready)
+    'multiplayerGame_getPlayers': {
+      handler(newPlayers) {
+        if (this.getGameMode === 'multiplayer' && newPlayers) {
+          // Only check for game ready if we haven't shown the countdown yet
+          if (!this.countdownShown) {
+            this.checkGameReady();
+          }
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
@@ -338,6 +362,29 @@ export default {
           this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
         }
       }
+    },
+
+    onCountdownComplete() {
+      this.showCountdown = false;
+
+      // Start the first round
+      if (this.getGameMode === 'multiplayer') {
+        const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
+        if (gameId) {
+          this.startRound({ gameId });
+        }
+      }
+    },
+
+    async checkGameReady() {
+      const players = this.multiplayerGame_getPlayers;
+      if (players && Object.keys(players).length > 0) {
+        const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
+        if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
+          this.showCountdown = true;
+          this.countdownShown = true;
+        }
+      }
     }
   },
   mounted() {
@@ -353,8 +400,12 @@ export default {
       const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
 
       if (gameId) {
-        // Start the first round for multiplayer
-        this.startRound({ gameId });
+        // Show countdown before starting the first round
+        console.log('🎮 Multiplayer game ready, showing countdown...');
+        console.log('🎮 GameId:', gameId);
+        console.log('🎮 Current players:', this.multiplayerGame_getPlayers);
+        this.showCountdown = true;
+        this.countdownShown = true;
       }
 
       // Update player status to 'playing'
