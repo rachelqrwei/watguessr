@@ -127,11 +127,8 @@ public class MatchmakingService {
 	}
 
 	// Helper methods...
-	private void notifyUserInQueue(UUID userId, int currentPlayers, int maxPlayers) {
-		Map<String, Object> update = createMatchmakingUpdate("in_queue", Map.of(
-				"currentPlayers", currentPlayers,
-				"maxPlayers", maxPlayers
-		));
+	private void notifyUserInQueue(UUID userId) {
+		Map<String, Object> update = createMatchmakingUpdate("in_queue", null);
 
 		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
 	}

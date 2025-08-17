@@ -12,16 +12,17 @@ import java.util.UUID;
 public class MatchmakingController {
 
 	private final MatchmakingService matchmakingService;
+    
+    public MatchmakingController(MatchmakingService matchmakingService) {
+        this.matchmakingService = matchmakingService;
+    }
 
 	@PostMapping("/join")
 	public ResponseEntity<Map<String, Object>> joinQueue(
-			@RequestParam UUID userId,
-			@RequestParam String gameMode,
-			@RequestParam(required = false, defaultValue = "5") Integer roundCount,
-			@RequestParam(required = false, defaultValue = "30") Integer timer) {
+			@RequestParam UUID userId) {
 
 		try {
-			UUID queueId = matchmakingService.joinQueue(userId, gameMode, roundCount, timer);
+			UUID queueId = matchmakingService.joinQueue(userId);
 
 			return ResponseEntity.ok(Map.of(
 					"success", true,
@@ -52,10 +53,5 @@ public class MatchmakingController {
 			));
 		}
 	}
-
-	@GetMapping("/status")
-	public ResponseEntity<Map<String, Object>> getQueueStatus(@RequestParam UUID userId) {
-		// Implementation to get current queue status
-		return ResponseEntity.ok(matchmakingService.getQueueStatus(userId));
-	}
+    
 }
