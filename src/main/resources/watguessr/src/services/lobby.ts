@@ -11,6 +11,7 @@ export interface LobbyUpdate {
 }
 
 export interface GameStartInfo {
+  gameId: string;
   players: User[];
 }
 
@@ -108,15 +109,13 @@ export function leaveLobby(user: User): void {
 /**
  * Start the multiplayer game
  */
-export async function startGame(lobbyId: string): void {
+export function startGame(lobbyId: string): void {
   if (!stompClient || !stompClient.connected) return;
 
-  const gameId = await stompClient.publish({
+ stompClient.publish({
     destination: "/app/lobby/start",
     body: JSON.stringify({ lobbyId }),
   });
-
-
 }
 
 /**

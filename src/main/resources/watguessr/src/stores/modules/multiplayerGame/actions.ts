@@ -12,22 +12,13 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
     // Reset the game and initialize the current player
     commit('MG_RESET_GAME', { userId, username });
-    
+
     // Now we can safely set the status since the player exists
     commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
     commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/multiplayer?roundCount=${state.multiplayerGame_maxRounds}&timer=${state.multiplayerGame_timer}`);
-    const gameId = await response.json();
-
-    commit('MG_SET_GAME_ID', gameId);
-
-    // Connect to WebSocket for real-time updates
-    connectToMultiplayerGame(gameId);
-
-    dispatch('round/startRound', { gameId }, { root: true });
-    commit('MG_SET_STATUS', { playerId: userId, status: 'playing' });
+    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
   },
   async multiplayerGame_restartGame({ state, commit, dispatch }) {
     await dispatch('multiplayerGame_createMultiplayerGame');
@@ -107,33 +98,4 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   multiplayerGame_disconnect() {
     disconnectFromMultiplayerGame();
   }
-  // async multiplayerGame_checkMultiplayerState({ state, commit, dispatch, rootGetters }): Promise<boolean> {
-  //   try {
-  //     if (!state.multiplayerGame_players) return false;
-  //     const currentUser = rootGetters['user/getCurrentUser'];
-  //     const userId = currentUser?.id;
-  //
-  //     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/state/multiplayer?gameId=${state.multiplayerGame_gameId}&userId=${userId}`);
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  //     const dto = await response.json();
-  //
-  //     if (dto?.currentScore !== undefined) {
-  //       commit('MG_IMPLEMENT_ROUND_RESULT', {dto.currentScore});
-  //     }
-  //
-  //     const shouldEnd = !!(dto?.shouldEnd || dto?.isGameEnded);
-  //     commit('SG_SET_SHOULD_END', shouldEnd);
-  //
-  //     if (shouldEnd) {
-  //       await dispatch('singleplayerGame_endGame');
-  //       return true;
-  //     }
-  //     return false;
-  //   } catch (error) {
-  //     console.error('Error checking singleplayer game state:', error);
-  //     return false;
-  //   }
-  // },
 };

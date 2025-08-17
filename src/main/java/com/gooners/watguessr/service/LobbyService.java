@@ -106,38 +106,50 @@ public class LobbyService {
 			// Get game details
 			UUID gameId = gameService.createMultiplayerGame(roundCount, timer);
 			if (gameId != null) {
-							// Initialize multiplayer game state with full user objects
-			multiplayerGameStateService.initializeGame(
+				// Initialize multiplayer game state with full user objects
+				multiplayerGameStateService.initializeGame(
 					gameId,
-				users,
-				roundCount,
-				timer
-			);
+					users,
+					roundCount,
+					timer
+				);
+			} else {
+				System.err.println("❌ Failed to create game - gameId is null");
 			}
 			
-			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(users));
+			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), users));
 			lobbies.remove(lobbyId); // reset lobby after game starts
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
 
 			return gameId;
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	// DTO classes for sending to WebSocket clients
 	public static class LobbyUpdate {
 		private List<User> users;
 		public LobbyUpdate(List<User> users) { this.users = users; }
-		public List<User> getUsers() { return users; }
+		public List<User> getUsers() { return this.users; }
 		public void setUsers(List<User> users) { this.users = users; }
 	}
 
 	public static class GameStart {
+		private String gameId;
 		private List<User> users;
-		public GameStart(List<User> users) { this.users = users; }
-		public List<User> getUsers() { return users; }
+		
+		public GameStart(String gameId, List<User> users) { 
+			this.gameId = gameId; 
+			this.users = users; 
+		}
+		
+		public String getGameId() { return this.gameId; }
+		public void setGameId(String gameId) { this.gameId = gameId; }
+		
+		public List<User> getUsers() { return this.users; }
 		public void setUsers(List<User> users) { this.users = users; }
 	}
 }

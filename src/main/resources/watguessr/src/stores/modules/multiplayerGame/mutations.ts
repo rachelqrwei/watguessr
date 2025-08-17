@@ -34,6 +34,9 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   MG_SET_MAX_ROUNDS(state, maxRounds: number) {
     state.multiplayerGame_maxRounds = maxRounds;
   },
+  MG_SET_TIMER(state, timer: number) {
+    state.multiplayerGame_timer = timer;
+  },
   MG_SET_SHOULD_END(state, shouldEnd: boolean) {
     state.multiplayerGame_shouldEnd = shouldEnd;
   },
