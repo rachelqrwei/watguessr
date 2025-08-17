@@ -21,7 +21,7 @@ export interface PlayerStateDto {
   userId: string;
   username: string;
   score: number;
-  status: 'idle' | 'loading' | 'playing' | 'ended';
+  status: 'idle' | 'loading' | 'playing' | 'ended' | 'ready' | 'completed';
   roundNumber: number;
   completionTime: number | null;
   isReady: boolean;
@@ -224,15 +224,18 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
 
   // Update the game state with final results
   if (completionData.finalWinner) {
+    console.log('🏆 Final winner:', completionData.finalWinner);
     store.commit('multiplayerGame/MG_SET_FINAL_WINNER', completionData.finalWinner);
   }
 
   if (completionData.shouldEnd) {
+    console.log('🎯 Game should end, setting shouldEnd to true');
     store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
   }
 
   // Update players with final scores
   if (completionData.players) {
+    console.log('👥 Updating final player states:', completionData.players);
     const players: Record<string, { status: any; score: number; username: string }> = {};
     Object.entries(completionData.players).forEach(([playerId, playerState]) => {
       players[playerId] = {
@@ -245,5 +248,6 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
   }
 
   // Navigate to multiplayer game end screen
+  console.log('🚀 Navigating to multiplayer game end screen');
   window.location.href = '/multiplayer-game-end';
 }

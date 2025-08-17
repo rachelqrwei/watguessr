@@ -53,7 +53,7 @@ public class MultiplayerGameStateService {
 			broadcastGameState(gameId);
 			
 			// Check if all players completed the round
-			if (checkAllPlayersCompleted(gameId)) {
+			if (checkAllPlayersEnded(gameId)) {
 				gameState.setGameStatus("round-complete");
 				broadcastGameState(gameId);
 			}
@@ -98,7 +98,7 @@ public class MultiplayerGameStateService {
 		}
 	}
 
-	public boolean checkAllPlayersCompleted(UUID gameId) {
+	public boolean checkAllPlayersEnded(UUID gameId) {
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState == null) return false;
 		
@@ -112,6 +112,14 @@ public class MultiplayerGameStateService {
 		
 		return gameState.getPlayers().values().stream()
 				.allMatch(player -> "ready".equals(player.getStatus()));
+	}
+
+	private boolean checkAllPlayersCompleted(UUID gameId) {
+		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		if (gameState == null) return false;
+		
+		return gameState.getPlayers().values().stream()
+				.allMatch(player -> "completed".equals(player.getStatus()));
 	}
 
 	public void advanceToNextRound(UUID gameId) {
@@ -156,25 +164,10 @@ public class MultiplayerGameStateService {
 				
 				broadcastGameState(gameId);
 			} else {
-				boolean allCompleted = gameState.getPlayers().values().stream()
-						.allMatch(player -> "completed".equals(player.getStatus()));
-
-				if (allCompleted) {
-					// Game completed
-					gameState.setGameStatus("game-complete");
-					gameState.setShouldEnd(true);
-
-					// Determine the winner
-					String winnerId = findWinner(gameState);
-					if (winnerId != null) {
-						gameState.setFinalWinner(winnerId);
-					}
-
-					broadcastGameState(gameId);
-
-					// Broadcast game completion event
-					messagingTemplate.convertAndSend("/topic/game/" + gameId + "/complete", gameState);
-				}
+				// This is the final round - no more rounds to advance to
+				System.out.println("🎯 Final round reached. Waiting for all players to complete...");
+				gameState.setGameStatus("final-round");
+				broadcastGameState(gameId);
 			}
 		}
 	}
@@ -218,13 +211,52 @@ public class MultiplayerGameStateService {
 
 	public void setPlayerCompleted(UUID gameId, String userId, boolean completed) {
 		System.out.println("🎮 Setting player completed: " + userId + " -> " + completed);
-		setPlayerStatus(gameId, userId, completed ? "completed" : "ended");
+		
+		if (completed) {
+			setPlayerStatus(gameId, userId, "completed");
+			
+			// Check if all players are completed
+			if (checkAllPlayersCompleted(gameId)) {
+				System.out.println("🏆 All players completed! Ending game...");
+				
+				// Game completed
+				MultiplayerGameStateDto gameState = gameStates.get(gameId);
+				if (gameState != null) {
+					gameState.setGameStatus("game-complete");
+					gameState.setShouldEnd(true);
+
+					// Determine the winner
+					String winnerId = findWinner(gameState);
+					if (winnerId != null) {
+						gameState.setFinalWinner(winnerId);
+						System.out.println("🏆 Winner determined: " + winnerId);
+					}
+
+					broadcastGameState(gameId);
+
+					// Broadcast game completion event
+					System.out.println("📢 Broadcasting game completion event");
+					messagingTemplate.convertAndSend("/topic/game/" + gameId + "/complete", gameState);
+				}
+			} else {
+				System.out.println("⏳ Waiting for more players to complete...");
+				// Log which players still need to complete
+				MultiplayerGameStateDto gameState = gameStates.get(gameId);
+				if (gameState != null) {
+					gameState.getPlayers().entrySet().stream()
+						.filter(entry -> !"completed".equals(entry.getValue().getStatus()))
+						.forEach(entry -> System.out.println("Player " + entry.getValue().getUsername() + " still needs to complete (status: " + entry.getValue().getStatus() + ")"));
+				}
+			}
+		} else {
+			setPlayerStatus(gameId, userId, "ended");
+		}
 	}
 
 	// Inner class for player state
 	public static class PlayerStateDto {
 		private Integer score;
-		private String status; // "idle", "loading", "playing", "ended", "ready"
+		private String status; // "idle", "loading", "playing", "ended", "ready", "completed"
 		private String username; // Player's username
 
 		public Integer getScore() { return score; }
