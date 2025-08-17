@@ -42,7 +42,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/start")
 	public void startGame(@Payload StartGameRequest request) {
-		lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()));
+		lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getRoundCount(), request.getTimer());
 	}
 
 	/**
@@ -61,8 +61,16 @@ public class LobbyController {
 
 	public static class StartGameRequest {
 		private String lobbyId;
+		private Integer roundCount;
+		private Integer timer;
 
 		public String getLobbyId() { return lobbyId; }
 		public void setLobbyId(String lobbyId) { this.lobbyId = lobbyId; }
+
+		public Integer getRoundCount() { return roundCount; }
+		public void setRoundCount(Integer roundCount) { this.roundCount = roundCount; }
+
+		public Integer getTimer() { return timer; }
+		public void setTimer(Integer timer) { this.timer = timer; }
 	}
 }
