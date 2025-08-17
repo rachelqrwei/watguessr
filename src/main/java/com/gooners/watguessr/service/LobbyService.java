@@ -123,6 +123,7 @@ public class LobbyService {
 
 			return gameId;
 		}
+		return null;
 	}
 
 	// DTO classes for sending to WebSocket clients
