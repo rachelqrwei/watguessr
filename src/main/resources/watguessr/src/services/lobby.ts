@@ -6,8 +6,14 @@ export interface User {
   username: string;
 }
 
+export interface LobbyPlayer {
+  userId: string;
+  username: string;
+  ready: boolean;
+}
+
 export interface LobbyUpdate {
-  users: User[];
+  players: LobbyPlayer[];
 }
 
 export interface GameStartInfo {
@@ -89,6 +95,26 @@ function subscribeAndJoin(user: User, lobbyId: string): void {
   stompClient.publish({
     destination: "/app/lobby/join",
     body: JSON.stringify({ lobbyId, user }),
+  });
+}
+
+/**
+ * Set player ready status
+ */
+export function setPlayerReady(userId: string, ready: boolean): void {
+  console.log('🔍 Setting player ready:', { userId, ready, currentLobbyId });
+  
+  if (!stompClient || !stompClient.connected || !currentLobbyId) {
+    console.warn('🔍 Cannot set player ready - WebSocket not connected or no lobby ID');
+    return;
+  }
+
+  const message = { lobbyId: currentLobbyId, userId, ready };
+  console.log('🔍 Sending ready message:', message);
+  
+  stompClient.publish({
+    destination: "/app/lobby/ready",
+    body: JSON.stringify(message),
   });
 }
 

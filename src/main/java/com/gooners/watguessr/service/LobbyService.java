@@ -12,11 +12,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Service
 public class LobbyService {
 
-	private final Map<UUID, List<User>> lobbies = new ConcurrentHashMap<>();
+	private final Map<UUID, List<LobbyPlayerDto>> lobbies = new ConcurrentHashMap<>();
 	private final GameRepository gameRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
@@ -32,7 +33,7 @@ public class LobbyService {
 
 	public void joinLobby(UUID lobbyId, User user) {
 		lobbies.computeIfAbsent(lobbyId, k -> new ArrayList<>());
-		List<User> users = lobbies.get(lobbyId);
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
 
 		// Get max players from the game
 		Integer maxPlayers = gameRepository.findById(lobbyId)
@@ -40,33 +41,36 @@ public class LobbyService {
 				.orElse(8);
 
 		// Prevent duplicates and check max players
-		if (users.stream().noneMatch(u -> u.getId().equals(user.getId())) && users.size() < maxPlayers) {
-			users.add(user);
-			
+		if (players.stream().noneMatch(p -> p.getUserId().equals(user.getId().toString())) && players.size() < maxPlayers) {
+			LobbyPlayerDto player = new LobbyPlayerDto(user.getId().toString(), user.getUsername(), false);
+			players.add(player);
+
 			// Update the game entity with current player count
-			updateGamePlayerCount(lobbyId, users.size());
+			updateGamePlayerCount(lobbyId, players.size());
 			
 			// Broadcast to all clients in this lobby
 			broadcastLobbyUpdate(lobbyId);
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
+		} else {
+			System.out.println("🔍 Player NOT added to lobby - duplicate or max players reached");
 		}
 	}
 
 	public void leaveLobby(UUID lobbyId, User user) {
-		List<User> users = lobbies.get(lobbyId);
-		if (users != null) {
-			users.removeIf(u -> u.getId().equals(user.getId()));
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		if (players != null) {
+			players.removeIf(p -> p.getUserId().equals(user.getId().toString()));
 			
 			// Update the game entity with current player count
-			updateGamePlayerCount(lobbyId, users.size());
+			updateGamePlayerCount(lobbyId, players.size());
 			
 			// Broadcast to all clients in this lobby
 			broadcastLobbyUpdate(lobbyId);
 			
 			// If no users left, remove the lobby from memory and database
-			if (users.isEmpty()) {
+			if (players.isEmpty()) {
 				lobbies.remove(lobbyId);
 				
 				// Remove corresponding Game entity from database
@@ -83,8 +87,45 @@ public class LobbyService {
 		}
 	}
 
+	public void setPlayerReady(UUID lobbyId, String userId, boolean ready) {
+		System.out.println("🔍 Setting player ready: lobbyId=" + lobbyId + ", userId=" + userId + ", ready=" + ready);
+		
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		if (players != null) {
+			System.out.println("🔍 Found lobby with " + players.size() + " players");
+			
+			Optional<LobbyPlayerDto> playerOpt = players.stream()
+					.filter(p -> p.getUserId().equals(userId))
+					.findFirst();
+			
+			if (playerOpt.isPresent()) {
+				LobbyPlayerDto player = playerOpt.get();
+				System.out.println("🔍 Found player: " + player.getUsername() + " (ID: " + player.getUserId() + ")");
+				player.setReady(ready);
+				System.out.println("🔍 Updated player ready status to: " + player.isReady());
+				
+				// Broadcast updated lobby state
+				broadcastLobbyUpdate(lobbyId);
+			} else {
+				System.out.println("🔍 Player not found in lobby: " + userId);
+				System.out.println("🔍 Available players:");
+				players.forEach(p -> System.out.println("  - " + p.getUsername() + " (ID: " + p.getUserId() + ")"));
+			}
+		} else {
+			System.out.println("🔍 Lobby not found: " + lobbyId);
+		}
+	}
+
 	public List<User> getUsers(UUID lobbyId) {
-		return lobbies.getOrDefault(lobbyId, Collections.emptyList());
+		List<LobbyPlayerDto> players = lobbies.getOrDefault(lobbyId, Collections.emptyList());
+		return players.stream()
+				.map(p -> {
+					User user = new User();
+					user.setId(UUID.fromString(p.getUserId()));
+					user.setUsername(p.getUsername());
+					return user;
+				})
+				.toList();
 	}
 
 	public int getActiveLobbyCount() {
@@ -105,8 +146,12 @@ public class LobbyService {
 	}
 
 	private void broadcastLobbyUpdate(UUID lobbyId) {
-		List<User> users = getUsers(lobbyId);
-		messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, new LobbyUpdate(users));
+		List<LobbyPlayerDto> players = lobbies.getOrDefault(lobbyId, Collections.emptyList());
+		System.out.println("🔍 Broadcasting lobby update for lobby: " + lobbyId);
+		System.out.println("🔍 Players to broadcast: " + players.size());
+		players.forEach(p -> System.out.println("  - " + p.getUsername() + " (ID: " + p.getUserId() + ", Ready: " + p.isReady() + ")"));
+		
+		messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, new LobbyUpdate(players));
 	}
 
 	private void broadcastPublicLobbyUpdate() {
@@ -115,11 +160,21 @@ public class LobbyService {
 	}
 
 	public UUID tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
-		List<User> users = getUsers(lobbyId);
-		if (users.size() >= 2) { // min 2 players
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		if (players.size() >= 2 && areAllPlayersReady(lobbyId)) { // min 2 players and all ready
 			// Get game details
 			UUID gameId = gameService.createMultiplayerGame(roundCount, timer);
 			if (gameId != null) {
+				// Convert LobbyPlayerDto to User for game initialization
+				List<User> users = players.stream()
+						.map(p -> {
+							User user = new User();
+							user.setId(UUID.fromString(p.getUserId()));
+							user.setUsername(p.getUsername());
+							return user;
+						})
+						.toList();
+				
 				// Initialize multiplayer game state with full user objects
 				multiplayerGameStateService.initializeGame(
 					gameId,
@@ -131,7 +186,17 @@ public class LobbyService {
 				System.err.println("❌ Failed to create game - gameId is null");
 			}
 			
-			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), users));
+			// Convert players to users for GameStart message
+			List<User> usersForMessage = players.stream()
+					.map(p -> {
+						User user = new User();
+						user.setId(UUID.fromString(p.getUserId()));
+						user.setUsername(p.getUsername());
+						return user;
+					})
+					.toList();
+			
+			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), usersForMessage));
 			
 			// Remove lobby from memory and database after game starts
 			lobbies.remove(lobbyId);
@@ -139,30 +204,25 @@ public class LobbyService {
 			// Remove corresponding Game entity from database
 			try {
 				gameRepository.deleteById(lobbyId);
-				System.out.println("Deleted lobby from database after game started: " + lobbyId);
+				System.out.println("Deleted lobby from database after game start: " + lobbyId);
 			} catch (Exception e) {
 				System.err.println("Failed to delete lobby from database: " + lobbyId + " - " + e.getMessage());
 			}
 			
-			// Also broadcast to public lobby list subscribers
-			broadcastPublicLobbyUpdate();
-
 			return gameId;
-		} else {
-			return null;
 		}
+		return null;
+	}
+
+	private boolean areAllPlayersReady(UUID lobbyId) {
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		return players != null && players.size() >= 2 && 
+			   players.stream().allMatch(LobbyPlayerDto::isReady);
 	}
 
 	/**
 	 * Deletes all empty lobbies
 	 * @return number of lobbies deleted
-	 */
-	public void removeLobby(UUID lobbyId) {
-		lobbies.remove(lobbyId);
-	}
-
-	/**
-	 * Delete all empty lobbies
 	 */
 	public int cleanupEmptyLobbies() {
 		int before = lobbies.size();
@@ -195,27 +255,82 @@ public class LobbyService {
 		return deleted;
 	}
 
-	// DTO classes for sending to WebSocket clients
+	// Inner classes for WebSocket messaging
 	public static class LobbyUpdate {
-		private List<User> users;
-		public LobbyUpdate(List<User> users) { this.users = users; }
-		public List<User> getUsers() { return this.users; }
-		public void setUsers(List<User> users) { this.users = users; }
+		private List<LobbyPlayerDto> players;
+
+		public LobbyUpdate(List<LobbyPlayerDto> players) {
+			this.players = players;
+		}
+
+		public List<LobbyPlayerDto> getPlayers() {
+			return players;
+		}
+
+		public void setPlayers(List<LobbyPlayerDto> players) {
+			this.players = players;
+		}
 	}
 
 	public static class GameStart {
 		private String gameId;
 		private List<User> users;
-		
-		public GameStart(String gameId, List<User> users) { 
-			this.gameId = gameId; 
-			this.users = users; 
+
+		public GameStart(String gameId, List<User> users) {
+			this.gameId = gameId;
+			this.users = users;
 		}
-		
-		public String getGameId() { return this.gameId; }
-		public void setGameId(String gameId) { this.gameId = gameId; }
-		
-		public List<User> getUsers() { return this.users; }
-		public void setUsers(List<User> users) { this.users = users; }
+
+		public String getGameId() {
+			return gameId;
+		}
+
+		public void setGameId(String gameId) {
+			this.gameId = gameId;
+		}
+
+		public List<User> getUsers() {
+			return users;
+		}
+
+		public void setUsers(List<User> users) {
+			this.users = users;
+		}
+	}
+
+	public static class LobbyPlayerDto {
+		private String userId;
+		private String username;
+		private boolean ready;
+
+		public LobbyPlayerDto(String userId, String username, boolean ready) {
+			this.userId = userId;
+			this.username = username;
+			this.ready = ready;
+		}
+
+		public String getUserId() {
+			return userId;
+		}
+
+		public void setUserId(String userId) {
+			this.userId = userId;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public boolean isReady() {
+			return ready;
+		}
+
+		public void setReady(boolean ready) {
+			this.ready = ready;
+		}
 	}
 }

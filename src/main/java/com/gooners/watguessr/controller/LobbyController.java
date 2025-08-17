@@ -38,6 +38,14 @@ public class LobbyController {
 	}
 
 	/**
+	 * User sets ready status
+	 */
+	@MessageMapping("/lobby/ready")
+	public void setPlayerReady(@Payload SetReadyRequest request) {
+		lobbyService.setPlayerReady(UUID.fromString(request.getLobbyId()), request.getUserId(), request.isReady());
+	}
+
+	/**
 	 * Attempt to start the game manually (optional)
 	 */
 	@MessageMapping("/lobby/start")
@@ -57,6 +65,21 @@ public class LobbyController {
 
 		public User getUser() { return user; }
 		public void setUser(User user) { this.user = user; }
+	}
+
+	public static class SetReadyRequest {
+		private String lobbyId;
+		private String userId;
+		private boolean ready;
+
+		public String getLobbyId() { return lobbyId; }
+		public void setLobbyId(String lobbyId) { this.lobbyId = lobbyId; }
+
+		public String getUserId() { return userId; }
+		public void setUserId(String userId) { this.userId = userId; }
+
+		public boolean isReady() { return ready; }
+		public void setReady(boolean ready) { this.ready = ready; }
 	}
 
 	public static class StartGameRequest {

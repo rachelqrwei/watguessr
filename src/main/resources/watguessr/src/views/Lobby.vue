@@ -22,26 +22,57 @@
             Lobby Code: <span class="code">{{ lobbyInfo.lobbyCode }}</span>
           </p>
           <p class="lobby-settings">
-            {{ lobbyInfo.multiplayerRoundCount }} rounds • {{ lobbyInfo.multiplayerTimer }}s timer
+            {{ lobbyInfo.multiplayerRoundCount }} rounds • {{ displayTimer }}s timer
           </p>
           <p class="lobby-players">
-            Players: {{ users.length }}/{{ lobbyInfo.maxPlayers }}
+            Players: {{ players.length }}/{{ lobbyInfo.maxPlayers }}
+          </p>
+          <p class="ready-count">
+            Ready: {{ readyCount }}/{{ players.length }}
           </p>
         </div>
 
         <ul class="players-list">
-          <li v-for="u in users" :key="u.id">
-            {{ u.username }} <span v-if="u.id === myId">(YOU)</span>
+          <li v-for="player in players" :key="player.userId" class="player-item">
+            <div class="player-info">
+              <span class="player-name">{{ player.username }}</span>
+              <span v-if="player.userId === myId" class="you-badge">(YOU)</span>
+            </div>
+            <div class="ready-status">
+              <!-- Show ready button only for current user -->
+              <button
+                v-if="player.userId === myId"
+                class="ready-button"
+                :class="{ 'ready': player.ready }"
+                @click="toggleReady"
+              >
+                {{ player.ready ? 'READY' : 'NOT READY' }}
+              </button>
+              <!-- Show read-only indicator for other players -->
+              <span v-else class="ready-indicator" :class="{ 'ready': player.ready }">
+                {{ player.ready ? 'READY' : 'NOT READY' }}
+              </span>
+            </div>
           </li>
         </ul>
 
-        <p v-if="users.length < 2" class="waiting-msg">
+        <!-- Show message if no players -->
+        <div v-if="players.length === 0" class="no-players-msg" style="background: rgba(255,0,0,0.2); padding: 15px; margin: 15px 0; border-radius: 8px; color: white; text-align: center;">
+          <p><strong>⚠️ No players loaded yet</strong></p>
+          <p>Players array is empty. This might indicate a connection issue.</p>
+        </div>
+
+        <p v-if="players.length < 2" class="waiting-msg">
           Waiting for more players to join...
         </p>
 
+        <p v-else-if="readyCount < players.length" class="waiting-msg">
+          Waiting for all players to be ready...
+        </p>
+
         <button
-          v-if="users.length >= 2 && !gameStarted"
-          class="play-button"
+          v-if="players.length >= 2 && readyCount === players.length && !gameStarted"
+          class="play-button start-game-button"
           @click="startGameClick"
         >
           START GAME
@@ -62,7 +93,7 @@
 
 <script>
 import { mapMutations, mapActions } from "vuex";
-import { connectLobby, joinLobby, startGame, disconnectLobby } from "@/services/lobby";
+import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
 import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
 
@@ -70,7 +101,7 @@ export default {
   name: "Lobby",
   data() {
     return {
-      users: [],
+      players: [],
       myId: "",
       gameStarted: false,
       lobbyInfo: null
@@ -83,6 +114,16 @@ export default {
     },
     lobbyId() {
       return this.$route.query.lobbyId;
+    },
+    readyCount() {
+      return this.players.filter(player => player.ready).length;
+    },
+    displayTimer() {
+      if (this.lobbyInfo?.multiplayerTimer) {
+        // Convert milliseconds to seconds for display
+        return Math.round(this.lobbyInfo.multiplayerTimer / 1000);
+      }
+      return 60; // Default fallback
     }
   },
   methods: {
@@ -92,6 +133,14 @@ export default {
     goToPlay() {
       this.SET_GAME_MODE(this.gameModeLabel);
       this.$router.push({ name: "play", query: { gameMode: this.gameModeLabel } });
+    },
+
+    toggleReady() {
+      const currentPlayer = this.players.find(p => p.userId === this.myId);
+      if (currentPlayer) {
+        const newReadyStatus = !currentPlayer.ready;
+        setPlayerReady(this.myId, newReadyStatus);
+      }
     },
 
     startGameClick() {
@@ -131,6 +180,8 @@ export default {
   mounted() {
     const currentUser = this.$store.getters["user/getCurrentUser"];
     this.myId = currentUser.id;
+    console.log('🔍 Current user ID:', this.myId);
+    console.log('🔍 Current user object:', currentUser);
 
     if (this.gameModeLabel === 'multiplayer') {
       this.fetchLobbyInfo();
@@ -138,7 +189,11 @@ export default {
       // Connect to lobby WebSocket
       connectLobby(
         (lobbyUpdate) => {
-          this.users = lobbyUpdate.users;
+          console.log('🔍 Lobby update received:', lobbyUpdate);
+          this.players = lobbyUpdate.players;
+          console.log('🔍 Players array updated:', this.players);
+          console.log('🔍 My ID:', this.myId);
+          console.log('🔍 Players with ready buttons:', this.players.filter(p => p.userId === this.myId));
         },
         (startInfo) => {
           this.gameStarted = true;
@@ -282,6 +337,13 @@ export default {
   font-weight: 500;
 }
 
+.ready-count {
+  color: var(--accent-color);
+  margin: 8px 0 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .players-list {
   list-style: none;
   padding: 0;
@@ -289,13 +351,74 @@ export default {
   color: white;
 }
 
-.players-list li {
-  margin: 6px 0;
-  font-weight: bold;
-  padding: 8px 16px;
+.player-item {
+  margin: 8px 0;
+  padding: 12px 16px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-name {
+  font-weight: bold;
+}
+
+.you-badge {
+  background: var(--accent-color);
+  color: var(--white);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.ready-status {
+  display: flex;
+  align-items: center;
+}
+
+.ready-button {
+  background: var(--text-secondary);
+  color: var(--white);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ready-button:hover {
+  background: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+.ready-button.ready {
+  background: var(--accent-color);
+}
+
+.ready-indicator {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  background: var(--text-secondary);
+  color: var(--white);
+}
+
+.ready-indicator.ready {
+  background: var(--accent-color);
+  color: var(--white);
 }
 
 .waiting-msg {
@@ -323,6 +446,27 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.start-game-button {
+  background: #4CAF50;
+  animation: pulse 2s infinite;
+}
+
+.start-game-button:hover {
+  background: #45a049;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
 @media (max-width: 768px) {
   .lobby-card {
     padding: 24px;
@@ -335,6 +479,12 @@ export default {
 
   .lobby-subtitle {
     font-size: 1rem;
+  }
+
+  .player-item {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
   }
 }
 </style>

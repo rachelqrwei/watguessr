@@ -34,7 +34,7 @@
           </div>
           <div class="detail-row">
             <span class="label">Timer:</span>
-            <span class="value">{{ lobby.multiplayerTimer }}s</span>
+            <span class="value">{{ displayTimer(lobby.multiplayerTimer) }}s</span>
           </div>
         </div>
 
@@ -61,6 +61,14 @@ export default {
       isLoading: false,
       stompClient: null
     };
+  },
+  computed: {
+    displayTimer() {
+      return (timerMs) => {
+        // Convert milliseconds to seconds for display
+        return Math.round(timerMs / 1000);
+      };
+    }
   },
   mounted() {
     this.refreshLobbies();
