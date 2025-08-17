@@ -402,15 +402,6 @@ export default {
       // Get the gameId from the route query or store
       const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
 
-      if (gameId) {
-        // Show countdown before starting the first round
-        console.log('🎮 Multiplayer game ready, showing countdown...');
-        console.log('🎮 GameId:', gameId);
-        console.log('🎮 Current players:', this.multiplayerGame_getPlayers);
-        this.showCountdown = true;
-        this.countdownShown = true;
-      }
-
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }

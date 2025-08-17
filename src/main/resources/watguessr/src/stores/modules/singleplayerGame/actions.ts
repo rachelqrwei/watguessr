@@ -14,6 +14,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
 
     commit('SG_SET_GAME_ID', gameId);
+    console.log(gameId);
     dispatch('round/startRound', { gameId }, { root: true });
     commit('SG_SET_STATUS', 'playing');
   },

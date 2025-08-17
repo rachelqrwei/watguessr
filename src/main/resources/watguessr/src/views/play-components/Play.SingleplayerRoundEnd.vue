@@ -22,6 +22,43 @@
         </div>
       </div>
 
+      <div class="flex-container justify-between columns-12">
+        <!-- Correct Answer Section -->
+        <div class="answer-section" v-if="correctAnswer">
+          <div class="answer-header">
+            <span class="answer-label">CORRECT ANSWER</span>
+          </div>
+          <div class="answer-details">
+            <div class="answer-item">
+              <span class="answer-detail-label">Building:</span>
+              <span class="answer-detail-value">{{ correctAnswer.buildingName }}</span>
+            </div>
+            <div class="answer-item">
+              <span class="answer-detail-label">Floor:</span>
+              <span class="answer-detail-value">{{ correctAnswer.floor }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player's Guess Section -->
+        <div class="guess-section" v-if="playerGuess">
+          <div class="guess-header">
+            <span class="guess-label">YOUR GUESS</span>
+          </div>
+          <div class="guess-details">
+            <div class="guess-item">
+              <span class="guess-detail-label">Building:</span>
+              <span class="guess-detail-value">{{ playerGuess.building || 'Not selected' }}</span>
+            </div>
+            <div class="guess-item">
+              <span class="guess-detail-label">Floor:</span>
+              <span class="guess-detail-value">{{ playerGuess.floor || 'Not selected' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <div class="map-section">
         <div id="answer-map">
         </div>
@@ -80,7 +117,17 @@ export default {
     ...mapGetters('round', [
       "getRoundId",
       'getRoundResult',
+      'getCorrectAnswer'
     ]),
+    correctAnswer() {
+      return this.getCorrectAnswer;
+    },
+    playerGuess() {
+      return {
+        building: this.$store.getters['guess/getGuessBuilding'],
+        floor: this.$store.getters['guess/getGuessFloor']
+      };
+    },
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
       const totalSeconds = Math.floor(this.getGuessTime / 1000);
@@ -101,7 +148,7 @@ export default {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
       const guessCoordinates = [this.getGuessX, this.getGuessY];
-      const point2 = [-73.5673, 45.5017]; // Montreal
+      const answerCoordinates = [this.getCorrectAnswer.locationX, this.getCorrectAnswer.locationY];
 
       const defaultCenter = [-80.54478250141877, 43.47247223467783];
 
@@ -120,7 +167,7 @@ export default {
         .addTo(map);
 
       this.answerMarker = new mapboxgl.Marker({ color: 'red' })
-        .setLngLat(point2)
+        .setLngLat(answerCoordinates)
         .setPopup(new mapboxgl.Popup({ offset: 25 })
           .setHTML('<span style="color: black; font-weight: bold;">Answer</span>')) // Label
         .addTo(map);
@@ -146,7 +193,7 @@ export default {
             type: 'Feature',
             geometry: {
               type: 'LineString',
-              coordinates: [point1, point2]
+              coordinates: [guessCoordinates, answerCoordinates]
             }
           }
         });
@@ -277,6 +324,109 @@ export default {
   padding: 12px;
 }
 
+.answer-section {
+  width: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.answer-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.answer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.answer-label {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.answer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.answer-detail-label {
+  display: block;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.answer-detail-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.guess-section {
+  width: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.guess-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.guess-label {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.guess-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.guess-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guess-detail-label {
+  display: block;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.guess-detail-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
 
 #answer-map {
   width: 100%;

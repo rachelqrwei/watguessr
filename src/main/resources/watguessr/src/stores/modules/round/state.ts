@@ -7,6 +7,12 @@ export interface RoundState {
     points: number;
     distance: number;
   } | null;
+  correctAnswer: {
+    buildingName: string | null;
+    locationX: number | null;
+    locationY: number | null;
+    floor: string | null;
+  } | null;
 }
 
 export const state = (): RoundState => ({
@@ -16,5 +22,11 @@ export const state = (): RoundState => ({
   roundResult: {
     points: 0,
     distance: 0
+  },
+  correctAnswer: {
+    buildingName: null,
+    locationX: null,
+    locationY: null,
+    floor: null
   }
 });

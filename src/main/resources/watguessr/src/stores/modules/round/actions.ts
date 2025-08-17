@@ -23,6 +23,18 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('SET_ROUND_ID', round?.id);
     console.log(state.roundId);
 
+    // Store correct answer information if available
+    if (round?.scene) {
+      const correctAnswer = {
+        buildingName: round.scene.building?.name || 'Unknown Building',
+        locationX: round.scene.locationX,
+        locationY: round.scene.locationY,
+        floor: round.scene.floor || 'Unknown Floor'
+      };
+      commit('SET_CORRECT_ANSWER', correctAnswer);
+      console.log('Correct answer stored:', correctAnswer);
+    }
+
     // fetch only the image for the round and store it
     try {
       const imgResp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${round?.id}`);
