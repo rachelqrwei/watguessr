@@ -158,7 +158,16 @@ export default {
         this.showOtpModal = true;
 
       } catch (err) {
-        this.error = err instanceof Error ? err.message : 'Signup failed';
+        const rawMessage = err instanceof Error ? err.message : 'Signup failed';
+        let friendly = rawMessage;
+        if (/user_email_address_key|duplicate key.*email|email.*exists/i.test(rawMessage)) {
+          friendly = 'An account with this email already exists. Please log in or use a different email.';
+        } else if (/user_username_key|username.*exists/i.test(rawMessage)) {
+          friendly = 'Username already taken. Please choose another one.';
+        } else if (/Password does not meet criteria/i.test(rawMessage)) {
+          friendly = 'Password must be at least 8 characters and include uppercase, lowercase, and a special character.';
+        }
+        this.error = friendly;
       } finally {
         this.loading = false;
       }
