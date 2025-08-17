@@ -16,6 +16,13 @@ import {mapActions, mapGetters, mapMutations} from 'vuex';
 export default {
   name: 'Stopwatch',
 
+  props: {
+    shouldStart: {
+      type: Boolean,
+      default: false
+    }
+  },
+
   data() {
     return {
       interval: null,
@@ -34,6 +41,7 @@ export default {
       if (this.getGameMode == 'multiplayer') {
         return this.multiplayerGame_getTimer;
       }
+      return 60000; // Default 60 seconds in milliseconds
     },
     progressAngle() {
       if (!this.totalTime) return 0;
@@ -51,8 +59,18 @@ export default {
     },
   },
 
+  watch: {
+    shouldStart(newVal) {
+      if (newVal) {
+        this.startTimer();
+      } else {
+        this.clearTimer();
+      }
+    }
+  },
+
   mounted() {
-    this.startTimer();
+    // Don't start timer automatically - wait for shouldStart prop
   },
 
   beforeUnmount() {
@@ -76,18 +94,20 @@ export default {
     startTimer() {
       this.clearTimer();
 
+      // Reset timer to 0
       this.SET_TIME(0);
 
       this.interval = setInterval(async () => {
         if (this.getGuessTime < this.totalTime) {
-          this.SET_TIME(this.getGuessTime + 100); // increase by 100ms
+          // Increment by 100ms (0.1 seconds)
+          this.SET_TIME(this.getGuessTime + 100);
         } else {
-          // when 60s reached
+          // Time limit reached
           this.clearTimer();
           // Use the same flow as manual submission so scoring/ending logic is consistent
           await this.submitGuess();
         }
-      }, 100);
+      }, 100); // Update every 100ms
     },
 
     clearTimer() {

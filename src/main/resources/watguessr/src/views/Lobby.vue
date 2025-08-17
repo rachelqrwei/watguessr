@@ -22,7 +22,7 @@
             Lobby Code: <span class="code">{{ lobbyInfo.lobbyCode }}</span>
           </p>
           <p class="lobby-settings">
-            {{ lobbyInfo.multiplayerRoundCount }} rounds • {{ lobbyInfo.multiplayerTimer }}s timer
+            {{ lobbyInfo.multiplayerRoundCount }} rounds • {{ displayTimer }}s timer
           </p>
           <p class="lobby-players">
             Players: {{ players.length }}/{{ lobbyInfo.maxPlayers }}
@@ -117,6 +117,13 @@ export default {
     },
     readyCount() {
       return this.players.filter(player => player.ready).length;
+    },
+    displayTimer() {
+      if (this.lobbyInfo?.multiplayerTimer) {
+        // Convert milliseconds to seconds for display
+        return Math.round(this.lobbyInfo.multiplayerTimer / 1000);
+      }
+      return 60; // Default fallback
     }
   },
   methods: {
