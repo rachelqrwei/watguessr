@@ -175,8 +175,6 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgba(42, 42, 44, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   color: var(--white);
 
@@ -190,8 +188,9 @@ export default {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
-  background: rgba(42, 42, 44, 0.95);
-  backdrop-filter: blur(6px);
+  background: rgba(42, 42, 44, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
   z-index: 1;
 }
 
