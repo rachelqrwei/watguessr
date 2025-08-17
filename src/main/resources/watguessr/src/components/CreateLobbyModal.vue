@@ -51,10 +51,10 @@
           <div class="form-group">
             <label for="timer">Timer (seconds)</label>
             <select id="timer" v-model="form.multiplayerTimer" required>
-              <option value="30">30 seconds</option>
-              <option value="45">45 seconds</option>
-              <option value="60">60 seconds</option>
-              <option value="90">90 seconds</option>
+              <option value="30000">30 seconds</option>
+              <option value="45000">45 seconds</option>
+              <option value="60000">60 seconds</option>
+              <option value="90000">90 seconds</option>
             </select>
           </div>
 
@@ -103,7 +103,7 @@ export default {
         gameMode: 'Multiplayer',
         maxPlayers: 4,
         multiplayerRoundCount: 5,
-        multiplayerTimer: 60,
+        multiplayerTimer: 30000,
         isPrivate: false,
         creatorId: ''
       },

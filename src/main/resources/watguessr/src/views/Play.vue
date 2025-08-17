@@ -1,7 +1,7 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
 
-  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image') && showStopwatch" />
 
   <!-- Player Disconnection Alert -->
   <PlayerDisconnectionAlert v-if="getGameMode === 'multiplayer'" />
@@ -115,6 +115,7 @@ export default {
       errorMessage: '',
       showCountdown: false,
       countdownShown: false,
+      showStopwatch: false
     }
   },
   computed: {
@@ -366,6 +367,7 @@ export default {
 
     onCountdownComplete() {
       this.showCountdown = false;
+      this.showStopwatch = true;
 
       // Start the first round
       if (this.getGameMode === 'multiplayer') {
@@ -382,6 +384,7 @@ export default {
         const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
         if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
           this.showCountdown = true;
+          this.showStopwatch  = false;
           this.countdownShown = true;
         }
       }
