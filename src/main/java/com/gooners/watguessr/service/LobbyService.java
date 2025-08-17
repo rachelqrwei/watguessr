@@ -1,8 +1,10 @@
 package com.gooners.watguessr.service;
 
+import com.gooners.watguessr.dto.LobbyDto;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.GameRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -63,9 +65,17 @@ public class LobbyService {
 			// Broadcast to all clients in this lobby
 			broadcastLobbyUpdate(lobbyId);
 			
-			// If no users left, remove the lobby
+			// If no users left, remove the lobby from memory and database
 			if (users.isEmpty()) {
 				lobbies.remove(lobbyId);
+				
+				// Remove corresponding Game entity from database
+				try {
+					gameRepository.deleteById(lobbyId);
+					System.out.println("Deleted empty lobby from database after user left: " + lobbyId);
+				} catch (Exception e) {
+					System.err.println("Failed to delete empty lobby from database: " + lobbyId + " - " + e.getMessage());
+				}
 			}
 			
 			// Also broadcast to public lobby list subscribers
@@ -75,6 +85,10 @@ public class LobbyService {
 
 	public List<User> getUsers(UUID lobbyId) {
 		return lobbies.getOrDefault(lobbyId, Collections.emptyList());
+	}
+
+	public int getActiveLobbyCount() {
+		return lobbies.size();
 	}
 
 	private void updateGamePlayerCount(UUID lobbyId, int playerCount) {
@@ -118,7 +132,17 @@ public class LobbyService {
 			}
 			
 			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), users));
-			lobbies.remove(lobbyId); // reset lobby after game starts
+			
+			// Remove lobby from memory and database after game starts
+			lobbies.remove(lobbyId);
+			
+			// Remove corresponding Game entity from database
+			try {
+				gameRepository.deleteById(lobbyId);
+				System.out.println("Deleted lobby from database after game started: " + lobbyId);
+			} catch (Exception e) {
+				System.err.println("Failed to delete lobby from database: " + lobbyId + " - " + e.getMessage());
+			}
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
@@ -127,6 +151,48 @@ public class LobbyService {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Deletes all empty lobbies
+	 * @return number of lobbies deleted
+	 */
+	public void removeLobby(UUID lobbyId) {
+		lobbies.remove(lobbyId);
+	}
+
+	/**
+	 * Delete all empty lobbies
+	 */
+	public int cleanupEmptyLobbies() {
+		int before = lobbies.size();
+		List<UUID> emptyLobbyIds = new ArrayList<>();
+		
+		System.out.println("Starting scheduled cleanup. Current lobbies in memory: " + before);
+		
+		// Collect IDs of empty lobbies
+		lobbies.entrySet().removeIf(entry -> {
+			if (entry.getValue().isEmpty()) {
+				emptyLobbyIds.add(entry.getKey());
+				System.out.println("Found empty lobby in memory: " + entry.getKey());
+				return true;
+			}
+			return false;
+		});
+		
+		// Remove corresponding Game entities from database
+		for (UUID lobbyId : emptyLobbyIds) {
+			try {
+				gameRepository.deleteById(lobbyId);
+				System.out.println("Deleted empty lobby from database: " + lobbyId);
+			} catch (Exception e) {
+				System.err.println("Failed to delete empty lobby from database: " + lobbyId + " - " + e.getMessage());
+			}
+		}
+		
+		int deleted = before - lobbies.size();
+		System.out.println("Scheduled cleanup completed. Deleted " + deleted + " empty lobbies. Remaining: " + lobbies.size());
+		return deleted;
 	}
 
 	// DTO classes for sending to WebSocket clients

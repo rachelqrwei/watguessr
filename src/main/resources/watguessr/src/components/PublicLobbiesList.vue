@@ -1,12 +1,6 @@
 <template>
   <div class="public-lobbies">
-    <div class="header">
-      <h3>Public Lobbies</h3>
-      <button class="refresh-button" @click="refreshLobbies" :disabled="isLoading">
-        <span v-if="isLoading">Refreshing...</span>
-        <span v-else>Refresh</span>
-      </button>
-    </div>
+    <h3>Public Lobbies</h3>
 
     <div v-if="isLoading" class="loading">
       Loading lobbies...
@@ -134,37 +128,10 @@ export default {
   border: 2px solid #333;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.header h3 {
+h3 {
   margin: 0;
   color: white;
   font-size: 1.25rem;
-}
-
-.refresh-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.refresh-button:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.refresh-button:disabled {
-  background: #666;
-  cursor: not-allowed;
 }
 
 .loading,
