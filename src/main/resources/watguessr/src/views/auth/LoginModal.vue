@@ -1,6 +1,7 @@
 <template>
-  <div class="modal-overlay" v-if="visible">
-    <div class="modal-content">
+  <Transition name="modal-fade">
+    <div v-if="visible" class="modal-overlay" @click="$emit('close')">
+      <div class="modal-content" @click.stop>
       <button class="close-btn" @click="$emit('close')">×</button>
       <form @submit.prevent="submitLogin" class="login-form">
         <div class="form-group floating-label">
@@ -15,14 +16,14 @@
 
         <p v-if="error" class="error-message">{{ error }}</p>
 
-        <button type="submit" class="login-btn">LOGIN</button>
-
         <div class="checkbox-wrapper">
           <label>
             <input type="checkbox" v-model="rememberMe" />
             Remember me
           </label>
         </div>
+
+        <button type="submit" class="login-btn">LOGIN</button>
 
         <div class="sign-up">
           <label>
@@ -33,6 +34,7 @@
       </form>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script>
@@ -150,23 +152,46 @@ export default {
 }
 
 .login-btn {
-  padding: 0.6rem 1.2rem;
-  background-color: var(--yellow);
-  color: black;
+  padding: 14px 28px;
+  background: rgba(255, 235, 59, 0.15);
+  color: var(--yellow);
+  border: 0.5px solid var(--yellow);
   font-weight: bold !important;
   font-size: 0.95rem;
-  border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   display: block;
   margin: 1rem auto 0;
   margin-top: 1.25rem;
-  transition: transform 0.06s ease, filter 0.2s ease, background-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(255, 235, 59, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.login-btn:hover::before {
+  left: 100%;
 }
 
 .login-btn:hover {
-  background-color: #ffd24d;
-  transform: translateY(-2px);
+  background: rgba(255, 235, 59, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 235, 59, 0.2);
+  border-color: rgba(255, 235, 59, 0.8);
 }
 
 .login-btn:active {
@@ -177,6 +202,11 @@ export default {
   margin-top: 1rem;
   color: #ccc;
   font-size: 0.85rem;
+}
+
+.sign-up {
+  text-align: center;
+  margin-top: 1rem;
 }
 
 .sign-up .link {
@@ -222,8 +252,14 @@ export default {
 .floating-label input:valid + label {
   top: -0.2rem;
   left: 0.2rem;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 0.6rem;
-  color: #aaa;
+  letter-spacing: 0.7px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   padding: 0.3rem 0.4rem;
   z-index: 2;
 }
@@ -237,4 +273,6 @@ export default {
   background-color: #3a3a3a !important;
   color: #aaa !important;
 }
+
+
 </style>

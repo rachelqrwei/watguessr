@@ -1,6 +1,7 @@
 <template>
-  <div class="modal-overlay" @click="closeModal">
-    <div class="modal-content" @click.stop>
+  <Transition name="modal-fade" appear>
+    <div v-if="isVisible" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>Join Private Lobby</h2>
         <button class="close-button" @click="closeModal">&times;</button>
@@ -15,7 +16,7 @@
               v-model="form.lobbyCode"
               type="text"
               required
-              placeholder="Enter 6-character lobby code"
+              placeholder="LOBBY CODE"
               maxlength="6"
               pattern="[A-Z0-9]{6}"
               style="text-transform: uppercase; letter-spacing: 2px; font-family: monospace; font-size: 18px; text-align: center;"
@@ -35,6 +36,7 @@
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script>
@@ -104,30 +106,33 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 6000;
 }
 
 .modal-content {
-  background: #1a1a1a;
+  background: rgba(42, 42, 44, 0.5);
   border-radius: 12px;
   padding: 0;
   max-width: 400px;
   width: 90%;
-  border: 2px solid #333;
+  border: 1px solid #333;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #333;
+  padding: 20px 24px 15px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-header h2 {
-  margin: 0;
-  color: white;
-  font-size: 1.5rem;
+  color: var(--white);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .close-button {
@@ -151,6 +156,8 @@ export default {
   color: white;
 }
 
+
+
 .modal-body {
   padding: 24px;
 }
@@ -162,32 +169,53 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: white;
-  font-weight: 500;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .form-group input {
   width: 100%;
   padding: 16px;
-  border: 2px solid #444;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  background: #2a2a2a;
+  background: rgba(42, 42, 44, 0.8);
   color: white;
   font-size: 18px;
   transition: all 0.2s;
 }
 
+.form-group input::placeholder {
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
 .form-group input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  border-color: #7FB9FF;
+  box-shadow: 0 0 0 2px rgba(127, 185, 255, 0.25);
 }
 
 .form-group small {
   display: block;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-top: 8px;
-  color: #888;
-  font-size: 12px;
+  opacity: 0.7;
 }
 
 .form-actions {
@@ -202,32 +230,73 @@ export default {
   padding: 12px 24px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 0.81rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .cancel-button {
-  background: #444;
-  color: white;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .cancel-button:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .join-button {
-  background: #28a745;
-  color: white;
+  background: linear-gradient(to right, rgba(127, 185, 255, 0.1), rgba(170, 127, 255, 0.2));
+  color: var(--white);
+  border: 1px solid #7FB9FF;
+  position: relative;
+}
+
+.join-button::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(to right, #7FB9FF, #AA7FFF);
+  border-radius: 6px;
+  z-index: -1;
+  opacity: 0.7;
 }
 
 .join-button:hover:not(:disabled) {
-  background: #218838;
+  border-color: #6BA8FF;
+  transform: translateY(-2px);
+}
+
+.join-button:hover:not(:disabled)::before {
+  background: linear-gradient(to right, #6BA8FF, #9966FF);
+  opacity: 0.9;
 }
 
 .join-button:disabled {
-  background: #666;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
   cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
+  transform: none;
+}
+
+
+.modal-fade-enter-from .modal-content {
+  transform: translateY(-50px) scale(0.8);
+  opacity: 0;
+}
+
+.modal-fade-leave-to .modal-content {
+  transform: translateY(50px) scale(0.8);
+  opacity: 0;
 }
 </style>
