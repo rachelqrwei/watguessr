@@ -146,11 +146,10 @@ export default {
 
           // Connect to multiplayer game WebSocket and initialize game state
           if (this.lobbyId) {
-            connectToMultiplayerGame(this.lobbyId);
-
-            // Set up multiplayer game state in Vuex
-            this.$store.commit('multiplayerGame/MG_SET_GAME_ID', this.lobbyId);
             this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
+            this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 5);
+
+            this.multiplayerGame_createMultiplayerGame();
 
             // Initialize players in game state
             const players = {};
@@ -164,7 +163,7 @@ export default {
             this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
           }
 
-          this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: this.lobbyId } });
+          this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: this.gameId } });
         }
       );
 

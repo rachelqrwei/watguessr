@@ -41,8 +41,8 @@ public class LobbyController {
 	 * Attempt to start the game manually (optional)
 	 */
 	@MessageMapping("/lobby/start")
-	public void startGame(@Payload StartGameRequest request) {
-		lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getRoundCount(), request.getTimer());
+	public UUID startGame(@Payload StartGameRequest request) {
+		return lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getRoundCount(), request.getTimer());
 	}
 
 	/**
