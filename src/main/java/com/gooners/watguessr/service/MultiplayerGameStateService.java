@@ -156,20 +156,25 @@ public class MultiplayerGameStateService {
 				
 				broadcastGameState(gameId);
 			} else {
-				// Game completed
-				gameState.setGameStatus("game-complete");
-				gameState.setShouldEnd(true);
-				
-				// Determine the winner
-				String winnerId = findWinner(gameState);
-				if (winnerId != null) {
-					gameState.setFinalWinner(winnerId);
+				boolean allCompleted = gameState.getPlayers().values().stream()
+						.allMatch(player -> "completed".equals(player.getStatus()));
+
+				if (allCompleted) {
+					// Game completed
+					gameState.setGameStatus("game-complete");
+					gameState.setShouldEnd(true);
+
+					// Determine the winner
+					String winnerId = findWinner(gameState);
+					if (winnerId != null) {
+						gameState.setFinalWinner(winnerId);
+					}
+
+					broadcastGameState(gameId);
+
+					// Broadcast game completion event
+					messagingTemplate.convertAndSend("/topic/game/" + gameId + "/complete", gameState);
 				}
-				
-				broadcastGameState(gameId);
-				
-				// Broadcast game completion event
-				messagingTemplate.convertAndSend("/topic/game/" + gameId + "/complete", gameState);
 			}
 		}
 	}
@@ -209,6 +214,11 @@ public class MultiplayerGameStateService {
 		}
 
 		return winnerId;
+	}
+
+	public void setPlayerCompleted(UUID gameId, String userId, boolean completed) {
+		System.out.println("🎮 Setting player completed: " + userId + " -> " + completed);
+		setPlayerStatus(gameId, userId, completed ? "completed" : "ended");
 	}
 
 	// Inner class for player state

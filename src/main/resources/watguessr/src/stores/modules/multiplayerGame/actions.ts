@@ -2,7 +2,13 @@
 import type { ActionTree } from 'vuex';
 import type { RootState } from '../../index';
 import type { MultiplayerGameState } from './state';
-import { connectToMultiplayerGame, disconnectFromMultiplayerGame, sendPlayerProgress, sendPlayerReady } from '../../../services/multiplayerGameWebSocket';
+import {
+  connectToMultiplayerGame,
+  disconnectFromMultiplayerGame,
+  sendPlayerCompleted,
+  sendPlayerProgress,
+  sendPlayerReady
+} from '../../../services/multiplayerGameWebSocket';
 
 export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_createMultiplayerGame({ state, commit, dispatch , rootGetters}) {
@@ -83,6 +89,16 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
     if (userId && state.multiplayerGame_gameId) {
       sendPlayerReady(state.multiplayerGame_gameId, userId);
+    }
+  },
+
+  // Send player completed status
+  multiplayerGame_setPlayerCompleted({ state, rootGetters }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
+    if (userId && state.multiplayerGame_gameId) {
+      sendPlayerCompleted(state.multiplayerGame_gameId, userId);
     }
   },
 

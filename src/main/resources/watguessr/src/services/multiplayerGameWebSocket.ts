@@ -102,6 +102,21 @@ export function sendPlayerReady(gameId: string, userId: string) {
   stompClient.send('/app/game/ready', {}, JSON.stringify(readyData));
 }
 
+// Send player ready status
+export function sendPlayerCompleted(gameId: string, userId: string) {
+  if (!stompClient || !stompClient.connected) {
+    console.warn('WebSocket not connected, cannot send completed');
+    return;
+  }
+
+  const completedData = {
+    gameId: gameId,
+    userId: userId
+  };
+
+  stompClient.send('/app/game/completed', {}, JSON.stringify(completedData));
+}
+
 // Send round start request
 export function sendStartRound(gameId: string, sceneId: string) {
   if (!stompClient || !stompClient.connected) {

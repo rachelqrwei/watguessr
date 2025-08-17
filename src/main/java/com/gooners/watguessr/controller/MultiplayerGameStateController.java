@@ -35,10 +35,17 @@ public class MultiplayerGameStateController {
 	}
 
 	@MessageMapping("/game/ready")
-	public void setPlayerReady(@Payload PlayerReadyRequest request) {
+	public void setPlayerReady(@Payload PlayerStatusUpdateRequest request) {
 		UUID gameId = UUID.fromString(request.getGameId());
 		String userId = request.getUserId();
 		multiplayerGameStateService.setPlayerReady(gameId, userId, true);
+	}
+
+	@MessageMapping("/game/completed")
+	public void setPlayerCompleted(@Payload PlayerStatusUpdateRequest request) {
+		UUID gameId = UUID.fromString(request.getGameId());
+		String userId = request.getUserId();
+		multiplayerGameStateService.setPlayerCompleted(gameId, userId, true);
 	}
 
 	@MessageMapping("/game/start-round")
@@ -70,7 +77,7 @@ public class MultiplayerGameStateController {
 		public void setStatus(String status) { this.status = status; }
 	}
 
-	public static class PlayerReadyRequest {
+	public static class PlayerStatusUpdateRequest {
 		private String gameId;
 		private String userId;
 

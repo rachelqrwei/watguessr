@@ -216,6 +216,7 @@ export default {
       'multiplayerGame_checkMultiplayerState',
       'multiplayerGame_updatePlayerStatus',
       'multiplayerGame_setPlayerReady',
+      'multiplayerGame_setPlayerCompleted',
       'multiplayerGame_disconnect',
       'multiplayerGame_endGame'
     ]),
@@ -301,8 +302,8 @@ export default {
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           // End the multiplayer game
-          await this.multiplayerGame_endGame();
-          this.$router.push('/multiplayer-game-end');
+          this.multiplayerGame_setPlayerCompleted);
+          // this.$router.push('/multiplayer-game-end');
           return;
         }
 
