@@ -115,7 +115,14 @@ public class GameService {
 
     public List<LobbyDto> getPublicLobbies() {
         List<Game> publicGames = gameRepository.findByIsPrivateFalseAndGameMode("Multiplayer");
+        
+        // Filter out games that don't have active lobbies in LobbyService
         return publicGames.stream()
+                .filter(game -> {
+                    // Only include games that have active lobbies with players
+                    List<User> lobbyUsers = lobbyService.getUsers(game.getId());
+                    return !lobbyUsers.isEmpty();
+                })
                 .map(this::convertGameToLobbyDto)
                 .collect(Collectors.toList());
     }
