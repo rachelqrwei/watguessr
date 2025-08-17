@@ -46,14 +46,14 @@ export default {
       this.countdownNumber = 3;
       this.countdownText = 'Get Ready!';
       this.isAnimating = false;
-      
+
       // Start the countdown
       this.countdownInterval = setInterval(() => {
         if (this.countdownNumber > 1) {
           this.countdownNumber--;
           this.countdownText = 'Get Ready!';
           this.isAnimating = true;
-          
+
           // Reset animation after a short delay
           setTimeout(() => {
             this.isAnimating = false;
@@ -62,16 +62,15 @@ export default {
           this.countdownNumber = 0;
           this.countdownText = 'GO!';
           this.isAnimating = true;
-          
-          // Emit start event and hide countdown after showing "GO!"
+
+          // Emit start event after showing "GO!"
           setTimeout(() => {
             this.$emit('countdown-complete');
-            this.isVisible = false;
           }, 500);
         }
       }, 1000);
     },
-    
+
     stopCountdown() {
       if (this.countdownInterval) {
         clearInterval(this.countdownInterval);
@@ -79,7 +78,7 @@ export default {
       }
     }
   },
-  
+
   beforeUnmount() {
     this.stopCountdown();
   }
@@ -143,7 +142,7 @@ export default {
   .countdown-number {
     font-size: 80px;
   }
-  
+
   .countdown-text {
     font-size: 18px;
   }

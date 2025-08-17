@@ -34,9 +34,6 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
-    console.log('🎯 Multiplayer round ended:', { userId, roundResult: payload.roundResult });
-    console.log('🎮 Current multiplayer players:', state.multiplayerGame_players);
-
     // Ensure player exists in the game state
     if (!state.multiplayerGame_players[userId]) {
       console.warn('⚠️ Player not found in multiplayer game state, initializing...');

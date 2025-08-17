@@ -1,14 +1,13 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
 
-  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image') && showStopwatch" />
+  <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image') && showStopwatch"/>
 
   <!-- Player Disconnection Alert -->
   <PlayerDisconnectionAlert v-if="getGameMode === 'multiplayer'" />
 
-  <!-- Countdown Timer for Multiplayer Games -->
+  <!-- Countdown Timer for All Games -->
   <CountdownTimer
-    v-if="getGameMode === 'multiplayer'"
     :isVisible="showCountdown"
     @countdown-complete="onCountdownComplete"
   />
@@ -296,6 +295,10 @@ export default {
     },
 
     async nextRoundOrEndGame() {
+      // Show countdown before starting next round
+      this.showCountdown = true;
+      this.showStopwatch = false;
+
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
@@ -313,9 +316,6 @@ export default {
         this.selectedFloor = '';
         this.resetTimer();
 
-        await this.startRound({gameId: this.singleplayerGame_getGameId});
-        this.SG_INCREMENT_ROUND();
-
         this.SET_CURRENT_VIEW("Map");
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
@@ -327,7 +327,6 @@ export default {
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           // End the multiplayer game - send completed status
-          console.log('🎯 Final round reached, sending player completed status');
           this.multiplayerGame_setPlayerCompleted();
           return;
         }
@@ -369,12 +368,15 @@ export default {
       this.showCountdown = false;
       this.showStopwatch = true;
 
-      // Start the first round
+      // Start the round
       if (this.getGameMode === 'multiplayer') {
         const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
         if (gameId) {
           this.startRound({ gameId });
         }
+      }
+      else if (this.getGameMode === 'singleplayer'){
+        this.startSingleplayerRound();
       }
     },
 
@@ -388,11 +390,26 @@ export default {
           this.countdownShown = true;
         }
       }
+    },
+
+    async startSingleplayerRound() {
+      try {
+        await this.startRound({ gameId: this.singleplayerGame_getGameId });
+
+        this.SG_INCREMENT_ROUND();
+        this.SET_CURRENT_VIEW("Map");
+      } catch (error) {
+        console.error('Failed to start singleplayer round:', error);
+      }
     }
   },
   mounted() {
     this.fetchAllBuildings();
     window.addEventListener('keydown', this.onGlobalKeyDown);
+
+    // Show countdown for singleplayer mode
+    this.showCountdown = true;
+    this.showStopwatch = false;
 
     if (this.getGameMode == 'singleplayer') {
       this.singleplayerGame_createSingleplayerGame();

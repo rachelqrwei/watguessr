@@ -15,7 +15,7 @@ export const state = (): singleplayerGameState => ({
   singleplayerGame_playerId: null,
   singleplayerGame_gameId: null,
   singleplayerGame_status: 'idle',
-  singleplayerGame_currentRound: 1,
+  singleplayerGame_currentRound: 0,
   singleplayerGame_scores: {},
   singleplayerGame_finalWinner: null,
   singleplayerGame_shouldEnd: false,

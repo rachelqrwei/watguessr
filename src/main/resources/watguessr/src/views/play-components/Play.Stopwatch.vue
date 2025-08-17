@@ -58,19 +58,9 @@ export default {
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
   },
-
-  watch: {
-    shouldStart(newVal) {
-      if (newVal) {
-        this.startTimer();
-      } else {
-        this.clearTimer();
-      }
-    }
-  },
-
   mounted() {
     // Don't start timer automatically - wait for shouldStart prop
+    this.startTimer();
   },
 
   beforeUnmount() {
@@ -89,7 +79,6 @@ export default {
     ]),
     ...mapMutations('singleplayerGame', [
       'SG_CHANGE_VIEW',
-      'SG_INCREMENT_ROUND'
     ]),
     startTimer() {
       this.clearTimer();

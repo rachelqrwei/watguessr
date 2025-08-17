@@ -21,7 +21,7 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     const round: any = await response.json();
     commit('SET_ROUND_ID', round?.id);
-    console.log(state.roundId);
+    console.log("Round started");
 
     // Store correct answer information if available
     if (round?.scene) {
@@ -32,7 +32,6 @@ export const actions: ActionTree<RoundState, RootState> = {
         floor: round.scene.floor || 'Unknown Floor'
       };
       commit('SET_CORRECT_ANSWER', correctAnswer);
-      console.log('Correct answer stored:', correctAnswer);
     }
 
     // fetch only the image for the round and store it

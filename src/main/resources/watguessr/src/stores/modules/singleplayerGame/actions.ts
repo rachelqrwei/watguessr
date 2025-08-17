@@ -5,6 +5,8 @@ import type { singleplayerGameState } from './state';
 export const actions: ActionTree<singleplayerGameState, RootState> = {
   async singleplayerGame_createSingleplayerGame({ commit, dispatch }) {
     commit('SG_RESET_GAME');
+    commit('gameInfo/RESET_GAME', null, {root: true});
+
     commit('SG_SET_STATUS', 'loading');
     commit('gameInfo/SET_GAME_MODE', 'singleplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
@@ -14,8 +16,6 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
 
     commit('SG_SET_GAME_ID', gameId);
-    console.log(gameId);
-    dispatch('round/startRound', { gameId }, { root: true });
     commit('SG_SET_STATUS', 'playing');
   },
 
