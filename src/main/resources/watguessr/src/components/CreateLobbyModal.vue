@@ -53,6 +53,8 @@
             <div class="form-group">
               <label for="timer">Timer (seconds)</label>
               <select id="timer" v-model="form.multiplayerTimer" required>
+                <option value="15000">15 seconds</option>
+                <option value="20000">20 seconds</option>
                 <option value="30000">30 seconds</option>
                 <option value="45000">45 seconds</option>
                 <option value="60000">60 seconds</option>
