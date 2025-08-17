@@ -35,13 +35,15 @@
   </section>
 </template>
 
-<script setup>
-defineProps({
-  isLoaded: {
-    type: Boolean,
-    default: false
+<script>
+export default {
+  props: {
+    isLoaded: {
+      type: Boolean,
+      default: false
+    }
   }
-})
+}
 </script>
 
 <style scoped>
@@ -65,13 +67,14 @@ defineProps({
 }
 
 .testimonials-content h2 {
-  font-size: 1.62rem;
-  font-weight: 800;
+  font-weight: 600;
+  font-size: 1.6rem;
   color: var(--white);
-  margin-bottom: 27px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
   text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1.5px;
+  line-height: 1.5;
 }
 
 .testimonials-grid {
@@ -82,32 +85,40 @@ defineProps({
 }
 
 .testimonial-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(42, 42, 44, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 23px 18px;
   text-align: center;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
 }
 
 .testimonial-card:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(42, 42, 44, 0.75);
 }
 
 .testimonial-text {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 0.9rem;
+  letter-spacing: 1.0px;
   color: var(--light-grey);
   line-height: 1.6;
-  font-weight: 500;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-bottom: 14px;
 }
 
 .testimonial-author {
   text-align: left;
-  margin-top: 14px;
+  margin-top: 18px;
+  font-weight: 600;
+  color: var(--white);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 1.2px;
 }
 
 .author-name {
@@ -115,7 +126,7 @@ defineProps({
   font-weight: 700;
   color: var(--white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.3px;
+  letter-spacing: 1px;
 }
 
 .author-program {
@@ -130,4 +141,4 @@ defineProps({
     grid-template-columns: 1fr;
   }
 }
-</style> 
+</style>

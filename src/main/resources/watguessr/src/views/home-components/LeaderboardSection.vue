@@ -26,46 +26,60 @@
   </section>
 </template>
 
-<script setup>
+<script>
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import { computed, onMounted } from 'vue'
+import { mapGetters, mapActions } from 'vuex'
 
-const router = useRouter()
-const store = useStore()
+export default {
+  props: {
+    isLoaded: {
+      type: Boolean,
+      default: false
+    }
+  },
 
-defineProps({
-  isLoaded: {
-    type: Boolean,
-    default: false
+  data() {
+    return {
+      router: useRouter()
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      leaderboard: 'leaderboard/leaderboard'
+    })
+  },
+
+  methods: {
+    ...mapActions({
+      fetchLeaderboard: 'leaderboard/fetchLeaderboard'
+    }),
+
+    getRankClass(rank) {
+      if (rank === 1) return 'rank-1'
+      if (rank === 2) return 'rank-2'
+      if (rank === 3) return 'rank-3'
+      return ''
+    },
+
+    getRankMedal(rank) {
+      if (rank === 1) return '🥇'
+      if (rank === 2) return '🥈'
+      if (rank === 3) return '🥉'
+      return ''
+    },
+
+    goToProfile(userId) {
+      if (!userId) return
+      this.router.push({ name: 'profile', params: { userId } })
+    }
+  },
+
+  mounted() {
+    // Fetch only the top 5 by elo for the preview
+    this.fetchLeaderboard({ limit: 5, sortBy: 'elo', offset: 0 })
   }
-})
-
-const leaderboard = computed(() => store.getters['leaderboard/leaderboard'])
-
-const getRankClass = (rank) => {
-  if (rank === 1) return 'rank-1'
-  if (rank === 2) return 'rank-2'
-  if (rank === 3) return 'rank-3'
-  return ''
 }
-
-const getRankMedal = (rank) => {
-  if (rank === 1) return '🥇'
-  if (rank === 2) return '🥈'
-  if (rank === 3) return '🥉'
-  return ''
-}
-
-const goToProfile = (userId) => {
-  if (!userId) return
-  router.push({ name: 'profile', params: { userId } })
-}
-
-onMounted(() => {
-  // Fetch only the top 5 by elo for the preview
-  store.dispatch('leaderboard/fetchLeaderboard', { limit: 5, sortBy: 'elo', offset: 0 })
-})
 </script>
 
 <style scoped>
@@ -89,13 +103,14 @@ onMounted(() => {
 }
 
 .leaderboard-content h2 {
-  font-size: 1.62rem;
-  font-weight: 800;
+  font-weight: 600;
+  font-size: 1.6rem;
   color: var(--white);
-  margin-bottom: 27px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
   text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1.5px;
+  line-height: 1.5;
 }
 
 .leaderboard-list {
@@ -125,22 +140,39 @@ onMounted(() => {
   align-items: center;
   gap: 15px;
   padding: 9px 18px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(42, 42, 44, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   backdrop-filter: blur(6px);
   transition: all 0.3s ease;
-  flex: 0 0 auto; /* prevent shrinking so items stay in one row */
+  flex: 0 0 auto; /* prevent shrinking so items stays in one row */
   position: relative;
+  overflow: hidden;
+}
+
+.leaderboard-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+  z-index: 1;
 }
 
 .leaderboard-item:hover {
   transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(42, 42, 44, 0.5);
   z-index: 2;
 }
 
-/* Optional: subtle scrollbar styling */
+.leaderboard-item:hover::before {
+  left: 100%;
+}
+
+
 .leaderboard-list::-webkit-scrollbar {
   height: 6px;
 }
@@ -154,21 +186,39 @@ onMounted(() => {
 }
 
 .rank-1 {
-  background: linear-gradient(135deg, rgba(255, 203, 59, 0.2) 0%, rgba(255, 203, 59, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 203, 59, 0.2) 0%, rgba(42, 42, 44, 0.5) 100%);
   border: 1px solid rgba(255, 203, 59, 0.3);
   box-shadow: 0 0 20px rgba(255, 203, 59, 0.3);
 }
 
+.rank-1::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 203, 59, 0.3), transparent);
+}
+
 .rank-2 {
-  background: linear-gradient(135deg, rgba(150, 150, 150, 0.2) 0%, rgba(150, 150, 150, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(150, 150, 150, 0.2) 0%, rgba(42, 42, 44, 0.5) 100%);
   border: 1px solid rgba(150, 150, 150, 0.3);
   box-shadow: 0 0 10px rgba(150, 150, 150, 0.2);
 }
 
+.rank-2::before {
+  background: linear-gradient(90deg, transparent, rgba(150, 150, 150, 0.3), transparent);
+}
+
 .rank-3 {
-  background: linear-gradient(135deg, rgba(100, 100, 100, 0.2) 0%, rgba(100, 100, 100, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(100, 100, 100, 0.2) 0%, rgba(42, 42, 44, 0.5) 100%);
   border: 1px solid rgba(100, 100, 100, 0.3);
   box-shadow: 0 0 5px rgba(100, 100, 100, 0.1);
+}
+
+.rank-3::before {
+  background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.3), transparent);
+}
+
+.rank-1:hover,
+.rank-2:hover,
+.rank-3:hover {
+  background: rgba(42, 42, 44, 0.5) !important;
 }
 
 .rank-badge {
@@ -193,19 +243,25 @@ onMounted(() => {
 }
 
 .player-name {
-  font-size: 1rem;
-  font-weight: 700;
+  margin-top: 2px;
+  font-weight: 600;
+  font-size: 1.1rem;
   color: var(--white);
+  margin-bottom: 3px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.3px;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
 }
 
 .player-score {
-  font-size: 0.99rem;
-  font-weight: 900;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.9rem;
   color: var(--yellow);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin-top: 5px;
+  letter-spacing: 1.2px;
+  line-height: 1.6;
+  margin-top: 3px;
 }
 
 .player-medal {

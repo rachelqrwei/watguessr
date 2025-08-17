@@ -18,19 +18,21 @@
   </section>
 </template>
 
-<script setup>
-defineProps({
-  isLoaded: {
-    type: Boolean,
-    default: false
+<script>
+export default {
+  props: {
+    isLoaded: {
+      type: Boolean,
+      default: false
+    }
   }
-})
+}
 </script>
 
 <style scoped>
 .hero-section {
   padding: 18px 50px 72px;
-  margin-top: -25px;
+  margin-top: -30px;
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -44,7 +46,7 @@ defineProps({
 .hero-content {
   display: flex;
   align-items: center;
-  gap: 27px;
+  gap: 23px;
   max-width: 960px;
   margin: 0 auto;
 }
@@ -88,13 +90,15 @@ defineProps({
 }
 
 .subtitle {
-  font-size: 1.08rem;
-  color: #d6d6d6;
-  line-height: 1.6;
-  margin-bottom: 14px;
-  font-weight: 400;
+  font-family: "Red Hat Text", sans-serif;
   font-style: italic;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 400;
+  font-size: 1.08rem;
+  letter-spacing: 1.0px;
+  color: #d9d9d9;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  margin-bottom: 14px;
 }
 
 .title-underline {
