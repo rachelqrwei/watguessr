@@ -104,7 +104,7 @@ export default {
     },
 
     connectToLobbyUpdates() {
-      const socket = new SockJS("http://localhost:5173/ws-game");
+      const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
       this.stompClient = new Client({
         webSocketFactory: () => socket,
         debug: (msg) => console.log(msg),

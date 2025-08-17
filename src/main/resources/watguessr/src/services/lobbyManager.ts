@@ -1,6 +1,6 @@
 import type { LobbyDto } from '../types/index.d.ts';
 
-const API_BASE_URL = 'http://localhost:5173/api/game';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/game`;
 
 export interface CreateLobbyRequest {
   gameMode: string;
