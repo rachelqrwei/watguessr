@@ -50,9 +50,9 @@ export function connectLobby(
  */
 export function joinLobby(user: User, lobbyId: string): void {
   if (!stompClient) return;
-  
+
   currentLobbyId = lobbyId;
-  
+
   // Wait for connection to be established before subscribing/publishing
   if (stompClient.connected) {
     subscribeAndJoin(user, lobbyId);
@@ -71,7 +71,7 @@ export function joinLobby(user: User, lobbyId: string): void {
 
 function subscribeAndJoin(user: User, lobbyId: string): void {
   if (!stompClient) return;
-  
+
   // Subscribe to lobby updates for this specific lobby
   stompClient.subscribe(`/topic/lobby/${lobbyId}`, (message) => {
     const update: LobbyUpdate = JSON.parse(message.body);
@@ -96,25 +96,27 @@ function subscribeAndJoin(user: User, lobbyId: string): void {
  */
 export function leaveLobby(user: User): void {
   if (!stompClient || !stompClient.connected || !currentLobbyId) return;
-  
+
   stompClient.publish({
     destination: "/app/lobby/leave",
     body: JSON.stringify({ lobbyId: currentLobbyId, user }),
   });
-  
+
   currentLobbyId = null;
 }
 
 /**
  * Start the multiplayer game
  */
-export function startGame(lobbyId: string): void {
+export async function startGame(lobbyId: string): void {
   if (!stompClient || !stompClient.connected) return;
-  
-  stompClient.publish({
+
+  const gameId = await stompClient.publish({
     destination: "/app/lobby/start",
     body: JSON.stringify({ lobbyId }),
   });
+
+
 }
 
 /**

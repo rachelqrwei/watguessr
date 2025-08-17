@@ -100,7 +100,7 @@ public class LobbyService {
 		messagingTemplate.convertAndSend("/topic/lobbies/public", "update");
 	}
 
-	public void tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
+	public UUID tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
 		List<User> users = getUsers(lobbyId);
 		if (users.size() >= 2) { // min 2 players
 			// Get game details
@@ -108,7 +108,7 @@ public class LobbyService {
 			if (gameId != null) {
 							// Initialize multiplayer game state with full user objects
 			multiplayerGameStateService.initializeGame(
-				lobbyId, 
+					gameId,
 				users,
 				roundCount,
 				timer
@@ -120,6 +120,8 @@ public class LobbyService {
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
+
+			return gameId;
 		}
 	}
 

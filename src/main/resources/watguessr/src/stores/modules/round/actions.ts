@@ -4,7 +4,7 @@ import type { RootState } from '../../index';
 import type { RoundState } from './state';
 
 export const actions: ActionTree<RoundState, RootState> = {
-  async startRound({ commit }, { gameId }): Promise<RoundState> {
+  async startRound({ state, commit }, { gameId }): Promise<RoundState> {
     //reset data from prev round (if any)
     commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
@@ -21,6 +21,7 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     const round: any = await response.json();
     commit('SET_ROUND_ID', round?.id);
+    console.log(state.roundId);
 
     // fetch only the image for the round and store it
     try {
@@ -46,7 +47,7 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     // Get the current game mode to dispatch to the correct game store
     const gameMode = rootGetters['gameInfo/getGameMode'];
-    
+
     if (gameMode === 'singleplayer') {
       //end this round in the singleplayer game store
       dispatch('singleplayerGame/singleplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
