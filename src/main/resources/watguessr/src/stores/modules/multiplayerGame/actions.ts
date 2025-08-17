@@ -64,8 +64,8 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
       await response.json();
       commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
-      commit('MG_RESET_GAME', {playerId: userId, status: 'ended'});
-      commit('game/RESET_GAME', null, {root: true});
+      commit('MG_RESET_GAME');
+      commit('gameInfo/RESET_GAME', null, {root: true});
       commit('round/RESET_ROUND', null, {root: true});
 
       // Disconnect from WebSocket

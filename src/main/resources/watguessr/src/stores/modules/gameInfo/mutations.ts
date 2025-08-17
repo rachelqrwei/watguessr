@@ -17,7 +17,7 @@ export const mutations: MutationTree<GameInfoState> = {
   },
   RESET_GAME(state) {
     state.gameMode = '';
-    state.currentView = '';
+    state.currentView = 'Map';
     state.mapCenter = null;
     state.mapZoom = null;
   },

@@ -217,9 +217,7 @@ export default {
       'multiplayerGame_updatePlayerStatus',
       'multiplayerGame_setPlayerReady',
       'multiplayerGame_disconnect',
-      'multiplayerGame_endGame',
-      'multiplayerGame_startDisconnectionCheck',
-      'multiplayerGame_stopDisconnectionCheck'
+      'multiplayerGame_endGame'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -360,9 +358,6 @@ export default {
 
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
-
-      // Start disconnection monitoring
-      this.$store.dispatch('multiplayerGame/multiplayerGame_startDisconnectionCheck');
     }
   },
   beforeUnmount() {
@@ -371,7 +366,6 @@ export default {
     // Disconnect from multiplayer WebSocket when leaving
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
-      this.$store.dispatch('multiplayerGame/multiplayerGame_stopDisconnectionCheck');
     }
   }
 }

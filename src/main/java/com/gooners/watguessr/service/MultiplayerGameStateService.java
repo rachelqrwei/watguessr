@@ -166,7 +166,6 @@ public class MultiplayerGameStateService {
 					gameState.setFinalWinner(winnerId);
 				}
 				
-				System.out.println("🏆 Game completed! Winner: " + winnerId);
 				broadcastGameState(gameId);
 				
 				// Broadcast game completion event
