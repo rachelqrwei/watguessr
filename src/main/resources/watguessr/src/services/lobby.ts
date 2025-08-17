@@ -109,12 +109,12 @@ export function leaveLobby(user: User): void {
 /**
  * Start the multiplayer game
  */
-export function startGame(lobbyId: string): void {
+export function startGame(lobbyId: string, roundCount: number, timer: number): void {
   if (!stompClient || !stompClient.connected) return;
 
  stompClient.publish({
     destination: "/app/lobby/start",
-    body: JSON.stringify({ lobbyId }),
+    body: JSON.stringify({ lobbyId, roundCount, timer }),
   });
 }
 
