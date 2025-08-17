@@ -4,6 +4,7 @@ import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +18,14 @@ public class LobbyService {
 	private final GameRepository gameRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
+	private final GameService gameService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
+		this.gameService = gameService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
@@ -97,26 +100,32 @@ public class LobbyService {
 		messagingTemplate.convertAndSend("/topic/lobbies/public", "update");
 	}
 
-	public void tryStartGame(UUID lobbyId) {
+	public UUID tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
 		List<User> users = getUsers(lobbyId);
 		if (users.size() >= 2) { // min 2 players
 			// Get game details
-			Game game = gameRepository.findById(lobbyId).orElse(null);
-			if (game != null) {
-							// Initialize multiplayer game state with full user objects
-			multiplayerGameStateService.initializeGame(
-				lobbyId, 
-				users, 
-				game.getMultiplayerRoundCount(), 
-				game.getMultiplayerTimer()
-			);
+			UUID gameId = gameService.createMultiplayerGame(roundCount, timer);
+			if (gameId != null) {
+				// Initialize multiplayer game state with full user objects
+				multiplayerGameStateService.initializeGame(
+					gameId,
+					users,
+					roundCount,
+					timer
+				);
+			} else {
+				System.err.println("❌ Failed to create game - gameId is null");
 			}
 			
-			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(users));
+			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), users));
 			lobbies.remove(lobbyId); // reset lobby after game starts
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
+
+			return gameId;
+		} else {
+			return null;
 		}
 	}
 
@@ -124,14 +133,23 @@ public class LobbyService {
 	public static class LobbyUpdate {
 		private List<User> users;
 		public LobbyUpdate(List<User> users) { this.users = users; }
-		public List<User> getUsers() { return users; }
+		public List<User> getUsers() { return this.users; }
 		public void setUsers(List<User> users) { this.users = users; }
 	}
 
 	public static class GameStart {
+		private String gameId;
 		private List<User> users;
-		public GameStart(List<User> users) { this.users = users; }
-		public List<User> getUsers() { return users; }
+		
+		public GameStart(String gameId, List<User> users) { 
+			this.gameId = gameId; 
+			this.users = users; 
+		}
+		
+		public String getGameId() { return this.gameId; }
+		public void setGameId(String gameId) { this.gameId = gameId; }
+		
+		public List<User> getUsers() { return this.users; }
 		public void setUsers(List<User> users) { this.users = users; }
 	}
 }

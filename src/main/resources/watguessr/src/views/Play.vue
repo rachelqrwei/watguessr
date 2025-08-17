@@ -1,8 +1,10 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
-  
 
   <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
+
+  <!-- Player Disconnection Alert -->
+  <PlayerDisconnectionAlert v-if="getGameMode === 'multiplayer'" />
 
   <div class="game-container">
     <div v-if="getCurrentView === 'Map'" class="view-pane">
@@ -45,6 +47,15 @@
 
   <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
+
+    <!-- Development: Test disconnection button for multiplayer -->
+    <button
+      v-if="getGameMode === 'multiplayer'"
+      class="test-disconnect-btn"
+      @click="testPlayerDisconnection"
+    >
+      🧪 Test Disconnection
+    </button>
   </div>
   <div v-else-if="getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
@@ -70,7 +81,8 @@ import PlayRankedScoreTracker from "@/views/play-components/score-trackers/Play.
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
- 
+import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
+
 
 export default {
   components: {
@@ -83,6 +95,7 @@ export default {
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
     PlayFloorPanel,
+    PlayerDisconnectionAlert,
   },
   data() {
     return {
@@ -204,7 +217,9 @@ export default {
       'multiplayerGame_updatePlayerStatus',
       'multiplayerGame_setPlayerReady',
       'multiplayerGame_disconnect',
-      'multiplayerGame_endGame'
+      'multiplayerGame_endGame',
+      'multiplayerGame_startDisconnectionCheck',
+      'multiplayerGame_stopDisconnectionCheck'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -293,12 +308,7 @@ export default {
           return;
         }
 
-        // Set player as ready for next round
-        console.log('🕹️ Setting player as ready for next round...');
         this.multiplayerGame_setPlayerReady();
-
-        // The WebSocket will handle round progression when all players are ready
-        console.log('⏳ Player marked as ready for next round. Waiting for other players...');
 
         // Debug: Check if round progression works properly
         setTimeout(() => {
@@ -315,6 +325,20 @@ export default {
 
     resetTimer() {
       this.timeLeft = 60000
+    },
+
+    // Development: Test player disconnection
+    testPlayerDisconnection() {
+      const players = this.multiplayerGame_getPlayers;
+      const playerIds = Object.keys(players);
+
+      if (playerIds.length > 1) {
+        // Simulate another player disconnecting
+        const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
+        if (otherPlayerId) {
+          this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
+        }
+      }
     }
   },
   mounted() {
@@ -336,6 +360,9 @@ export default {
 
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
+
+      // Start disconnection monitoring
+      this.$store.dispatch('multiplayerGame/multiplayerGame_startDisconnectionCheck');
     }
   },
   beforeUnmount() {
@@ -344,6 +371,7 @@ export default {
     // Disconnect from multiplayer WebSocket when leaving
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
+      this.$store.dispatch('multiplayerGame/multiplayerGame_stopDisconnectionCheck');
     }
   }
 }
@@ -413,6 +441,27 @@ export default {
 
 .test-end-btn:hover {
   color: white;
+}
+
+.test-disconnect-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.test-disconnect-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
 }
 
 .submit-button {
