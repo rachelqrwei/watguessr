@@ -21,7 +21,6 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     const round: any = await response.json();
     commit('SET_ROUND_ID', round?.id);
-    console.log("Round started");
 
     // Store correct answer information if available
     if (round?.scene) {

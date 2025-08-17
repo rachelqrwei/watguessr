@@ -25,6 +25,8 @@ export const mutations: MutationTree<GuessState> = {
   },
   RESET_GUESS(state) {
     //reset everything except user id
+    console.log("guess reset");
+
     state.time = 0;
     state.building = null;
     state.guessX = null;
