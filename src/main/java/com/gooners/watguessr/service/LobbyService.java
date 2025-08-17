@@ -17,12 +17,14 @@ public class LobbyService {
 	private final GameRepository gameRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
+	private final GameService gameService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, GameService gameService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
+		this.gameService = gameService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
@@ -97,18 +99,18 @@ public class LobbyService {
 		messagingTemplate.convertAndSend("/topic/lobbies/public", "update");
 	}
 
-	public void tryStartGame(UUID lobbyId) {
+	public void tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
 		List<User> users = getUsers(lobbyId);
 		if (users.size() >= 2) { // min 2 players
 			// Get game details
-			Game game = gameRepository.findById(lobbyId).orElse(null);
-			if (game != null) {
+			UUID gameId = gameService.createMultiplayerGame(roundCount, timer);
+			if (gameId != null) {
 							// Initialize multiplayer game state with full user objects
 			multiplayerGameStateService.initializeGame(
 				lobbyId, 
-				users, 
-				game.getMultiplayerRoundCount(), 
-				game.getMultiplayerTimer()
+				users,
+				roundCount,
+				timer
 			);
 			}
 			
