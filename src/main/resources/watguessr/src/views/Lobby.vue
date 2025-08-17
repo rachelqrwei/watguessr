@@ -96,7 +96,7 @@ export default {
 
     startGameClick() {
       if (this.lobbyId) {
-        startGame(this.lobbyId); // broadcast to all clients that game is starting
+        startGame(this.lobbyId, this.lobbyInfo.multiplayerRoundCount, this.lobbyInfo.multiplayerTimer); // broadcast to all clients that game is starting
       }
     },
 
@@ -147,10 +147,10 @@ export default {
           // The lobby system has already created the game and provided the gameId
           if (startInfo.gameId) {
             console.log('🎮 Game started with gameId from lobby:', startInfo.gameId);
-            
+
             // Set the game ID from the lobby
             this.$store.commit('multiplayerGame/MG_SET_GAME_ID', startInfo.gameId);
-            
+
             // Set game settings from lobby info
             this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
             this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 60);
@@ -165,10 +165,10 @@ export default {
               };
             });
             this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
-            
+
             // Connect to multiplayer game WebSocket using the lobby's gameId
             connectToMultiplayerGame(startInfo.gameId);
-            
+
             // Navigate to play with the lobby's gameId
             this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: startInfo.gameId } });
           } else {
