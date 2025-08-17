@@ -82,7 +82,14 @@
       <p>Loading profile...</p>
     </div>
     <div v-else-if="errorMessage" class="error">{{ errorMessage }}</div>
-    <div v-else class="empty">No profile data found.</div>
+    <div v-else class="profile-empty-section">
+      <div class="profile-empty">
+        <div class="profile-empty-header">
+          <h2>Profile Stats</h2>
+        </div>
+        <div class="profile-empty-body">No profile data found.</div>
+      </div>
+    </div>
   </transition>
 </template>
 
@@ -159,6 +166,36 @@ export default {
 </script>
 
 <style scoped>
+.profile-empty-section {
+  background: rgba(42, 42, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  margin-bottom: 15px;
+}
+
+.profile-empty {
+  padding: 22px 22px 22px 22px;
+}
+
+.profile-empty-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.profile-empty-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.profile-empty-body {
+  color: var(--light-grey);
+}
+
 .profile {
   background: rgba(42, 42, 44, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.12);
