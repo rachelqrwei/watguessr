@@ -18,6 +18,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
     // Reset the game and initialize the current player
     commit('MG_RESET_GAME', { userId, username });
+    commit('gameInfo/RESET_GAME', null, {root: true});
 
     // Now we can safely set the status since the player exists
     commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
