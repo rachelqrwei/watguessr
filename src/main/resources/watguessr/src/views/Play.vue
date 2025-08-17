@@ -1,6 +1,5 @@
 <template>
   <div class="play-background" aria-hidden="true"></div>
-  
 
   <PlayStopwatch v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')" />
 
@@ -48,11 +47,11 @@
 
   <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
-    
+
     <!-- Development: Test disconnection button for multiplayer -->
-    <button 
-      v-if="getGameMode === 'multiplayer'" 
-      class="test-disconnect-btn" 
+    <button
+      v-if="getGameMode === 'multiplayer'"
+      class="test-disconnect-btn"
       @click="testPlayerDisconnection"
     >
       🧪 Test Disconnection
@@ -83,7 +82,7 @@ import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerR
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
- 
+
 
 export default {
   components: {
@@ -309,12 +308,7 @@ export default {
           return;
         }
 
-        // Set player as ready for next round
-        console.log('🕹️ Setting player as ready for next round...');
         this.multiplayerGame_setPlayerReady();
-
-        // The WebSocket will handle round progression when all players are ready
-        console.log('⏳ Player marked as ready for next round. Waiting for other players...');
 
         // Debug: Check if round progression works properly
         setTimeout(() => {
@@ -332,12 +326,12 @@ export default {
     resetTimer() {
       this.timeLeft = 60000
     },
-    
+
     // Development: Test player disconnection
     testPlayerDisconnection() {
       const players = this.multiplayerGame_getPlayers;
       const playerIds = Object.keys(players);
-      
+
       if (playerIds.length > 1) {
         // Simulate another player disconnecting
         const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
@@ -366,7 +360,7 @@ export default {
 
       // Update player status to 'playing'
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
-      
+
       // Start disconnection monitoring
       this.$store.dispatch('multiplayerGame/multiplayerGame_startDisconnectionCheck');
     }

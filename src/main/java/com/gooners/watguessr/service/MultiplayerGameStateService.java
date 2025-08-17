@@ -50,7 +50,6 @@ public class MultiplayerGameStateService {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
 			player.setScore(score);
 			player.setStatus(status);
-			
 			broadcastGameState(gameId);
 			
 			// Check if all players completed the round
@@ -58,6 +57,8 @@ public class MultiplayerGameStateService {
 				gameState.setGameStatus("round-complete");
 				broadcastGameState(gameId);
 			}
+		} else {
+			System.err.println("❌ Failed to update player progress: gameState=" + (gameState != null) + ", playerExists=" + (gameState != null && gameState.getPlayers().containsKey(userId)));
 		}
 	}
 	
@@ -185,7 +186,10 @@ public class MultiplayerGameStateService {
 	private void broadcastGameState(UUID gameId) {
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
-			messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", gameState);
+			String topic = "/topic/game/" + gameId + "/state";
+			messagingTemplate.convertAndSend(topic, gameState);
+		} else {
+			System.err.println("❌ Cannot broadcast game state: gameState is null for gameId: " + gameId);
 		}
 	}
 
