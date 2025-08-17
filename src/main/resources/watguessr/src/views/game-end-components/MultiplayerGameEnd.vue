@@ -61,11 +61,11 @@
     </div>
 
     <div class="button-section">
-      <button class="btn restart-btn" @click="restartGame">
-        🔄 Restart Game
+      <button class="btn home-btn" @click="goLeaderboard">
+        🏆 Leaderboard
       </button>
       <button class="btn home-btn" @click="goHome">
-        🏆 Leaderboard / Home
+        🏠 Home
       </button>
     </div>
   </div>
@@ -119,10 +119,10 @@ export default {
       const player = this.multiplayerGame_getPlayers[playerId];
       return player?.username || `Player`;
     },
-    restartGame() {
+    goLeaderboard() {
       // Disconnect from current game and return to lobby
       this.multiplayerGame_disconnect();
-      this.$router.push({ name: "lobby", query: { gameMode: "multiplayer" } });
+      this.$router.push("/leaderboard");
     },
     goHome() {
       this.multiplayerGame_disconnect();
