@@ -92,12 +92,15 @@ public class MatchmakingService {
 				newEntry.getCreatedAt().minusMinutes(QUEUE_TIMEOUT_MINUTES)
 		);
 
+		// Remove the current user from compatible players to prevent self-matching
+		compatiblePlayers.removeIf(player -> player.getUser().getId().equals(newUser.getId()));
+
 		if (!compatiblePlayers.isEmpty()) {
 			// Found a match! Take the closest ELO player
 			MatchmakingQueue opponent = findClosestEloPlayer(compatiblePlayers, userElo);
 			createRankedSession(Arrays.asList(newEntry, opponent));
 		} else {
-			notifyUserInQueue(newEntry.getUser().getId(), 1, MAX_PLAYERS_RANKED);
+			notifyUserInQueue(newEntry.getUser().getId());
 		}
 	}
 
@@ -135,17 +138,20 @@ public class MatchmakingService {
 
 	private void notifyPlayerMatched(UUID userId, UUID gameId, List<MatchmakingQueue> allPlayers) {
 		List<Map<String, Object>> playerList = allPlayers.stream()
-				.map(p -> Map.of(
-						"id", p.getUser().getId().toString(),
-						"username", p.getUser().getUsername(),
-						"elo", p.getUser().getElo()
-				))
+				.map(p -> {
+					Map<String, Object> playerMap = new HashMap<>();
+					playerMap.put("id", p.getUser().getId().toString());
+					playerMap.put("username", p.getUser().getUsername());
+					playerMap.put("elo", p.getUser().getElo());
+					return playerMap;
+				})
 				.collect(Collectors.toList());
 
-		Map<String, Object> update = createMatchmakingUpdate("match_found", Map.of(
-				"gameId", gameId.toString(),
-				"players", playerList
-		));
+		Map<String, Object> data = new HashMap<>();
+		data.put("gameId", gameId.toString());
+		data.put("players", playerList);
+
+		Map<String, Object> update = createMatchmakingUpdate("match_found", data);
 
 		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
 	}
@@ -184,9 +190,10 @@ public class MatchmakingService {
 	}
 
 	private void notifyUserQueueTimeout(UUID userId) {
-		Map<String, Object> update = createMatchmakingUpdate("queue_timeout", Map.of(
-				"message", "Queue timeout - please try again"
-		));
+		Map<String, Object> data = new HashMap<>();
+		data.put("message", "Queue timeout - please try again");
+
+		Map<String, Object> update = createMatchmakingUpdate("queue_timeout", data);
 
 		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
 	}

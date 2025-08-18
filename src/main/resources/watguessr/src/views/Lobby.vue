@@ -85,6 +85,15 @@
 
       <!-- RANKED -->
       <div v-else-if="gameModeLabel === 'ranked'">
+        <div class="ranked-info">
+          <p class="waiting-msg">🎯 Ranked matchmaking enabled</p>
+          <p class="waiting-msg" style="font-size: 0.9rem; margin-top: 8px;">
+            WebSocket connection for finding opponents
+          </p>
+        </div>
+        <button class="test-button" @click="testWebSocketConnection" style="margin-bottom: 16px;">
+          🧪 Test WebSocket
+        </button>
         <button class="play-button" @click="goToPlay">PLAY RANKED</button>
       </div>
     </div>
@@ -96,6 +105,7 @@ import { mapMutations, mapActions } from "vuex";
 import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
 import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
+import { connectToMatchmakingWebSocket, disconnectFromMatchmakingWebSocket, joinRankedQueue, testMatchmakingWebSocket } from "@/services/matchmakingWebSocket";
 
 export default {
   name: "Lobby",
@@ -175,6 +185,17 @@ export default {
           };
         }
       }
+    },
+
+    testWebSocketConnection() {
+      console.log('🧪 Testing WebSocket connection...');
+      testMatchmakingWebSocket();
+
+      // Also test joining queue
+      setTimeout(() => {
+        console.log('🎯 Testing join queue...');
+        joinRankedQueue(this.myId);
+      }, 1000);
     }
   },
   mounted() {
@@ -235,10 +256,18 @@ export default {
       if (this.lobbyId) {
         joinLobby(currentUser, this.lobbyId);
       }
+    } else if (this.gameModeLabel === 'ranked') {
+      // Connect to matchmaking WebSocket for ranked mode
+      console.log('🎯 Connecting to matchmaking WebSocket for ranked mode...');
+      connectToMatchmakingWebSocket();
     }
   },
   beforeUnmount() {
-    if (this.gameModeLabel === 'multiplayer') disconnectLobby();
+    if (this.gameModeLabel === 'multiplayer') {
+      disconnectLobby();
+    } else if (this.gameModeLabel === 'ranked') {
+      disconnectFromMatchmakingWebSocket();
+    }
   },
 };
 </script>
@@ -453,6 +482,31 @@ export default {
 
 .start-game-button:hover {
   background: #45a049;
+}
+
+.test-button {
+  background: #2196F3;
+  color: var(--white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.test-button:hover {
+  background: #1976D2;
+  transform: translateY(-1px);
+}
+
+.ranked-info {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
 @keyframes pulse {
