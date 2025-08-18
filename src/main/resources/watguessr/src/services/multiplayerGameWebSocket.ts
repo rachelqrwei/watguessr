@@ -28,10 +28,20 @@ export interface PlayerStateDto {
 }
 
 export function connectToMultiplayerGame(gameId: string) {
-  const socket = new SockJS('http://localhost:5173/ws-game');
+  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
 
-  stompClient.connect({}, () => {
+  // Get current user from store
+  const currentUser = store.getters['user/getCurrentUser'];
+  const userId = currentUser?.id;
+  const username = currentUser?.username;
+
+  stompClient.connect({
+    // Add user information to connection headers
+    username: username,
+    userId: userId,
+    gameId: gameId
+  }, () => {
     console.log('Connected to Multiplayer Game WebSocket');
 
     // Subscribe to game state updates for this specific game
@@ -51,6 +61,15 @@ export function connectToMultiplayerGame(gameId: string) {
       const completionData = JSON.parse(message.body);
       handleGameComplete(completionData);
     });
+
+    // Send a connection confirmation with user and game info
+    if (stompClient && stompClient.connected) {
+      stompClient.send('/app/game/connect', {}, JSON.stringify({
+        gameId: gameId,
+        userId: userId,
+        username: currentUser?.username || 'Player'
+      }));
+    }
   }, (error: any) => {
     console.error('WebSocket connection error:', error);
     // Retry connection after 3 seconds
@@ -205,7 +224,7 @@ function handleRoundStart(roundData: any) {
 // Helper function to fetch scene image
 async function fetchSceneImage(roundId: string) {
   try {
-    const response = await fetch(`http://localhost:5173/api/scene/image?roundId=${roundId}`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${roundId}`);
     if (response.ok) {
       const imageUrl = await response.text();
       store.commit('round/SET_IMAGE_URL', imageUrl || null);

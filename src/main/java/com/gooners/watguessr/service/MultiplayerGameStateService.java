@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MultiplayerGameStateService {
 	
 	private final Map<UUID, MultiplayerGameStateDto> gameStates = new ConcurrentHashMap<>();
+	private final Map<String, UUID> userGameSessions = new ConcurrentHashMap<>(); // userId -> gameId
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
 
@@ -67,9 +68,38 @@ public class MultiplayerGameStateService {
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
 			player.setStatus(status);
+			
+			// Track user session when they connect
+			if ("playing".equals(status) || "ready".equals(status)) {
+				userGameSessions.put(userId, gameId);
+			}
+			
+			// Remove session tracking when player disconnects or leaves
+			if ("disconnected".equals(status) || "ended".equals(status) || "completed".equals(status)) {
+				userGameSessions.remove(userId);
+			}
+			
 			broadcastGameState(gameId);
 		} else {
 			System.err.println("❌ Failed to set player status: gameState=" + (gameState != null) + ", playerExists=" + (gameState != null && gameState.getPlayers().containsKey(userId)));
+		}
+	}
+
+	public void trackUserSession(String userId, UUID gameId) {
+		userGameSessions.put(userId, gameId);
+		System.out.println("📱 Tracking user session: " + userId + " -> game: " + gameId);
+	}
+
+	public UUID getUserGameId(String userId) {
+		return userGameSessions.get(userId);
+	}
+
+	public void removeUserSession(String userId) {
+		UUID gameId = userGameSessions.remove(userId);
+		if (gameId != null) {
+			System.out.println("🔌 Removed user session: " + userId + " from game: " + gameId);
+			// Mark player as disconnected in the game
+			setPlayerStatus(gameId, userId, "disconnected");
 		}
 	}
 

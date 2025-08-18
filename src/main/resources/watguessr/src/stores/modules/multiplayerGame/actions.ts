@@ -129,5 +129,90 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   // Disconnect from WebSocket when leaving
   multiplayerGame_disconnect() {
     disconnectFromMultiplayerGame();
+  },
+
+  // Handle player disconnection (called when another player disconnects)
+  multiplayerGame_handlePlayerDisconnection({ state, commit, dispatch }, playerId: string) {
+    console.log('🔌 Handling player disconnection:', playerId);
+    
+    // Mark the player as disconnected
+    commit('MG_SET_PLAYER_DISCONNECTED', playerId);
+    
+    // Check if game should be abandoned (less than 2 active players)
+    const activePlayerCount = Object.values(state.multiplayerGame_players)
+      .filter(player => player.status !== 'disconnected').length;
+    
+    if (activePlayerCount < 2) {
+      console.log('🚨 Game abandoned - not enough players');
+      commit('MG_SET_GAME_ABANDONED');
+      
+      // Redirect to home after a delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 5000);
+    }
+  },
+
+  // Start disconnection monitoring for the current player
+  multiplayerGame_startDisconnectionMonitoring({ state, commit, rootGetters, dispatch }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+    
+    if (!userId || !state.multiplayerGame_gameId) return;
+    
+    // Set up page visibility change handler
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('📱 Page hidden - player may have switched tabs/apps');
+        // Send a "away" status to indicate player is not actively playing
+        dispatch('multiplayerGame_updatePlayerStatus', { status: 'away' });
+      } else {
+        console.log('📱 Page visible - player returned');
+        // Send "playing" status when player returns
+        dispatch('multiplayerGame_updatePlayerStatus', { status: 'playing' });
+      }
+    };
+    
+    // Set up beforeunload handler
+    const handleBeforeUnload = () => {
+      console.log('🚪 Page unloading - player leaving');
+      // Send disconnect status
+      dispatch('multiplayerGame_updatePlayerStatus', { status: 'disconnected' });
+    };
+    
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Store references for cleanup
+    state._disconnectionHandlers = {
+      visibilityChange: handleVisibilityChange,
+      beforeUnload: handleBeforeUnload
+    };
+  },
+
+  // Stop disconnection monitoring
+  multiplayerGame_stopDisconnectionMonitoring({ state }) {
+    if (state._disconnectionHandlers) {
+      document.removeEventListener('visibilitychange', state._disconnectionHandlers.visibilityChange);
+      window.removeEventListener('beforeunload', state._disconnectionHandlers.beforeUnload);
+      state._disconnectionHandlers = undefined;
+    }
+  },
+
+  // Handle game abandonment when not enough players remain
+  multiplayerGame_handleGameAbandoned({ commit, dispatch }) {
+    console.log('🚨 Game abandoned - redirecting to home');
+    
+    // Reset the game state
+    commit('MG_RESET_GAME');
+    commit('gameInfo/RESET_GAME', null, {root: true});
+    commit('round/RESET_ROUND', null, {root: true});
+    
+    // Disconnect from WebSocket
+    dispatch('multiplayerGame_disconnect');
+    
+    // Redirect to home page
+    window.location.href = '/';
   }
 };

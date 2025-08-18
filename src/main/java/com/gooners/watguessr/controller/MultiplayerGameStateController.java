@@ -55,6 +55,21 @@ public class MultiplayerGameStateController {
 		multiplayerGameStateService.startRound(gameId, sceneId);
 	}
 
+	@MessageMapping("/game/connect")
+	public void handlePlayerConnect(@Payload PlayerConnectRequest request) {
+		UUID gameId = UUID.fromString(request.getGameId());
+		String userId = request.getUserId();
+		String username = request.getUsername();
+		
+		System.out.println("🔌 Player connected: " + username + " (ID: " + userId + ") to game: " + gameId);
+		
+		// Track the user session
+		multiplayerGameStateService.trackUserSession(userId, gameId);
+		
+		// Update player status to 'playing' when they connect
+		multiplayerGameStateService.setPlayerStatus(gameId, userId, "playing");
+	}
+
 	/**
 	 * Request DTOs
 	 */
@@ -97,5 +112,20 @@ public class MultiplayerGameStateController {
 
 		public String getSceneId() { return sceneId; }
 		public void setSceneId(String sceneId) { this.sceneId = sceneId; }
+	}
+
+	public static class PlayerConnectRequest {
+		private String gameId;
+		private String userId;
+		private String username;
+
+		public String getGameId() { return gameId; }
+		public void setGameId(String gameId) { this.gameId = gameId; }
+
+		public String getUserId() { return userId; }
+		public void setUserId(String userId) { this.userId = userId; }
+
+		public String getUsername() { return username; }
+		public void setUsername(String username) { this.username = username; }
 	}
 }
