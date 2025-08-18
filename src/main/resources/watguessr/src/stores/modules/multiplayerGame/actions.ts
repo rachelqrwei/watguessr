@@ -58,8 +58,11 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     try {
       const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
+      const token = rootGetters['user/getToken'];
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/multiplayer?gameId=${state.multiplayerGame_gameId}&userId=${userId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {

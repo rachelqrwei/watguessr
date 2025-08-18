@@ -4,15 +4,20 @@ import type { RootState } from '../../index';
 import type { RoundState } from './state';
 
 export const actions: ActionTree<RoundState, RootState> = {
-  async startRound({ state, commit }, { gameId }): Promise<RoundState> {
+  async startRound({ state, commit, rootGetters }, { gameId }): Promise<RoundState> {
     //reset data from prev round (if any)
     commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
 
     if (!gameId) throw new Error('Game ID not found');
 
+    const token = rootGetters['user/getToken'];
+
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/create?gameId=${gameId}`, {
       method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     if (!response.ok) {
