@@ -7,10 +7,8 @@ export const actions = {
     commit('SET_ERROR', null);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        }
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) throw new Error('Failed to fetch user');
       const user = await response.json();
@@ -35,9 +33,7 @@ export const actions = {
     state.error = null;
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/leaderboard`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-        }
+        credentials: "include"
       });
       if (!response.ok) throw new Error(`Failed to fetch leaderboard for user: ${response.status}`);
       return await response.json();
@@ -87,6 +83,7 @@ export const actions = {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });

@@ -61,7 +61,7 @@ export default {
         params.set('limit', '5');
 
         const response = await fetch('/api/user/leaderboard?${params.toString()}', {
-          headers: { Authorization: `Bearer ${token}` }
+          credentials: "include"
         });
         if (!response.ok) throw new Error(`Search failed: ${response.status}`);
 

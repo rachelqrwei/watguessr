@@ -35,7 +35,8 @@ export const actions: ActionTree<GuessState, RootState> = {
       const token = rootGetters['user/getToken'];
       const createResponse = await fetch(`${baseUrl}/api/guess`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(createGuessBody)
       });
 
@@ -47,7 +48,8 @@ export const actions: ActionTree<GuessState, RootState> = {
         `${baseUrl}/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
         {
           method: 'POST',
-          credentials: 'include',
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(state),
         }
       );
