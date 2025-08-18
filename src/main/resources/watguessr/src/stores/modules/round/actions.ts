@@ -9,6 +9,9 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
 
+    commit('gameInfo/SET_MAP_CENTER', null, {root: true});
+    commit('gameInfo/SET_MAP_ZOOM', null, {root: true});
+
     if (!gameId) throw new Error('Game ID not found');
 
     const token = rootGetters['user/getToken'];

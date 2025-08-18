@@ -40,6 +40,7 @@
       :lat="getGuessX"
       :lng="getGuessY"
       :floors="availableFloors"
+      :buildings-map="getBuildingsMap"
       v-model:floor="selectedFloor"
     />
   </div>
@@ -144,8 +145,7 @@ export default {
       const buildingName = this.getGuessBuilding;
       if (!buildingName) return [];
       const b = this.getBuildingsMap?.[buildingName];
-      const floors = b?.floors || [];
-      return Array.isArray(floors) ? floors.map(f => String(f)) : [];
+      return b?.floors || [];
     },
 
     getNextRoundButtonText() {
@@ -184,17 +184,23 @@ export default {
     },
     getGuessBuilding(newVal, oldVal) {
       if (newVal !== oldVal) {
-        const floors = this.availableFloors;
-        this.selectedFloor = (floors && floors.length > 0) ? floors[0] : '';
+        const buildingExists = this.getBuildingsMap && this.getBuildingsMap[newVal];
+        if (!buildingExists) {
+          // Building not in database, clear floor selection
+          this.selectedFloor = '';
+        }
+        // Let PlayFloorPanel handle floor selection with proper sorting
       }
     },
     getCurrentView(newVal, oldVal) {
-      // Reset selections when starting a new round (view changes back to 'Image')
-      if (newVal === 'Image' && oldVal === 'RoundEnd') {
+      // Reset selections when starting a new round (view changes from 'RoundEnd' to either 'Image' or 'Map')
+      if (oldVal === 'RoundEnd' && (newVal === 'Image' || newVal === 'Map')) {
         console.log('New round started, resetting selections');
         this.selectedBuilding = '';
         this.selectedFloor = '';
         this.resetTimer();
+        this.SET_MAP_CENTER(null);
+        this.SET_MAP_ZOOM(null);
       }
     },
     singleplayerGame_getShouldEnd(newVal) {
@@ -249,7 +255,9 @@ export default {
       'fetchAllBuildings'
     ]),
     ...mapMutations('gameInfo', [
-      "SET_CURRENT_VIEW"
+      "SET_CURRENT_VIEW",
+      "SET_MAP_CENTER",
+      "SET_MAP_ZOOM"
     ]),
     ...mapMutations('singleplayerGame', [
       'SG_INCREMENT_ROUND'
@@ -286,7 +294,7 @@ export default {
       // handle W/D keys for floor switching (only when on Map or Image view)
       if ((e.code === 'KeyW' || e.code === 'KeyS') && (this.getCurrentView === 'Map' || this.getCurrentView === 'Image')) {
         e.preventDefault();
-        this.switchFloor(e.code === 'KeyW' ? 'up' : 'down');
+        this.switchFloor(e.code === 'KeyW' ? 'down' : 'up');
         return;
       }
     },
@@ -296,12 +304,20 @@ export default {
         this.errorMessage = "Please select a building.";
         return;
       }
-      if (!this.selectedFloor) {
+
+      // Check if the building exists in our database
+      const buildingExists = this.getBuildingsMap && this.getBuildingsMap[this.getGuessBuilding];
+
+      if (buildingExists && !this.selectedFloor) {
         this.errorMessage = "Please select a floor.";
         return;
       }
+
       this.errorMessage = "";
-      this.SET_FLOOR(this.selectedFloor);
+
+      // If building exists in database, use selected floor; otherwise use fallback
+      const floorToSubmit = buildingExists ? this.selectedFloor : 'floor';
+      this.SET_FLOOR(floorToSubmit);
 
       // For multiplayer, update status to indicate player is submitting
       if (this.getGameMode === 'multiplayer') {
@@ -314,7 +330,7 @@ export default {
     async nextRoundOrEndGame() {
       console.log('🎮 nextRoundOrEndGame called, gameMode:', this.getGameMode);
       console.log('🎮 singleplayerGame_getShouldEnd:', this.singleplayerGame_getShouldEnd);
-      
+
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
@@ -338,6 +354,10 @@ export default {
         this.selectedBuilding = null;
         this.selectedFloor = '';
         this.resetTimer();
+
+        // Clear saved map position for new round
+        this.SET_MAP_CENTER(null);
+        this.SET_MAP_ZOOM(null);
 
         this.SET_CURRENT_VIEW("Image");
       } else if (this.getGameMode === 'multiplayer') {
@@ -374,7 +394,9 @@ export default {
     },
 
     switchFloor(direction) {
-      if (!this.availableFloors || this.availableFloors.length === 0) return;
+      // If building doesn't exist in database, don't allow floor switching
+      const buildingExists = this.getBuildingsMap && this.getBuildingsMap[this.getGuessBuilding];
+      if (!buildingExists || !this.availableFloors || this.availableFloors.length === 0) return;
 
       const currentIndex = this.availableFloors.findIndex(f => String(f) === String(this.selectedFloor));
       let newIndex;
@@ -382,7 +404,7 @@ export default {
       if (direction === 'up') {
         newIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
       } else {
-        newIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, this.availableFloors.length - 1);
+        newIndex = currentIndex >= this.availableFloors.length - 1 ? this.availableFloors.length - 1 : currentIndex + 1;
       }
 
       this.selectedFloor = this.availableFloors[newIndex];
@@ -395,6 +417,10 @@ export default {
     onCountdownComplete() {
       this.showCountdown = false;
       this.showStopwatch = true;
+
+      // also clear saved map view at round start
+      this.SET_MAP_CENTER(null);
+      this.SET_MAP_ZOOM(null);
 
       // Start the round
       if (this.getGameMode === 'multiplayer') {
@@ -426,6 +452,10 @@ export default {
 
         this.SG_INCREMENT_ROUND();
         this.SET_CURRENT_VIEW("Image");
+
+        // clear saved map position for new round
+        this.SET_MAP_CENTER(null);
+        this.SET_MAP_ZOOM(null);
       } catch (error) {
         console.error('Failed to start singleplayer round:', error);
       }

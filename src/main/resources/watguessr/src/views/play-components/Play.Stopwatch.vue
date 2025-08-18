@@ -50,8 +50,9 @@ export default {
     },
 
     formattedTimeLeft() {
-      const ms = Math.floor((this.getGuessTime % 1000) / 10);
-      const totalSeconds = Math.floor(this.getGuessTime / 1000);
+      const remainingTime = Math.max(0, this.totalTime - this.getGuessTime);
+      const ms = Math.floor((remainingTime % 1000) / 10);
+      const totalSeconds = Math.floor(remainingTime / 1000);
       const s = Math.floor(totalSeconds % 60);
       const m = Math.floor(totalSeconds / 60);
       const pad = (n, z = 2) => String(n).padStart(z, '0');
@@ -93,6 +94,18 @@ export default {
         } else {
           // Time limit reached
           this.clearTimer();
+
+          // Set default values for timeout submission
+          // This ensures the backend receives valid data for default guess fallback
+          if (!this.$store.state.guess.building || this.$store.state.guess.guessX === null) {
+            this.$store.commit('guess/SET_BUILDING_AND_LOCATIONS', { building: 'NO_GUESS', guessX: 0.0, guessY: 0.0 });
+          }
+          if (!this.$store.state.guess.floor) {
+            // For timeout submissions, set a default floor
+            // The backend will handle this appropriately in the evaluateGuess method
+            this.$store.commit('guess/SET_FLOOR', 'UNKNOWN');
+          }
+
           // Use the same flow as manual submission so scoring/ending logic is consistent
           await this.submitGuess();
         }
