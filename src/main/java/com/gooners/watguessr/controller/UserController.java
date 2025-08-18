@@ -1,36 +1,39 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.dto.*;
+
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.gooners.watguessr.dto.LeaderboardUser;
-import com.gooners.watguessr.dto.MatchHistoryItem;
-import com.gooners.watguessr.dto.QueryResults;
-import com.gooners.watguessr.dto.UserDto;
-import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.EmailVerificationService;
-import com.gooners.watguessr.service.GameService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.web.bind.annotation.*;
+
+import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.service.UserService;
 
-import jakarta.validation.Valid;
+import com.gooners.watguessr.service.GameService;
 
 @RestController
 @RequestMapping("api/user")
 public class UserController {
-    
+
     private final UserService userService;
     private final UserMapper userMapper;
     private final EmailVerificationService emailVerificationService;
     private final GameService gameService;
-    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService, GameService gameService) {
+    private final JavaMailSender mailSender;
+
+    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService, GameService gameService, JavaMailSender mailSender) {
         this.userService = userService;
         this.userMapper = userMapper;
         this.emailVerificationService = emailVerificationService;
         this.gameService = gameService;
+        this.mailSender = mailSender;
     }
 
     @PostMapping(value = "/register")
@@ -49,13 +52,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/leaderboard")
-    public ResponseEntity<QueryResults<LeaderboardUser>>getLeaderboard(
+    public QueryResults<LeaderboardUser> getLeaderboard(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
 
-        return ResponseEntity.ok(userService.getLeaderboard(searchTerm, sortBy, limit, offset));
+        return this.userService.getLeaderboard(searchTerm, sortBy, limit, offset);
     }
 
     @PostMapping("/verify-otp")
@@ -80,5 +83,23 @@ public class UserController {
     @GetMapping(value = "/{id}/leaderboard") //for the profile stats section
     public LeaderboardUser getLeaderboardUserById(@PathVariable UUID id) {
         return userService.getLeaderboardUserById(id);
+    }
+
+    @PostMapping("/report-bug")
+    public ResponseEntity<String> reportBug(@RequestBody BugReportRequest request) {
+        try {
+            // Create email message
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo("watguessr@gmail.com");
+            message.setSubject(request.getSubject());
+            message.setText(request.getContent());
+
+            mailSender.send(message);
+
+            return ResponseEntity.ok("Bug report submitted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Failed to send bug report: " + e.getMessage());
+        }
     }
 }

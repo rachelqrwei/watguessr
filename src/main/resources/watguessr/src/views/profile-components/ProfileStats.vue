@@ -311,10 +311,15 @@ export default {
 }
 
 .card-label {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 0.78rem;
+  letter-spacing: 0.9px;
   color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-bottom: 6px;
-  letter-spacing: 0.2px;
 }
 
 .card-value {
@@ -458,8 +463,14 @@ export default {
 }
 
 .legend-label {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 0.78rem;
+  letter-spacing: 0.9px;
   color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   opacity: 0.9;
 }
 

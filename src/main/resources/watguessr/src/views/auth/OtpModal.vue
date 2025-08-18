@@ -1,6 +1,7 @@
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="otp-title">
+  <Transition name="modal-fade">
+    <div v-if="visible" class="modal-overlay" @click.self="$emit('close')">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="otp-title">
       <button class="close-btn" @click="$emit('close')" aria-label="Close">×</button>
 
       <h2 id="otp-title" class="title">Enter Verification Code</h2>
@@ -33,6 +34,7 @@
       <p v-if="success" class="success">Verified! Redirecting…</p>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script>

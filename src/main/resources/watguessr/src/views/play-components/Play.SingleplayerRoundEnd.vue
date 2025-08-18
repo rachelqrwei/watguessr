@@ -302,10 +302,14 @@ export default {
 
 .stat-label {
   display: block;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
   font-size: 12px;
-  color: #bbb;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.8px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   text-transform: uppercase;
   margin-bottom: 0px;
 }

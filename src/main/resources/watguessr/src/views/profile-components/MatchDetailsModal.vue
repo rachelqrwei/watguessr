@@ -1,6 +1,7 @@
 <template>
-  <div v-if="visible" class="modal-backdrop" @click.self="close">
-    <div class="modal">
+  <Transition name="modal-fade">
+    <div v-if="visible" class="modal-backdrop" @click.self="close">
+      <div class="modal">
       <div class="modal-header">
         <h3>Match Details</h3>
         <button class="close-btn" @click="close">✕</button>
@@ -32,6 +33,7 @@
       <div v-else class="error">{{ errorMessage }}</div>
     </div>
   </div>
+  </Transition>
 
 </template>
 
@@ -319,6 +321,8 @@ export default {
   color: #FF7F7F;
   border-color: rgba(255, 127, 127, 0.35);
 }
+
+
 </style>
 
 
