@@ -2,7 +2,10 @@
 import type { LeaderboardRequest, LeaderboardState, QueryResults } from './types';
 
 export const actions = {
-  async fetchLeaderboard({ commit, state }: { commit: Function; state: LeaderboardState }, query: LeaderboardRequest = {}) {
+  async fetchLeaderboard(
+    { commit, state, rootGetters }: { commit: Function; state: LeaderboardState; rootGetters: any },
+    query: LeaderboardRequest = {}
+  ) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
 
@@ -15,8 +18,7 @@ export const actions = {
       if (mergedQuery.limit !== undefined) params.append('limit', mergedQuery.limit.toString());
       if (mergedQuery.offset !== undefined) params.append('offset', mergedQuery.offset.toString());
 
-      const response = await fetch(`/api/user/leaderboard?${params.toString()}`);
-
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?sortBy=elo&limit=20&offset=0`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

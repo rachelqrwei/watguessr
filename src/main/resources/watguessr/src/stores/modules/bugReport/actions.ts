@@ -35,9 +35,9 @@ Reported via WatGuessr Bug Report Form
 
       const response = await fetch('/api/user/report-bug', {
         method: 'POST',
+        credentials: "include",
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${rootState.user.token}`
         },
         body: JSON.stringify({
           subject: `Bug Report: ${bugReport.title}`,

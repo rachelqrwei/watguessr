@@ -24,6 +24,7 @@ export class LobbyManager {
   static async createLobby(request: CreateLobbyRequest): Promise<LobbyDto> {
     const response = await fetch(`${API_BASE_URL}/lobby/create`, {
       method: 'POST',
+      credentials: "include",
       headers: {
         'Content-Type': 'application/json',
       },
@@ -69,6 +70,7 @@ export class LobbyManager {
   static async joinLobby(request: JoinLobbyRequest): Promise<LobbyDto> {
     const response = await fetch(`${API_BASE_URL}/lobby/join`, {
       method: 'POST',
+      credentials: "include",
       headers: {
         'Content-Type': 'application/json',
       },

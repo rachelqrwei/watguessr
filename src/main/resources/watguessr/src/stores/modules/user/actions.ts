@@ -7,10 +7,8 @@ export const actions = {
     commit('SET_ERROR', null);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        }
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) throw new Error('Failed to fetch user');
       const user = await response.json();
@@ -34,7 +32,9 @@ export const actions = {
     state.loading = true;
     state.error = null;
     try {
-      const response = await fetch(`/api/user/${userId}/leaderboard`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/leaderboard`, {
+        credentials: "include"
+      });
       if (!response.ok) throw new Error(`Failed to fetch leaderboard for user: ${response.status}`);
       return await response.json();
     } catch (err) {
@@ -59,7 +59,10 @@ export const actions = {
       params.set('offset', String(offset));
       params.set('limit', String(limit));
 
-      const res = await fetch(`/api/user/${userId}/match-history?${params.toString()}`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/match-history?${params.toString()}`, {
+        credentials: "include"
+      });
+
       if (!res.ok) throw new Error(`Failed to fetch match history: ${res.status}`);
 
       const data: { results: any[] } = await res.json();
@@ -72,7 +75,7 @@ export const actions = {
       state.loading = false;
     }
   },
-    
+
   async signUpUser({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string; password: string }) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
@@ -80,6 +83,7 @@ export const actions = {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -120,13 +124,12 @@ export const actions = {
       const authResponse = await response.json();
 
       // Extract token and user from the response
-      const { token, user } = authResponse;
+      const user = authResponse;
 
       // Store token and user in state
-      commit('SET_TOKEN', token);
       commit('SET_CURRENT_USER', user);
 
-      return { token, user };
+      return user;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       commit('SET_ERROR', message);
@@ -146,10 +149,7 @@ export const actions = {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${payload.id}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        },
+        credentials: "include",
         body: JSON.stringify(payload.updates)
       });
       if (!response.ok) throw new Error('Failed to update user');
@@ -200,17 +200,34 @@ export const actions = {
       commit('SET_LOADING', false);
     }
   },
-
   // Initialize authentication state on app startup
-  initializeAuth({ commit }: { state: UserState; commit: any }) {
-    commit('INITIALIZE_AUTH');
-  },
+  async initializeAuth({ commit }: { state: UserState; commit: any }) {
+    try {
+      const res = await fetch("http://localhost:5173/api/auth/me", {
+        method: "GET",
+        credentials: "include" // send HttpOnly cookie
+      });
 
+      if (res.ok) {
+        const userData = await res.json();
+        commit('SET_CURRENT_USER', userData);
+        commit('SET_AUTHENTICATED', true);
+      } else {
+        commit('SET_AUTHENTICATED', false);
+        commit('SET_CURRENT_USER', null);
+      }
+    } catch (err) {
+      console.error('Failed to initialize auth', err);
+      commit('SET_AUTHENTICATED', false);
+      commit('SET_CURRENT_USER', null);
+    }
+    //
+    // commit('INITIALIZE_AUTH');
+  },
   // Get stored token (useful for other parts of the app)
   getToken({ state }: { state: UserState }) {
     return state.token;
   },
-
   // Check if user is authenticated
   isAuthenticated({ state }: { state: UserState }) {
     return state.isAuthenticated;

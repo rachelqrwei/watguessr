@@ -3,13 +3,19 @@ import type { RootState } from '../../index';
 import type { BuildingState, BuildingDto } from './state';
 
 export const actions: ActionTree<BuildingState, RootState> = {
-  async fetchAllBuildings({ commit }) {
+  async fetchAllBuildings({ commit, rootGetters }) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
 
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
-      const resp = await fetch(`${baseUrl}/api/building/all`);
+
+      const token = rootGetters['user/getToken'];
+
+      const resp = await fetch(`${baseUrl}/api/building/all`, {
+        method: "GET",
+        credentials: "include"
+      });
       if (!resp.ok) {
         throw new Error(`Failed to fetch buildings: ${resp.status}`);
       }
@@ -21,4 +27,4 @@ export const actions: ActionTree<BuildingState, RootState> = {
       commit('SET_LOADING', false);
     }
   },
-}; 
+};

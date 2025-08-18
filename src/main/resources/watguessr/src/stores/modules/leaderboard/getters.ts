@@ -10,4 +10,10 @@ export const getters = {
   currentQuery: (state: LeaderboardState) => state.currentQuery,
   currentPage: (state: LeaderboardState) =>
     Math.floor((state.currentQuery.offset || 0) / (state.currentQuery.limit || 20)) + 1,
+  hasNextPage: (state: LeaderboardState) => {
+    if (!state.leaderboardData?.results) return false;
+    const limit = state.currentQuery.limit || 20;
+    const offset = state.currentQuery.offset || 0;
+    return state.leaderboardData.results.length === limit;
+  },
 };
