@@ -91,7 +91,6 @@ export default {
   },
   mounted() {
     this.renderMap();
-    window.addEventListener('keydown', this.onKeyDown);
   },
 
   // beforeUnmount() {

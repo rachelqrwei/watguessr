@@ -16,19 +16,17 @@ import java.util.UUID;
 public class SceneService {
     private final SceneRepository sceneRepository;
     private final RoundRepository roundRepository;
+    private final S3Service s3Service;
 
-    public SceneService(SceneRepository sceneRepository, RoundRepository roundRepository) {
+    public SceneService(SceneRepository sceneRepository, RoundRepository roundRepository, S3Service s3Service) {
         this.sceneRepository = sceneRepository;
         this.roundRepository = roundRepository;
+        this.s3Service = s3Service;
     }
 
     public Scene findById(UUID id) {
         return sceneRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Scene not found with id: " + id));
-    }
-
-    public List<Scene> findAll() {
-        return sceneRepository.findAll();
     }
 
     public Scene getRandom() {
@@ -39,16 +37,8 @@ public class SceneService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new RuntimeException("Round not found with id: " + roundId));
         Scene scene = round.getScene();
-        return scene.getImage();
-    }
-
-    public HashMap<String, Double> getLocationByRoundId(UUID roundId) {
-        Round round = roundRepository.findById(roundId)
-                .orElseThrow(() -> new RuntimeException("Round not found with id: " + roundId));
-        Scene scene = round.getScene();
-        HashMap<String, Double> location = new HashMap<>();
-        location.put("longitude", scene.getLocationX());
-        location.put("latitude", scene.getLocationY());
-        return location;
+        String imageKey = scene.getImage();
+        
+        return s3Service.generatePresignedUrl(imageKey);
     }
 }

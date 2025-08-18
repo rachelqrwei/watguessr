@@ -57,29 +57,9 @@ export default {
       return floors.map((f, idx) => ({ value: f, color: this.getFloorColor(idx, count) }));
     }
   },
-  mounted() {
-    window.addEventListener('keydown', this.onKeyDown);
-  },
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.onKeyDown);
-  },
   methods: {
     selectFloor(value) {
       this.$emit('update:floor', value);
-    },
-    onKeyDown(e) {
-      if (e.code !== 'ArrowUp' && e.code !== 'ArrowDown') return;
-      e.preventDefault();
-      const options = this.floorOptions || [];
-      if (!options.length) return;
-      const currentIndex = options.findIndex(o => String(o.value) === String(this.floor));
-      if (e.code === 'ArrowUp') {
-        const next = currentIndex <= 0 ? 0 : currentIndex - 1;
-        this.selectFloor(options[next].value);
-      } else if (e.code === 'ArrowDown') {
-        const next = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, options.length - 1);
-        this.selectFloor(options[next].value);
-      }
     },
     getFloorColor(index, count) {
       const palette = ['#B6FF7F', '#FFE37F', '#FFB07F', '#FF7F7F'];
