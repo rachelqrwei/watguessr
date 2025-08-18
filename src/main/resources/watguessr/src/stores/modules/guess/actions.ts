@@ -47,7 +47,7 @@ export const actions: ActionTree<GuessState, RootState> = {
         `${baseUrl}/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
         {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(state),
         }
       );

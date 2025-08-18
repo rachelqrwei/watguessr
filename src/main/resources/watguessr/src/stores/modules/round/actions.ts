@@ -14,10 +14,7 @@ export const actions: ActionTree<RoundState, RootState> = {
     const token = rootGetters['user/getToken'];
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/create?gameId=${gameId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      credentials: "include"
     });
 
     if (!response.ok) {

@@ -13,9 +13,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
     const token = rootGetters['user/getToken'];
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      }
+      credentials: 'include'
     });
     const gameId = await response.json();
 

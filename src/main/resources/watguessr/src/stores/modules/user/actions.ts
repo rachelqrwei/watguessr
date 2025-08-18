@@ -64,9 +64,7 @@ export const actions = {
       params.set('limit', String(limit));
 
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/match-history?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-        }
+        credentials: "include"
       });
 
       if (!res.ok) throw new Error(`Failed to fetch match history: ${res.status}`);
@@ -129,13 +127,12 @@ export const actions = {
       const authResponse = await response.json();
 
       // Extract token and user from the response
-      const { token, user } = authResponse;
+      const user = authResponse;
 
       // Store token and user in state
-      commit('SET_TOKEN', token);
       commit('SET_CURRENT_USER', user);
 
-      return { token, user };
+      return user;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       commit('SET_ERROR', message);
@@ -155,10 +152,7 @@ export const actions = {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${payload.id}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-          'Content-Type': 'application/json'
-        },
+        credentials: "include",
         body: JSON.stringify(payload.updates)
       });
       if (!response.ok) throw new Error('Failed to update user');
@@ -210,8 +204,28 @@ export const actions = {
     }
   },
   // Initialize authentication state on app startup
-  initializeAuth({ commit }: { state: UserState; commit: any }) {
-    commit('INITIALIZE_AUTH');
+  async initializeAuth({ commit }: { state: UserState; commit: any }) {
+    try {
+      const res = await fetch("http://localhost:5173/api/auth/me", {
+        method: "GET",
+        credentials: "include" // send HttpOnly cookie
+      });
+
+      if (res.ok) {
+        const userData = await res.json();
+        commit('SET_CURRENT_USER', userData);
+        commit('SET_AUTHENTICATED', true);
+      } else {
+        commit('SET_AUTHENTICATED', false);
+        commit('SET_CURRENT_USER', null);
+      }
+    } catch (err) {
+      console.error('Failed to initialize auth', err);
+      commit('SET_AUTHENTICATED', false);
+      commit('SET_CURRENT_USER', null);
+    }
+    //
+    // commit('INITIALIZE_AUTH');
   },
   // Get stored token (useful for other parts of the app)
   getToken({ state }: { state: UserState }) {

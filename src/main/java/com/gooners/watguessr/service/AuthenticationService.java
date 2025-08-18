@@ -1,10 +1,14 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.dto.AuthenticationResponseDto;
+import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -25,22 +29,30 @@ public class AuthenticationService {
     }
 
     // returns token and user info after all security checks
-    public AuthenticationResponseDto authenticate(final UserLoginDto request) {
-        // First, perform all the security checks that were in UserController.login()
+    public UserDto authenticate(final UserLoginDto request, HttpServletResponse response) {
+        // 1️⃣ Perform all security checks
         User user = userService.login(request.getUsername(), request.getPassword());
-        
-        // If we get here, all checks passed (user found, verified, password correct)
-        // Now authenticate with Spring Security
-        final var authToken = UsernamePasswordAuthenticationToken
-                .unauthenticated(request.getUsername(), request.getPassword());
 
-        final var authentication = authenticationManager
-                .authenticate(authToken);
+        // 2️⃣ Authenticate with Spring Security
+        var authToken = UsernamePasswordAuthenticationToken.unauthenticated(request.getUsername(), request.getPassword());
+        var authentication = authenticationManager.authenticate(authToken);
 
-        // Generate JWT token
-        final var token = jwtService.generateToken(authentication);
-        
-        // Return token and user info
-        return new AuthenticationResponseDto(token, userMapper.toDto(user));
+        // 3️⃣ Generate JWT token
+        String token = jwtService.generateToken(authentication);
+
+        // 4️⃣ Set JWT as HttpOnly cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(false)          // use true in production with HTTPS
+                .path("/")
+                .maxAge(3600)           // 1 hour
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        // 5️⃣ Return user info only (no token in JSON)
+        return userMapper.toDto(user);
     }
+
 }

@@ -14,10 +14,8 @@ export const actions: ActionTree<BuildingState, RootState> = {
 
       const resp = await fetch(`${baseUrl}/api/building/all`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-      }});
+        credentials: "include"
+      });
       if (!resp.ok) {
         throw new Error(`Failed to fetch buildings: ${resp.status}`);
       }
