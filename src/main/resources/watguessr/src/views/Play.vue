@@ -198,8 +198,14 @@ export default {
       }
     },
     singleplayerGame_getShouldEnd(newVal) {
-      if (newVal) {
-        this.$router.push('/singleplayer-game-end');
+      if (newVal && this.getCurrentView !== 'RoundEnd') {
+        // Only navigate automatically if we're not on RoundEnd view
+        // Add a small delay to ensure RoundEnd view has time to show
+        setTimeout(() => {
+          if (this.getCurrentView !== 'RoundEnd') {
+            this.$router.push('/singleplayer-game-end');
+          }
+        }, 100);
       }
     },
     // Watch for when the game is ready to start (all players ready)
@@ -220,7 +226,8 @@ export default {
     ...mapActions('singleplayerGame', [
       'singleplayerGame_createSingleplayerGame',
       'singleplayerGame_endCurrentRound',
-      'singleplayerGame_checkSingleplayerState'
+      'singleplayerGame_checkSingleplayerState',
+      'singleplayerGame_endGame'
     ]),
     ...mapActions('multiplayerGame', [
       'multiplayerGame_createMultiplayerGame',
@@ -305,19 +312,25 @@ export default {
     },
 
     async nextRoundOrEndGame() {
-      // Show countdown before starting next round
-      this.showCountdown = true;
-      this.showStopwatch = false;
-
+      console.log('🎮 nextRoundOrEndGame called, gameMode:', this.getGameMode);
+      console.log('🎮 singleplayerGame_getShouldEnd:', this.singleplayerGame_getShouldEnd);
+      
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
+          console.log('🎮 Navigating to singleplayer-game-end');
           this.$router.push('/singleplayer-game-end');
           return;
         }
 
+        // Show countdown before starting next round
+        this.showCountdown = true;
+        this.showStopwatch = false;
+
         const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
         if (shouldEnd) {
+          // Call endGame to properly finish the game
+          await this.singleplayerGame_endGame();
           this.$router.push('/singleplayer-game-end')
           return;
         }
@@ -340,6 +353,10 @@ export default {
           this.multiplayerGame_setPlayerCompleted();
           return;
         }
+
+        // Show countdown before starting next round
+        this.showCountdown = true;
+        this.showStopwatch = false;
 
         this.multiplayerGame_setPlayerReady();
 

@@ -23,19 +23,20 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
     await dispatch('singleplayerGame_createSingleplayerGame');
   },
 
-  singleplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
+  async singleplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
     commit('SG_ADD_SINGLEPLAYER_PENALTY', { userId, roundResult: payload.roundResult });
 
-    dispatch('singleplayerGame_checkSingleplayerState').then((shouldEnd) => {
-      if (shouldEnd) {
-        commit('SG_SET_STATUS', 'ended');
-      } else {
-        commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
-      }
-    });
+    // Always show RoundEnd view first
+    commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
+
+    // Then check if the game should end
+    const shouldEnd = await dispatch('singleplayerGame_checkSingleplayerState');
+    if (shouldEnd) {
+      commit('SG_SET_STATUS', 'ended');
+    }
   },
 
   async singleplayerGame_checkSingleplayerState({ state, commit, dispatch, rootGetters }): Promise<boolean> {
@@ -56,11 +57,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
       const shouldEnd = !!(dto?.shouldEnd || dto?.isGameEnded);
       commit('SG_SET_SHOULD_END', shouldEnd);
 
-      if (shouldEnd) {
-        await dispatch('singleplayerGame_endGame');
-        return true;
-      }
-      return false;
+      return shouldEnd;
     } catch (error) {
       console.error('Error checking singleplayer game state:', error);
       return false;
