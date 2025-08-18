@@ -67,6 +67,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        //TODO: add our server deployment link here as well and remove local host links.
         configuration.setAllowedOrigins(List.of("http://192.168.0.161:3000", "http://localhost:5173")); // your client server
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
