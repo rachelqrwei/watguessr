@@ -33,7 +33,7 @@ ${userInfo}
 Reported via WatGuessr Bug Report Form
       `.trim()
 
-      const response = await fetch('/api/admin/report-bug', {
+      const response = await fetch('/api/user/report-bug', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
