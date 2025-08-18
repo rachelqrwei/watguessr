@@ -5,9 +5,9 @@
       <div class="selection-building">{{ building || 'Select a building' }}</div>
       <div class="selection-coords">Lat: {{ formattedLat }} · Long: {{ formattedLong }}</div>
     </div>
-    <div class="selection-divider"></div>
-    <div class="floors-title">FLOORS</div>
-    <div class="floors-list">
+    <div v-if="buildingExists" class="selection-divider"></div>
+    <div v-if="buildingExists" class="floors-title">FLOORS</div>
+    <div v-if="buildingExists" class="floors-list">
       <button
         v-for="opt in floorOptions"
         :key="opt.value"
@@ -32,7 +32,8 @@ export default {
     lat: { type: [Number, String], default: null },
     lng: { type: [Number, String], default: null },
     floors: { type: Array, default: () => [] },
-    floor: { type: [String, Number], default: '' }
+    floor: { type: [String, Number], default: '' },
+    buildingsMap: { type: Object, default: () => ({}) }
   },
   emits: ['update:floor'],
   computed: {
@@ -46,20 +47,87 @@ export default {
       const n = Number(v);
       return isNaN(n) ? '-' : n.toFixed(13);
     },
+    buildingExists() {
+      return this.buildingsMap && this.buildingsMap[this.building];
+    },
     floorOptions() {
       const floors = [...this.floors].sort((a, b) => {
-        const na = parseFloat(a);
-        const nb = parseFloat(b);
-        if (isNaN(na) || isNaN(nb)) return String(a).localeCompare(String(b));
-        return na - nb;
+        const getFloorOrder = (floorName) => {
+          const name = String(floorName).toLowerCase();
+          if (name.includes('basement')) return -1;
+          if (name.includes('ground')) return 0;
+
+          // extract number from floor names like "1st Floor", "2nd Floor", etc.
+          const match = name.match(/(\d+)/);
+          if (match) {
+            return parseInt(match[1]);
+          }
+
+          // for any other floor names, use string comparison
+          return 1000;
+        };
+
+        const orderA = getFloorOrder(a);
+        const orderB = getFloorOrder(b);
+
+        // sort in descending order: highest floor first, basement last
+        return orderB - orderA;
       });
       const count = floors.length || 1;
       return floors.map((f, idx) => ({ value: f, color: this.getFloorColor(idx, count) }));
     }
   },
+  watch: {
+    floors: {
+      handler(newFloors) {
+        if (newFloors && newFloors.length > 0 && !this.floor) {
+          this.selectLowestFloor(newFloors);
+        }
+      },
+      immediate: true
+    },
+    building: {
+      handler(newBuilding) {
+        // When building changes, reset floor selection and select lowest floor
+        if (newBuilding && this.floors && this.floors.length > 0) {
+          this.selectLowestFloor(this.floors);
+        }
+      },
+      immediate: true
+    }
+  },
   methods: {
     selectFloor(value) {
       this.$emit('update:floor', value);
+    },
+    selectLowestFloor(floors) {
+      // Auto-select the lowest floor (last in the sorted array)
+      const sortedFloors = [...floors].sort((a, b) => {
+        const getFloorOrder = (floorName) => {
+          const name = String(floorName).toLowerCase();
+          if (name.includes('basement')) return -1;
+          if (name.includes('ground')) return 0;
+
+          // extract number from floor names like "1st Floor", "2nd Floor", etc.
+          const match = name.match(/(\d+)/);
+          if (match) {
+            return parseInt(match[1]);
+          }
+
+          // for any other floor names, use string comparison
+          return 1000;
+        };
+
+        const orderA = getFloorOrder(a);
+        const orderB = getFloorOrder(b);
+
+        // sort in descending order: highest floor first, basement last
+        return orderB - orderA;
+      });
+
+      // Select the last item (lowest floor)
+      const lowestFloor = sortedFloors[sortedFloors.length - 1];
+      this.selectFloor(lowestFloor);
     },
     getFloorColor(index, count) {
       const palette = ['#B6FF7F', '#FFE37F', '#FFB07F', '#FF7F7F'];
@@ -178,4 +246,4 @@ export default {
   font-weight: 400;
   color: #d6d6d6;
 }
-</style> 
+</style>
