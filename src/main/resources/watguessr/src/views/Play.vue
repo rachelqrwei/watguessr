@@ -360,10 +360,11 @@ export default {
 
       if (playerIds.length > 1) {
         // Simulate another player disconnecting
-        const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
-        if (otherPlayerId) {
-          this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
-        }
+        console.log(players);
+        // const otherPlayerId = playerIds.find(id => id !== this.$store.getters['user/currentUser']?.id);
+        // if (otherPlayerId) {
+        //   this.$store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', otherPlayerId);
+        // }
       }
     },
 
@@ -491,23 +492,10 @@ export default {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.test-end-btn {
-  left: 230px;
-  top: 30px;
-  background: #ffcb3b;
-  color: #232323;
-  width: 220px;
-  margin-left: 20px;
-}
-
-.test-end-btn:hover {
-  color: white;
-}
-
 .test-disconnect-btn {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 250px;
   background: #ef4444;
   color: white;
   border: none;

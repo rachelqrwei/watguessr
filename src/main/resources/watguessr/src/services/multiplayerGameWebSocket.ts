@@ -21,7 +21,7 @@ export interface PlayerStateDto {
   userId: string;
   username: string;
   score: number;
-  status: 'idle' | 'loading' | 'playing' | 'ended' | 'ready' | 'completed';
+  status: 'idle' | 'loading' | 'playing' | 'ended' | 'ready' | 'completed' | 'disconnected';
   roundNumber: number;
   completionTime: number | null;
   isReady: boolean;
@@ -171,7 +171,7 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
 
   // Check for disconnected players
   Object.keys(currentPlayers).forEach(playerId => {
-    if (!players[playerId]) {
+    if (players[playerId].status == 'disconnected') {
       console.log('🔌 Player disconnected:', playerId);
       store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
     }
