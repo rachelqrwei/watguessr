@@ -32,9 +32,10 @@ export const actions: ActionTree<GuessState, RootState> = {
 
       console.log('Submitting guess with body:', createGuessBody);
 
+      const token = rootGetters['user/getToken'];
       const createResponse = await fetch(`${baseUrl}/api/guess`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(createGuessBody)
       });
 
@@ -46,7 +47,7 @@ export const actions: ActionTree<GuessState, RootState> = {
         `${baseUrl}/api/guess/evaluate-guess?roundId=${rootState.round.roundId}`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(state),
         }
       );

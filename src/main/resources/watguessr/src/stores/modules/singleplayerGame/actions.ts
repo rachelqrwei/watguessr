@@ -3,7 +3,7 @@ import type { RootState } from '../../index';
 import type { singleplayerGameState } from './state';
 
 export const actions: ActionTree<singleplayerGameState, RootState> = {
-  async singleplayerGame_createSingleplayerGame({ commit, dispatch }) {
+  async singleplayerGame_createSingleplayerGame({ commit, dispatch, rootGetters }) {
     commit('SG_RESET_GAME');
     commit('gameInfo/RESET_GAME', null, {root: true});
 
@@ -11,7 +11,12 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
     commit('gameInfo/SET_GAME_MODE', 'singleplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`);
+    const token = rootGetters['user/getToken'];
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
     const gameId = await response.json();
 
 
