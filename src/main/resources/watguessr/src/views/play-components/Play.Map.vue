@@ -74,25 +74,6 @@ export default {
       'SET_MAP_ZOOM'
     ]),
 
-    onKeyDown(e) {
-      if (!this.map) return;
-      // Prevent arrow keys from moving the map; we'll use WASD instead
-      if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-        e.preventDefault();
-        return;
-      }
-      const step = this.panStepPx;
-      if (e.code === 'KeyW') {
-        this.map.panBy([0, -step], { animate: true });
-      } else if (e.code === 'KeyS') {
-        this.map.panBy([0, step], { animate: true });
-      } else if (e.code === 'KeyA') {
-        this.map.panBy([-step, 0], { animate: true });
-      } else if (e.code === 'KeyD') {
-        this.map.panBy([step, 0], { animate: true });
-      }
-    },
-
     async reverseGeocode(lng, lat) {
       const token = import.meta.env.VITE_MAPBOX_TOKEN;
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&types=poi,address`;
@@ -111,12 +92,6 @@ export default {
       }
     },
 
-    clearMarker() {
-      if (this.marker) {
-        this.marker.remove();
-        this.marker = null;
-      }
-    },
     // Helper function to calculate screen pixel distance between a feature and a mouse click point
     distanceToPoint(coord, point, map) {
       const pixel = map.project(coord);

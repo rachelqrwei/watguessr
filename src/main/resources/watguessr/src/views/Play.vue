@@ -31,9 +31,6 @@
     <div v-if="getCurrentView === 'RoundEnd'">
       <PlaySingleplayerRoundEnd v-if="getGameMode === 'singleplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
       <PlayMultiplayerRoundEnd v-if="getGameMode === 'multiplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
-      BACK TO MAP
-      </button>
     </div>
 
     <PlayFloorPanel
@@ -192,8 +189,8 @@ export default {
       }
     },
     getCurrentView(newVal, oldVal) {
-      // Reset selections when starting a new round (view changes back to 'Map')
-      if (newVal === 'Map' && oldVal === 'RoundEnd') {
+      // Reset selections when starting a new round (view changes back to 'Image')
+      if (newVal === 'Image' && oldVal === 'RoundEnd') {
         console.log('New round started, resetting selections');
         this.selectedBuilding = '';
         this.selectedFloor = '';
@@ -255,13 +252,35 @@ export default {
     ]),
 
     onGlobalKeyDown(e) {
-      if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
-      if (this.getCurrentView === 'Map' || this.getCurrentView === 'Image') {
+      // handle space key for submit
+      if (e.code === 'Space') {
         e.preventDefault();
-        this.handleSubmit();
-      } else if (this.getCurrentView === 'RoundEnd') {
+        if (this.getCurrentView === 'Map' || this.getCurrentView === 'Image') {
+          this.handleSubmit();
+        } else if (this.getCurrentView === 'RoundEnd') {
+          this.nextRoundOrEndGame();
+        }
+        return;
+      }
+
+      // handle A/D keys for view switching
+      if (e.code === 'KeyA' || e.code === 'KeyD') {
+        if (this.getCurrentView === 'Map' || this.getCurrentView === 'Image') {
+          e.preventDefault();
+          if (e.code === 'KeyA') {
+            this.SET_CURRENT_VIEW('Image');
+          } else if (e.code === 'KeyD') {
+            this.SET_CURRENT_VIEW('Map');
+          }
+          return;
+        }
+      }
+
+      // handle W/D keys for floor switching (only when on Map or Image view)
+      if ((e.code === 'KeyW' || e.code === 'KeyS') && (this.getCurrentView === 'Map' || this.getCurrentView === 'Image')) {
         e.preventDefault();
-        this.nextRoundOrEndGame();
+        this.switchFloor(e.code === 'KeyW' ? 'up' : 'down');
+        return;
       }
     },
 
@@ -307,7 +326,7 @@ export default {
         this.selectedFloor = '';
         this.resetTimer();
 
-        this.SET_CURRENT_VIEW("Map");
+        this.SET_CURRENT_VIEW("Image");
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
@@ -335,6 +354,21 @@ export default {
 
     handleBuildingSelected(payload) {
       this.selectedBuilding = payload;
+    },
+
+    switchFloor(direction) {
+      if (!this.availableFloors || this.availableFloors.length === 0) return;
+
+      const currentIndex = this.availableFloors.findIndex(f => String(f) === String(this.selectedFloor));
+      let newIndex;
+
+      if (direction === 'up') {
+        newIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
+      } else {
+        newIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, this.availableFloors.length - 1);
+      }
+
+      this.selectedFloor = this.availableFloors[newIndex];
     },
 
     resetTimer() {
@@ -374,7 +408,7 @@ export default {
         await this.startRound({ gameId: this.singleplayerGame_getGameId });
 
         this.SG_INCREMENT_ROUND();
-        this.SET_CURRENT_VIEW("Map");
+        this.SET_CURRENT_VIEW("Image");
       } catch (error) {
         console.error('Failed to start singleplayer round:', error);
       }
