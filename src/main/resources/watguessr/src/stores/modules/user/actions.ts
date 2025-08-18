@@ -209,4 +209,16 @@ export const actions = {
       commit('SET_LOADING', false);
     }
   },
+  // Initialize authentication state on app startup
+  initializeAuth({ commit }: { state: UserState; commit: any }) {
+    commit('INITIALIZE_AUTH');
+  },
+  // Get stored token (useful for other parts of the app)
+  getToken({ state }: { state: UserState }) {
+    return state.token;
+  },
+  // Check if user is authenticated
+  isAuthenticated({ state }: { state: UserState }) {
+    return state.isAuthenticated;
+  }
 };
