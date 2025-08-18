@@ -35,3 +35,4 @@ build/
 jwt/
 *.pem
 .env
+node_modules/
