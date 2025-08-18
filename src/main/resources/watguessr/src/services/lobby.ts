@@ -36,7 +36,7 @@ export function connectLobby(
   onLobbyUpdateCallback = onLobbyUpdate;
   onGameStartCallback = onGameStart;
 
-  const socket = new SockJS("http://localhost:5173/ws-game"); // proxied to backend
+  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`); // proxied to backend
   stompClient = new Client({
     webSocketFactory: () => socket as any, // SockJS factory
     debug: (msg) => console.log(msg),
@@ -103,7 +103,7 @@ function subscribeAndJoin(user: User, lobbyId: string): void {
  */
 export function setPlayerReady(userId: string, ready: boolean): void {
   console.log('🔍 Setting player ready:', { userId, ready, currentLobbyId });
-  
+
   if (!stompClient || !stompClient.connected || !currentLobbyId) {
     console.warn('🔍 Cannot set player ready - WebSocket not connected or no lobby ID');
     return;
@@ -111,7 +111,7 @@ export function setPlayerReady(userId: string, ready: boolean): void {
 
   const message = { lobbyId: currentLobbyId, userId, ready };
   console.log('🔍 Sending ready message:', message);
-  
+
   stompClient.publish({
     destination: "/app/lobby/ready",
     body: JSON.stringify(message),

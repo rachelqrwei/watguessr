@@ -28,7 +28,7 @@ export interface PlayerStateDto {
 }
 
 export function connectToMultiplayerGame(gameId: string) {
-  const socket = new SockJS('http://localhost:5173/ws-game');
+  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
@@ -205,7 +205,7 @@ function handleRoundStart(roundData: any) {
 // Helper function to fetch scene image
 async function fetchSceneImage(roundId: string) {
   try {
-    const response = await fetch(`http://localhost:5173/api/scene/image?roundId=${roundId}`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${roundId}`);
     if (response.ok) {
       const imageUrl = await response.text();
       store.commit('round/SET_IMAGE_URL', imageUrl || null);

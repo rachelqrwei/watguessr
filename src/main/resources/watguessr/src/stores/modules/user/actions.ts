@@ -203,7 +203,7 @@ export const actions = {
   // Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {
     try {
-      const res = await fetch("http://localhost:5173/api/auth/me", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
         method: "GET",
         credentials: "include" // send HttpOnly cookie
       });
