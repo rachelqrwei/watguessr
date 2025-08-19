@@ -255,6 +255,17 @@ public class LobbyService {
 		return deleted;
 	}
 
+	public boolean cleanupStaleLobby(String lobbyId) {
+		try {
+			lobbies.remove(lobbyId);
+			System.out.println("✅ Lobby cleaned up: " + lobbyId);
+			return true;
+		} catch (Exception e) {
+			System.err.println("Failed to cleanup lobby " + lobbyId + ": " + e.getMessage());
+			return false;
+		}
+	}
+
 	// Inner classes for WebSocket messaging
 	public static class LobbyUpdate {
 		private List<LobbyPlayerDto> players;

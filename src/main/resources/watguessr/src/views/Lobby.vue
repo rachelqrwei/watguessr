@@ -1,8 +1,8 @@
 <template>
   <div class="lobby-container">
-    <div class="logo-container">
+    <div class="logo-container cursor-pointer" @click.prevent="goHome">
       <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-      <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+      <span class="logo-text">WATGUESSR.IO</span>
     </div>
 
     <div class="lobby-card">
@@ -93,7 +93,7 @@
 
 <script>
 import { mapMutations, mapActions } from "vuex";
-import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady } from "@/services/lobby";
+import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady, leaveLobby, forceLeaveLobby } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
 import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
 
@@ -104,7 +104,10 @@ export default {
       players: [],
       myId: "",
       gameStarted: false,
-      lobbyInfo: null
+      lobbyInfo: null,
+      isConnected: false,
+      connectionAttempts: 0,
+      maxConnectionAttempts: 3
     };
   },
   computed: {
@@ -132,7 +135,7 @@ export default {
 
     goToPlay() {
       this.SET_GAME_MODE(this.gameModeLabel);
-      this.$router.push({ name: "play", query: { gameMode: this.gameModeLabel } });
+      this.$router.push({name: "play", query: {gameMode: this.gameModeLabel}});
     },
 
     toggleReady() {
@@ -175,72 +178,178 @@ export default {
           };
         }
       }
-    }
-  },
-  mounted() {
-    const currentUser = this.$store.getters["user/getCurrentUser"];
-    this.myId = currentUser.id;
-    console.log('🔍 Current user ID:', this.myId);
-    console.log('🔍 Current user object:', currentUser);
+    },
 
-    if (this.gameModeLabel === 'multiplayer') {
-      this.fetchLobbyInfo();
+    async reconnectToLobby() {
+      if (this.connectionAttempts >= this.maxConnectionAttempts) {
+        console.error('Max reconnection attempts reached, redirecting to home');
+        this.$router.push({name: 'home'});
+        return;
+      }
 
-      // Connect to lobby WebSocket
-      connectLobby(
-        (lobbyUpdate) => {
-          console.log('🔍 Lobby update received:', lobbyUpdate);
-          this.players = lobbyUpdate.players;
-          console.log('🔍 Players array updated:', this.players);
-          console.log('🔍 My ID:', this.myId);
-          console.log('🔍 Players with ready buttons:', this.players.filter(p => p.userId === this.myId));
-        },
-        (startInfo) => {
-          this.gameStarted = true;
-          this.SET_GAME_MODE("multiplayer");
+      this.connectionAttempts++;
+      console.log(`Attempting to reconnect to lobby (attempt ${this.connectionAttempts}/${this.maxConnectionAttempts})`);
 
-          // The lobby system has already created the game and provided the gameId
-          if (startInfo.gameId) {
-            console.log('🎮 Game started with gameId from lobby:', startInfo.gameId);
+      try {
+        // Check if lobby still exists and user is still in it
+        const lobby = await LobbyManager.getLobbyById(this.lobbyId);
+        const currentUser = this.$store.getters["user/getCurrentUser"];
 
-            // Set the game ID from the lobby
-            this.$store.commit('multiplayerGame/MG_SET_GAME_ID', startInfo.gameId);
+        // First, try to clean up any stale lobby state
+        disconnectLobby();
 
-            // Set game settings from lobby info
-            this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
-            this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 60);
+        // Try to rejoin the lobby
+        await LobbyManager.joinLobby({
+          lobbyCode: lobby.lobbyCode,
+          userId: currentUser.id
+        });
 
-            // Initialize players in game state
-            const players = {};
-            startInfo.users.forEach(user => {
-              players[user.id] = {
-                status: 'loading',
-                score: 0,
-                username: user.username
-              };
-            });
-            this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+        // Reconnect WebSocket
+        this.connectToLobbyWebSocket();
 
-            // Connect to multiplayer game WebSocket using the lobby's gameId
-            connectToMultiplayerGame(startInfo.gameId);
+        console.log('Successfully reconnected to lobby');
+        this.isConnected = true;
+        this.connectionAttempts = 0;
+      } catch (error) {
+        console.error('Failed to reconnect to lobby:', error);
 
-            // Navigate to play with the lobby's gameId
-            this.$router.push({ name: "play", query: { gameMode: "multiplayer", gameId: startInfo.gameId } });
-          } else {
-            console.error('❌ No gameId received from lobby start event');
-          }
+        // If lobby doesn't exist or user can't rejoin, redirect to home
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          console.log('Lobby no longer exists, redirecting to home');
+          this.$router.push({name: 'home'});
+        } else {
+          // Try again after a delay
+          setTimeout(() => this.reconnectToLobby(), 2000);
         }
-      );
+      }
+    },
 
-      if (this.lobbyId) {
+    async cleanupLobbyState() {
+      if (this.lobbyId && this.gameModeLabel === 'multiplayer') {
+        const currentUser = this.$store.getters["user/getCurrentUser"];
+
+        try {
+          // Force leave the lobby to clean up any stale state
+          forceLeaveLobby(this.lobbyId, currentUser);
+
+          // Also request cleanup of stale lobby entries
+          disconnectLobby();
+
+          console.log('Requested cleanup of stale lobby state');
+        } catch (error) {
+          console.error('Failed to cleanup stale lobby state:', error);
+        }
+      }
+    },
+
+    connectToLobbyWebSocket() {
+      if (this.gameModeLabel === 'multiplayer' && this.lobbyId) {
+        const currentUser = this.$store.getters["user/getCurrentUser"];
+
+        // Connect to lobby WebSocket
+        connectLobby(
+          (lobbyUpdate) => {
+            console.log('🔍 Lobby update received:', lobbyUpdate);
+            this.players = lobbyUpdate.players;
+            this.isConnected = true;
+            console.log('🔍 Players array updated:', this.players);
+            console.log('🔍 My ID:', this.myId);
+            console.log('🔍 Players with ready buttons:', this.players.filter(p => p.userId === this.myId));
+          },
+          (startInfo) => {
+            this.gameStarted = true;
+            this.SET_GAME_MODE("multiplayer");
+
+            // The lobby system has already created the game and provided the gameId
+            if (startInfo.gameId) {
+              console.log('🎮 Game started with gameId from lobby:', startInfo.gameId);
+
+              // Set the game ID from the lobby
+              this.$store.commit('multiplayerGame/MG_SET_GAME_ID', startInfo.gameId);
+
+              // Set game settings from lobby info
+              this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
+              this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 60);
+
+              // Initialize players in game state
+              const players = {};
+              startInfo.users.forEach(user => {
+                players[user.id] = {
+                  status: 'loading',
+                  score: 0,
+                  username: user.username
+                };
+              });
+              this.$store.commit('multiplayerGame/MG_SET_PLAYERS', players);
+
+              // Connect to multiplayer game WebSocket using the lobby's gameId
+              connectToMultiplayerGame(startInfo.gameId);
+
+              // Navigate to play with the lobby's gameId
+              this.$router.push({
+                name: "play",
+                query: {gameMode: "multiplayer", gameId: startInfo.gameId}
+              });
+            } else {
+              console.error('❌ No gameId received from lobby start event');
+            }
+          }
+        );
+
+        // Join the lobby
         joinLobby(currentUser, this.lobbyId);
       }
+    },
+    async goHome() {
+      const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      if (this.lobbyId && this.gameModeLabel === "multiplayer") {
+        try {
+          await leaveLobby(currentUser);
+          await disconnectLobby();
+          console.log("✅ Cleaned up lobby before going home");
+        } catch (err) {
+          console.error("❌ Failed to cleanup lobby:", err);
+        }
+      }
+
+      // Now navigate home
+      this.$router.push({ name: "home" });
     }
   },
-  beforeUnmount() {
-    if (this.gameModeLabel === 'multiplayer') disconnectLobby();
+  async mounted() {
+    const currentUser = this.$store.getters["user/getCurrentUser"];
+    this.myId = currentUser.id;
+
+    if (this.gameModeLabel === "multiplayer") {
+      this.fetchLobbyInfo();
+      this.connectToLobbyWebSocket();
+    }
+
+    // Watch for route changes to leave lobby if navigating away
+    this.unwatchRoute = this.$watch(
+      () => this.$route.fullPath,
+      (newPath, oldPath) => {
+        if (oldPath.includes("lobby") && !newPath.includes("lobby")) {
+          // Leaving lobby route
+          leaveLobby(currentUser);
+          disconnectLobby();
+        }
+      }
+    );
   },
-};
+  beforeUnmount() {
+    // Cleanup watcher
+    if (this.unwatchRoute) this.unwatchRoute();
+
+    const currentUser = this.$store.getters["user/getCurrentUser"];
+    if (this.lobbyId && currentUser) {
+      leaveLobby(currentUser);
+      disconnectLobby();
+    }
+  }
+}
+
 </script>
 
 <style scoped>
