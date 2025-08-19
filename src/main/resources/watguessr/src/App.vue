@@ -122,7 +122,6 @@ const showPageLogo = computed(() => {
 })
 
 const navLinks = [
-  { path: '/play', label: 'PLAY WATGUESSR', icon: 'play' },
   { path: '/leaderboard', label: 'LEADERBOARD', icon: 'trophy' },
   { path: '/profile', label: 'PROFILE', icon: 'user' },
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
