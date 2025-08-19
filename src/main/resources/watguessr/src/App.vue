@@ -100,6 +100,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import { disconnectLobby } from "@/services/lobby"; // adjust path if needed
+
+
 import Header from './components/Header.vue'
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
 import ReportBugModal from "@/components/ReportBugModal.vue";

@@ -1,8 +1,8 @@
 <template>
   <div class="lobby-container">
-    <div class="logo-container">
+    <div class="logo-container cursor-pointer" @click.prevent="goHome">
       <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-      <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+      <span class="logo-text">WATGUESSR.IO</span>
     </div>
 
     <div class="lobby-card">
@@ -299,6 +299,22 @@ export default {
         // Join the lobby
         joinLobby(currentUser, this.lobbyId);
       }
+    },
+    async goHome() {
+      const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      if (this.lobbyId && this.gameModeLabel === "multiplayer") {
+        try {
+          await leaveLobby(currentUser);
+          await disconnectLobby();
+          console.log("✅ Cleaned up lobby before going home");
+        } catch (err) {
+          console.error("❌ Failed to cleanup lobby:", err);
+        }
+      }
+
+      // Now navigate home
+      this.$router.push({ name: "home" });
     }
   },
   async mounted() {
