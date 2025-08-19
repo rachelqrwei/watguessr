@@ -5,9 +5,13 @@ import com.gooners.watguessr.service.LobbyService;
 import com.gooners.watguessr.service.LobbyService.GameStart;
 import com.gooners.watguessr.service.LobbyService.LobbyUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
@@ -51,6 +55,12 @@ public class LobbyController {
 	@MessageMapping("/lobby/start")
 	public UUID startGame(@Payload StartGameRequest request) {
 		return lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getRoundCount(), request.getTimer());
+	}
+
+	@MessageMapping("/lobby/cleanup")
+	public String cleanupLobby(String lobbyId) {
+		boolean success = lobbyService.cleanupStaleLobby(lobbyId);
+		return success ? "success" : "failure";
 	}
 
 	/**

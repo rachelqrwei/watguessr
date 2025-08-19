@@ -25,9 +25,11 @@ let stompClient: Client | null = null;
 let onLobbyUpdateCallback: ((update: LobbyUpdate) => void) | null = null;
 let onGameStartCallback: ((info: GameStartInfo) => void) | null = null;
 let currentLobbyId: string | null = null;
+let heartbeatInterval: NodeJS.Timeout | null = null;
+let pageVisibilityHandler: (() => void) | null = null;
 
 /**
- * Connect to the lobby
+ * Connect to the lobby WebSocket
  */
 export function connectLobby(
   onLobbyUpdate: (update: LobbyUpdate) => void,
@@ -36,20 +38,110 @@ export function connectLobby(
   onLobbyUpdateCallback = onLobbyUpdate;
   onGameStartCallback = onGameStart;
 
-  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`); // proxied to backend
+  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = new Client({
-    webSocketFactory: () => socket as any, // SockJS factory
+    webSocketFactory: () => socket as any,
     debug: (msg) => console.log(msg),
     reconnectDelay: 5000,
     onConnect: (frame: Frame) => {
       console.log("Connected to lobby:", frame);
+      startHeartbeat();
+      setupPageVisibilityHandling();
     },
     onStompError: (frame) => {
       console.error("STOMP error:", frame);
     },
+    onDisconnect: () => {
+      console.log("Disconnected from lobby");
+      stopHeartbeat();
+      cleanupPageVisibilityHandling();
+    },
   });
 
   stompClient.activate();
+}
+
+/**
+ * Start heartbeat
+ */
+function startHeartbeat() {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+  heartbeatInterval = setInterval(() => {
+    if (stompClient?.connected && currentLobbyId) {
+      stompClient.publish({
+        destination: "/app/lobby/heartbeat",
+        body: JSON.stringify({ lobbyId: currentLobbyId }),
+      });
+    }
+  }, 30000);
+}
+
+/**
+ * Stop heartbeat
+ */
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
+
+/**
+ * Send lobby cleanup
+ */
+function sendCleanup() {
+  if (!currentLobbyId) return;
+
+  if (stompClient?.connected) {
+    try {
+      stompClient.publish({
+        destination: "/app/lobby/cleanup",
+        body: JSON.stringify({ lobbyId: currentLobbyId }),
+      });
+    } catch (error) {
+      console.error("Failed to send lobby cleanup via WS:", error);
+    }
+  } else {
+    // Fallback: send cleanup via REST API if WebSocket not connected
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/lobbies/${currentLobbyId}/cleanup`, {
+      method: "POST",
+    }).catch((err) => console.error("Failed to cleanup lobby via REST:", err));
+  }
+
+  currentLobbyId = null; // prevent multiple cleanup calls
+}
+
+/**
+ * Setup page visibility & unload handling
+ */
+function setupPageVisibilityHandling() {
+  // Remove aggressive cleanup on tab switch
+  pageVisibilityHandler = () => {
+    // You can log away status if needed, but DO NOT cleanup
+    if (document.hidden) {
+      console.log("User is away from tab, lobby stays alive");
+    }
+  };
+
+  document.addEventListener("visibilitychange", pageVisibilityHandler);
+
+  // Only cleanup when user leaves / refreshes
+  window.addEventListener("beforeunload", () => {
+    console.log("Page unloading, cleaning up lobby");
+    sendCleanup();
+  });
+}
+
+/**
+ * Cleanup event listeners
+ */
+function cleanupPageVisibilityHandling() {
+  if (pageVisibilityHandler) {
+    document.removeEventListener("visibilitychange", pageVisibilityHandler);
+    pageVisibilityHandler = null;
+  }
+  window.removeEventListener("beforeunload", sendCleanup);
 }
 
 /**
@@ -60,62 +152,34 @@ export function joinLobby(user: User, lobbyId: string): void {
 
   currentLobbyId = lobbyId;
 
-  // Wait for connection to be established before subscribing/publishing
+  const subscribeAndJoin = () => {
+    if (!stompClient) return;
+
+    stompClient.subscribe(`/topic/lobby/${lobbyId}`, (message) => {
+      const update: LobbyUpdate = JSON.parse(message.body);
+      onLobbyUpdateCallback?.(update);
+    });
+
+    stompClient.subscribe(`/topic/lobby/${lobbyId}/start`, (message) => {
+      const info: GameStartInfo = JSON.parse(message.body);
+      onGameStartCallback?.(info);
+    });
+
+    stompClient.publish({
+      destination: "/app/lobby/join",
+      body: JSON.stringify({ lobbyId, user }),
+    });
+  };
+
   if (stompClient.connected) {
-    subscribeAndJoin(user, lobbyId);
+    subscribeAndJoin();
   } else {
-    // Wait for connection
     const checkConnection = () => {
-      if (stompClient?.connected) {
-        subscribeAndJoin(user, lobbyId);
-      } else {
-        setTimeout(checkConnection, 100);
-      }
+      if (stompClient?.connected) subscribeAndJoin();
+      else setTimeout(checkConnection, 100);
     };
     checkConnection();
   }
-}
-
-function subscribeAndJoin(user: User, lobbyId: string): void {
-  if (!stompClient) return;
-
-  // Subscribe to lobby updates for this specific lobby
-  stompClient.subscribe(`/topic/lobby/${lobbyId}`, (message) => {
-    const update: LobbyUpdate = JSON.parse(message.body);
-    onLobbyUpdateCallback?.(update);
-  });
-
-  // Subscribe to game start events for this specific lobby
-  stompClient.subscribe(`/topic/lobby/${lobbyId}/start`, (message) => {
-    const info: GameStartInfo = JSON.parse(message.body);
-    onGameStartCallback?.(info);
-  });
-
-  // Send join message
-  stompClient.publish({
-    destination: "/app/lobby/join",
-    body: JSON.stringify({ lobbyId, user }),
-  });
-}
-
-/**
- * Set player ready status
- */
-export function setPlayerReady(userId: string, ready: boolean): void {
-  console.log('🔍 Setting player ready:', { userId, ready, currentLobbyId });
-
-  if (!stompClient || !stompClient.connected || !currentLobbyId) {
-    console.warn('🔍 Cannot set player ready - WebSocket not connected or no lobby ID');
-    return;
-  }
-
-  const message = { lobbyId: currentLobbyId, userId, ready };
-  console.log('🔍 Sending ready message:', message);
-
-  stompClient.publish({
-    destination: "/app/lobby/ready",
-    body: JSON.stringify(message),
-  });
 }
 
 /**
@@ -133,27 +197,57 @@ export function leaveLobby(user: User): void {
 }
 
 /**
- * Start the multiplayer game
+ * Set player ready status
+ */
+export function setPlayerReady(userId: string, ready: boolean): void {
+  if (!stompClient || !stompClient.connected || !currentLobbyId) return;
+
+  stompClient.publish({
+    destination: "/app/lobby/ready",
+    body: JSON.stringify({ lobbyId: currentLobbyId, userId, ready }),
+  });
+}
+
+/**
+ * Start the game
  */
 export function startGame(lobbyId: string, roundCount: number, timer: number): void {
   if (!stompClient || !stompClient.connected) return;
 
- stompClient.publish({
+  stompClient.publish({
     destination: "/app/lobby/start",
     body: JSON.stringify({ lobbyId, roundCount, timer }),
   });
 }
 
 /**
- * Disconnect from lobby
+ * Disconnect from lobby (cleanup)
  */
 export function disconnectLobby(): void {
+  sendCleanup();
+  stopHeartbeat();
+  cleanupPageVisibilityHandling();
+
   if (stompClient) {
     stompClient.deactivate();
     stompClient = null;
-    onLobbyUpdateCallback = null;
-    onGameStartCallback = null;
-    currentLobbyId = null;
-    console.log("Disconnected from lobby");
+  }
+
+  onLobbyUpdateCallback = null;
+  onGameStartCallback = null;
+  currentLobbyId = null;
+
+  console.log("Disconnected from lobby");
+}
+
+/**
+ * Force leave a lobby
+ */
+export function forceLeaveLobby(lobbyId: string, user: User): void {
+  if (stompClient?.connected) {
+    stompClient.publish({
+      destination: "/app/lobby/force-leave",
+      body: JSON.stringify({ lobbyId, user }),
+    });
   }
 }
