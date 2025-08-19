@@ -44,6 +44,14 @@ aws:
       name: ${AWS_S3_BUCKET_NAME:watguessr}
   profile: ${AWS_PROFILE:watguessr-dev}
 
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URI}
+frontend:
+  base-url: ${FRONTEND_BASE_URL:http://localhost:5173} # for final redirect
+
 
 # # 1. Install AWS CLI (if not already installed) run these commands in the terminal
 # # macOS

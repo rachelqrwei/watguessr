@@ -98,6 +98,38 @@ export default {
           lobbyCode: lobby.lobbyCode
         }
       })
+    },
+
+    async handleGoogleOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search)
+      console.log([...urlParams.entries()])
+
+
+      if (urlParams.get('google_auth') === 'true') {
+        try {
+          const email = urlParams.get('email')
+          const name = urlParams.get('name')
+          const picture = urlParams.get('picture')
+
+          if (email && name) {
+            // Create user account from Google credentials
+            await this.$store.dispatch('user/signUpWithGoogle', {
+              email,
+              name,
+              picture: picture || null
+            })
+
+            // Clear URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname)
+
+            // Show success message or redirect as needed
+            console.log('Successfully signed up with Google!')
+          }
+        } catch (error) {
+          console.error('Google OAuth signup failed:', error)
+          // Handle error - could show a toast notification
+        }
+      }
     }
   },
 
@@ -108,6 +140,9 @@ export default {
 
     this.evaluateGeeseVisibility()
     window.addEventListener('resize', this.evaluateGeeseVisibility)
+
+    // Handle Google OAuth callback
+    this.handleGoogleOAuthCallback()
   },
 
   unmounted() {

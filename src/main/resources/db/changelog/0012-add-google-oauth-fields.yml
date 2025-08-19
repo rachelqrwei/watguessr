@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0012
+      author: KENNY
+      changes:
+        - addColumn:
+            tableName: user
+            columns:
+              - column:
+                  name: display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: profile_picture_url
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: verified
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - sql:
+            comment: "Update existing users to have verified=false and display_name=username"
+            sql: UPDATE "user" SET verified = false, display_name = username WHERE display_name IS NULL
