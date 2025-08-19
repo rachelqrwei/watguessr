@@ -13,7 +13,7 @@ public class LobbyCleanupScheduler {
 		this.lobbyService = lobbyService;
 	}
 
-	@Scheduled(fixedRate = 60000) // every 1 minute
+	@Scheduled(fixedRate = 3600000) // every 1 minute
 	public void scheduledCleanup() {
 		int deleted = lobbyService.cleanupEmptyLobbies();
 		if (deleted > 0) {

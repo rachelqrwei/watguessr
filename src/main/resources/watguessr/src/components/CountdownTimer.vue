@@ -15,6 +15,9 @@
     <div class="progress-container">
       <div class="progress-bar" :style="{ width: progressWidth + '%' }"></div>
     </div>
+    <div class="progress-text">
+      {{ countdownText }}
+    </div>
   </div>
 </template>
 
@@ -106,15 +109,26 @@ export default {
 
     // === Progress Bar ===
     startProgressBar() {
-      this.progressWidth = 100;
+      this.progressWidth = 0;
+      this.countdownText = "Get Ready!";
 
       const stepTime = 50; // update every 50ms
       const step = (100 * stepTime) / this.duration;
 
       this.progressTimer = setInterval(() => {
-        if (this.progressWidth > 0) {
-          this.progressWidth -= step;
+        if (this.progressWidth < 100) {
+          this.progressWidth += step;
+          
+          // Update text based on progress
+          if (this.progressWidth < 66) {
+            this.countdownText = "Get Ready!";
+          } else if (this.progressWidth < 100) {
+            this.countdownText = "GO!";
+          } else {
+            this.countdownText = "GO!";
+          }
         } else {
+          this.progressWidth = 100;
           this.stopProgressBar();
           this.$emit("countdown-complete");
         }
@@ -174,22 +188,52 @@ export default {
 /* === Progress Overlay === */
 .progress-overlay {
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   width: 80%;
+  max-width: 400px;
   z-index: 9999;
 }
+
 .progress-container {
   width: 100%;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
 }
+
 .progress-bar {
   height: 100%;
-  background: var(--yellow);
+  background: linear-gradient(90deg, var(--yellow), #ffd700);
+  border-radius: 6px;
   transition: width 50ms linear;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .progress-overlay {
+    width: 90%;
+    top: 15px;
+  }
+  
+  .progress-container {
+    height: 10px;
+  }
 }
 </style>
