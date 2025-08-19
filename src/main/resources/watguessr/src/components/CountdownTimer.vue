@@ -1,5 +1,5 @@
 <template>
-  <div class="countdown-overlay" v-if="isVisible">
+  <div class="countdown-overlay" v-if="isVisible && getCurrentRound < 1">
     <div class="countdown-container">
       <div class="countdown-number" :class="{ 'animate': isAnimating }">
         {{ countdownNumber }}
@@ -9,83 +9,133 @@
       </div>
     </div>
   </div>
+
+  <!-- Progress bar appears when round >= 1 -->
+  <div v-if="isVisible && getCurrentRound >= 1" class="progress-overlay">
+    <div class="progress-container">
+      <div class="progress-bar" :style="{ width: progressWidth + '%' }"></div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
-  name: 'CountdownTimer',
+  name: "CountdownTimer",
   props: {
     isVisible: {
       type: Boolean,
-      default: false
+      default: false,
     },
     duration: {
       type: Number,
-      default: 3000 // 3 seconds total
-    }
+      default: 3000, // 3 seconds
+    },
   },
   data() {
     return {
       countdownNumber: 3,
-      countdownText: 'Get Ready!',
+      countdownText: "Get Ready!",
       isAnimating: false,
-      countdownInterval: null
+      countdownInterval: null,
+      progressWidth: 100,
+      progressTimer: null,
     };
   },
   watch: {
     isVisible(newVal) {
       if (newVal) {
-        this.startCountdown();
+        if (this.getCurrentRound < 1) {
+          this.startCountdown();
+        } else {
+          this.startProgressBar();
+        }
       } else {
         this.stopCountdown();
+        this.stopProgressBar();
       }
-    }
+    },
+  },
+  computed: {
+    ...mapGetters("multiplayerGame", ["multiplayerGame_getCurrentRound"]),
+    ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"]),
+    ...mapGetters("gameInfo", ["getGameMode"]),
+    getCurrentRound() {
+      if (this.getGameMode === "singleplayer") {
+        return this.singleplayerGame_getCurrentRound;
+      }
+      if (this.getGameMode === "multiplayer") {
+        return this.multiplayerGame_getCurrentRound;
+      }
+    },
   },
   methods: {
+    // === Countdown ===
     startCountdown() {
       this.countdownNumber = 3;
-      this.countdownText = 'Get Ready!';
+      this.countdownText = "Get Ready!";
       this.isAnimating = false;
 
-      // Start the countdown
       this.countdownInterval = setInterval(() => {
         if (this.countdownNumber > 1) {
           this.countdownNumber--;
-          this.countdownText = 'Get Ready!';
+          this.countdownText = "Get Ready!";
           this.isAnimating = true;
 
-          // Reset animation after a short delay
           setTimeout(() => {
             this.isAnimating = false;
           }, 200);
         } else if (this.countdownNumber === 1) {
           this.countdownNumber = 0;
-          this.countdownText = 'GO!';
+          this.countdownText = "GO!";
           this.isAnimating = true;
 
-          // Emit start event after showing "GO!"
           setTimeout(() => {
-            this.$emit('countdown-complete');
+            this.$emit("countdown-complete");
           }, 500);
         }
       }, 1000);
     },
-
     stopCountdown() {
       if (this.countdownInterval) {
         clearInterval(this.countdownInterval);
         this.countdownInterval = null;
       }
-    }
-  },
+    },
 
+    // === Progress Bar ===
+    startProgressBar() {
+      this.progressWidth = 100;
+
+      const stepTime = 50; // update every 50ms
+      const step = (100 * stepTime) / this.duration;
+
+      this.progressTimer = setInterval(() => {
+        if (this.progressWidth > 0) {
+          this.progressWidth -= step;
+        } else {
+          this.stopProgressBar();
+          this.$emit("countdown-complete");
+        }
+      }, stepTime);
+    },
+    stopProgressBar() {
+      if (this.progressTimer) {
+        clearInterval(this.progressTimer);
+        this.progressTimer = null;
+      }
+    },
+  },
   beforeUnmount() {
     this.stopCountdown();
-  }
+    this.stopProgressBar();
+  },
 };
 </script>
 
 <style scoped>
+/* === Countdown Overlay === */
 .countdown-overlay {
   position: fixed;
   top: 0;
@@ -98,12 +148,10 @@ export default {
   justify-content: center;
   z-index: 9999;
 }
-
 .countdown-container {
   text-align: center;
   color: white;
 }
-
 .countdown-number {
   font-size: 120px;
   font-weight: 900;
@@ -112,39 +160,36 @@ export default {
   margin-bottom: 20px;
   transition: all 0.3s ease;
 }
-
 .countdown-number.animate {
   transform: scale(1.2);
   text-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
 }
-
 .countdown-text {
   font-size: 24px;
   font-weight: 600;
-  color: white;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
 
-/* Animation for the countdown numbers */
-@keyframes countdownPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+/* === Progress Overlay === */
+.progress-overlay {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  z-index: 9999;
 }
-
-.countdown-number.animate {
-  animation: countdownPulse 0.3s ease-in-out;
+.progress-container {
+  width: 100%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .countdown-number {
-    font-size: 80px;
-  }
-
-  .countdown-text {
-    font-size: 18px;
-  }
+.progress-bar {
+  height: 100%;
+  background: var(--yellow);
+  transition: width 50ms linear;
 }
 </style>
