@@ -2,35 +2,32 @@ package com.gooners.watguessr.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-
-import java.time.Duration;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Service
 public class S3Service {
 
-    private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     @Value("${aws.s3.bucket.name}")
     private String bucketName;
 
-    public S3Service(S3Presigner s3Presigner) {
-        this.s3Presigner = s3Presigner;
+    public S3Service(S3Client s3Client) {
+        this.s3Client = s3Client;
     }
 
-    public String generatePresignedUrl(String objectKey) {
+    public ResponseInputStream<GetObjectResponse> getObjectStream(String objectKey) {
         try {
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(3)) // URL expires in 3 minutes
-                    .getObjectRequest(b -> b.bucket(bucketName).key(objectKey))
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
                     .build();
-
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-            return presignedRequest.url().toString();
+            return s3Client.getObject(request);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate presigned URL for: " + objectKey, e);
+            throw new RuntimeException("Failed to fetch S3 object: " + objectKey, e);
         }
     }
 }

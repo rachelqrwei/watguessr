@@ -1,4 +1,14 @@
 <template>
+  <!-- Error Message -->
+  <div v-if="showError" class="error-overlay" @click="hideError">
+    <div class="error-modal" @click.stop>
+      <div class="error-icon">⚠️</div>
+      <h3>Login Required</h3>
+      <p>Log in to enter game</p>
+      <button class="error-close-btn" @click="hideError">OK</button>
+    </div>
+  </div>
+
   <section class="play-section" :class="{ loaded: isLoaded }">
     <div class="play-content">
       <div class="game-modes-wrapper">
@@ -35,13 +45,13 @@
           </div>
         </div>
       </div>
-
-
     </div>
   </section>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   props: {
     isLoaded: {
@@ -49,15 +59,38 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      showError: false
+    };
+  },
+  computed: {
+    ...mapGetters('user', ['isAuthenticated'])
+  },
   methods: {
     goSolo() {
+      if (!this.isAuthenticated) {
+        this.showError = true;
+        return;
+      }
       this.$router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } });
     },
     goRanked() {
+      if (!this.isAuthenticated) {
+        this.showError = true;
+        return;
+      }
       this.$router.push({ name: 'lobby', query: { gameMode: 'ranked' } });
     },
     openLobbyBrowser() {
+      if (!this.isAuthenticated) {
+        this.showError = true;
+        return;
+      }
       this.$emit('open-lobby-browser');
+    },
+    hideError() {
+      this.showError = false;
     }
   }
 };
@@ -304,9 +337,168 @@ export default {
   text-align: right;
 }
 
+/* Error Modal Styles */
+.error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+}
 
+.error-modal {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: var(--yellow);
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  animation: iconBounce 0.6s ease-out 0.2s both;
+}
+
+.error-modal h3 {
+  color: var(--white);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out 0.3s both;
+}
+
+.error-modal p {
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.5s ease-out 0.4s both;
+}
+
+.error-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  backdrop-filter: blur(8px);
+  animation: slideUp 0.5s ease-out 0.5s both;
+}
+
+.error-close-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.error-close-btn:active {
+  transform: translateY(0);
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(-90deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Mobile responsive for error modal */
 @media (max-width: 768px) {
+  .error-modal {
+    padding: 24px 20px;
+    margin: 20px;
+    border-radius: 8px;
+  }
+
+  .error-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .error-modal h3 {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  .error-modal p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .error-close-btn {
+    padding: 10px 24px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
   .section-header h2 {
     font-size: 1.8rem;
   }
@@ -368,7 +560,5 @@ export default {
   .ranked-text {
     transform: translateY(-4px);
   }
-
-
 }
 </style>

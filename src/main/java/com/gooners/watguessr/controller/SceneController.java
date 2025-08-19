@@ -1,12 +1,15 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.service.SceneService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @RestController
@@ -20,9 +23,18 @@ public class SceneController {
 
     }
 
-
     @GetMapping(value = "/image")
-    public String getImage(@RequestParam UUID roundId) {
-        return sceneService.getImageByRoundId(roundId);
+    public ResponseEntity<byte[]> getImage(@RequestParam UUID roundId) {
+        try (ResponseInputStream<GetObjectResponse> objectStream = sceneService.getImageByRoundId(roundId)) {
+            String contentType = objectStream.response().contentType() != null
+                    ? objectStream.response().contentType()
+                    : "image/jpeg";
+            byte[] bytes = objectStream.readAllBytes();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

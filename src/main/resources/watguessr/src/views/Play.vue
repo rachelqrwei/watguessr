@@ -330,9 +330,6 @@ export default {
     },
 
     async nextRoundOrEndGame() {
-      console.log('🎮 nextRoundOrEndGame called, gameMode:', this.getGameMode);
-      console.log('🎮 singleplayerGame_getShouldEnd:', this.singleplayerGame_getShouldEnd);
-
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
@@ -348,14 +345,6 @@ export default {
         this.showCountdown = true;
         this.showStopwatch = false;
 
-        const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
-        if (shouldEnd) {
-          // Call endGame to properly finish the game
-          await this.singleplayerGame_endGame();
-          this.$router.push('/singleplayer-game-end')
-          return;
-        }
-
         this.selectedBuilding = null;
         this.selectedFloor = '';
         this.resetTimer();
@@ -363,8 +352,6 @@ export default {
         // Clear saved map position for new round
         this.SET_MAP_CENTER(null);
         this.SET_MAP_ZOOM(null);
-
-        this.SET_CURRENT_VIEW("Image");
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {

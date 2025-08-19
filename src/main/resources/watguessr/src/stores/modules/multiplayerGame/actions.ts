@@ -23,7 +23,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     // Now we can safely set the status since the player exists
     commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
     commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
-    commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
+    commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
 
     commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
   },
