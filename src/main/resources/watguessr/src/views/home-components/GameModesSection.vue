@@ -349,6 +349,7 @@ export default {
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .error-modal {
@@ -363,6 +364,7 @@ export default {
   backdrop-filter: blur(8px);
   position: relative;
   overflow: hidden;
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .error-icon {
@@ -370,6 +372,7 @@ export default {
   margin-bottom: 20px;
   color: var(--yellow);
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  animation: iconBounce 0.6s ease-out 0.2s both;
 }
 
 .error-modal h3 {
@@ -380,6 +383,7 @@ export default {
   text-transform: uppercase;
   letter-spacing: 1.2px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out 0.3s both;
 }
 
 .error-modal p {
@@ -390,6 +394,7 @@ export default {
   line-height: 1.4;
   letter-spacing: 0.5px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.5s ease-out 0.4s both;
 }
 
 .error-close-btn {
@@ -405,6 +410,7 @@ export default {
   text-transform: uppercase;
   letter-spacing: 1.2px;
   backdrop-filter: blur(8px);
+  animation: slideUp 0.5s ease-out 0.5s both;
 }
 
 .error-close-btn:hover {
@@ -416,6 +422,52 @@ export default {
 
 .error-close-btn:active {
   transform: translateY(0);
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(-90deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 /* Mobile responsive for error modal */
