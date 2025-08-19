@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,20 +17,18 @@ import java.util.UUID;
 public interface GameRepository extends JpaRepository<Game, UUID> {
     
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
-           "JOIN Round r ON r.game.id = g.id " +
-           "JOIN Guess guess ON guess.round.id = r.id " +
-           "WHERE guess.user.id = :userId")
-    Integer countGamesPlayedByUser(@Param("userId") UUID userId);
-    
-    @Query("SELECT COUNT(g.id) FROM Game g " +
-           "WHERE g.winner.id = :userId AND g.gameMode <> 'Singleplayer'")
+           "WHERE g.winner IS NOT NULL AND g.winner.id = :userId AND g.gameMode <> 'Singleplayer'")
     Integer countGamesWonByUser(@Param("userId") UUID userId);
-    
+
+    @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
+            "WHERE g.winner IS NOT NULL AND g.winner.id != :userId AND g.gameMode <> 'Singleplayer'")
+    Integer countGamesLostByUser(@Param("userId") UUID userId);
+
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
            "JOIN Round r ON r.game.id = g.id " +
            "JOIN Guess guess ON guess.round.id = r.id " +
-           "WHERE guess.user.id = :userId AND g.gameMode <> 'Singleplayer'")
-    Integer countNonSingleplayerGamesPlayedByUser(@Param("userId") UUID userId);
+           "WHERE guess.user.id = :userId AND g.winner IS NOT NULL")
+    Integer countGamesPlayedByUser(@Param("userId") UUID userId);
 
     @Query("SELECT DISTINCT g FROM Game g " +
            "JOIN Round r ON r.game.id = g.id " +

@@ -8,8 +8,9 @@ public class MatchHistoryItem {
     private String gameMode;
     private OffsetDateTime playedAt;
     private Integer roundsSurvived; // singleplayer only
-    private Boolean won; // multiplayer/ranked only
+    private Boolean won; // ranked/multiplayer only
     private Integer numPlayers; // multiplayer/ranked only
+    private Boolean finished;
 
     public UUID getGameId() { return gameId; }
     public void setGameId(UUID gameId) { this.gameId = gameId; }
@@ -28,4 +29,7 @@ public class MatchHistoryItem {
 
     public Integer getNumPlayers() { return numPlayers; }
     public void setNumPlayers(Integer numPlayers) { this.numPlayers = numPlayers; }
+
+    public Boolean getFinished() { return finished; }
+    public void setFinished(Boolean finished) { this.finished = finished; }
 } 

@@ -207,8 +207,10 @@ export default {
       if (newVal && this.getCurrentView !== 'RoundEnd') {
         // Only navigate automatically if we're not on RoundEnd view
         // Add a small delay to ensure RoundEnd view has time to show
-        setTimeout(() => {
+        setTimeout(async () => {
           if (this.getCurrentView !== 'RoundEnd') {
+            // call endGame to properly finish the game and set winner
+            await this.singleplayerGame_endGame();
             this.$router.push('/singleplayer-game-end');
           }
         }, 100);
@@ -334,6 +336,9 @@ export default {
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
+          console.log('🎮 Game should end, calling endGame before navigation');
+          // Call endGame to properly finish the game and set winner
+          await this.singleplayerGame_endGame();
           console.log('🎮 Navigating to singleplayer-game-end');
           this.$router.push('/singleplayer-game-end');
           return;
