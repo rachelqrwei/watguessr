@@ -201,7 +201,7 @@ function handleRoundStart(roundData: any) {
 
   // Force the view change with a small delay to ensure it takes effect
   setTimeout(() => {
-    store.commit('gameInfo/SET_CURRENT_VIEW', 'Map');
+    store.commit('gameInfo/SET_CURRENT_VIEW', 'Image');
   }, 100);
 }
 
@@ -210,7 +210,8 @@ async function fetchSceneImage(roundId: string) {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${roundId}`);
     if (response.ok) {
-      const imageUrl = await response.text();
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
       store.commit('round/SET_IMAGE_URL', imageUrl || null);
     } else {
       store.commit('round/SET_IMAGE_URL', null);

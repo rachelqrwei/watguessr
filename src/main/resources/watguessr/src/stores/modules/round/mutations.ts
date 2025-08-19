@@ -7,6 +7,10 @@ export const mutations: MutationTree<RoundState> = {
     state.roundId = roundId;
   },
   SET_IMAGE_URL(state, imageUrl: string | null) {
+    // Revoke previous blob URL if present
+    if (state.imageUrl && state.imageUrl.startsWith('blob:')) {
+      try { URL.revokeObjectURL(state.imageUrl); } catch (_) { /* noop */ }
+    }
     state.imageUrl = imageUrl;
   },
   SET_WINNER(state, winner: string) {
@@ -28,6 +32,9 @@ export const mutations: MutationTree<RoundState> = {
   },
   RESET_ROUND(state) {
     state.roundId = null;
+    if (state.imageUrl && state.imageUrl.startsWith('blob:')) {
+      try { URL.revokeObjectURL(state.imageUrl); } catch (_) { /* noop */ }
+    }
     state.imageUrl = null;
     state.winner = null;
     state.roundResult = {

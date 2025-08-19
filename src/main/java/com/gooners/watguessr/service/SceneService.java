@@ -7,9 +7,9 @@ import com.gooners.watguessr.repository.SceneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Service
 @Transactional
@@ -33,12 +33,12 @@ public class SceneService {
         return sceneRepository.getRandom();
     }
 
-    public String getImageByRoundId(UUID roundId) {
+    public ResponseInputStream<GetObjectResponse> getImageByRoundId(UUID roundId) {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new RuntimeException("Round not found with id: " + roundId));
         Scene scene = round.getScene();
         String imageKey = scene.getImage();
-        
-        return s3Service.generatePresignedUrl(imageKey);
+
+        return s3Service.getObjectStream(imageKey);
     }
 }

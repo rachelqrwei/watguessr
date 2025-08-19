@@ -42,7 +42,8 @@ export const actions: ActionTree<RoundState, RootState> = {
     try {
       const imgResp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${round?.id}`);
       if (imgResp.ok) {
-        const imageUrl = await imgResp.text();
+        const blob = await imgResp.blob();
+        const imageUrl = URL.createObjectURL(blob);
         commit('SET_IMAGE_URL', imageUrl || null);
       } else {
         commit('SET_IMAGE_URL', null);
