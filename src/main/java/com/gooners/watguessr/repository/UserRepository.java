@@ -32,4 +32,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             Pageable pageable);
 
     User findByEmailAddress(String to);
+
+    Optional<User> findFirstByEmailAddressAndVerifiedTrue(String emailAddress);
+
 }

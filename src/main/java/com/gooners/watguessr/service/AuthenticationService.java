@@ -1,17 +1,16 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.dto.AuthenticationResponseDto;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.stereotype.Service;
+
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenticationService {
@@ -52,6 +51,29 @@ public class AuthenticationService {
         response.addHeader("Set-Cookie", cookie.toString());
 
         // 5️⃣ Return user info only (no token in JSON)
+        return userMapper.toDto(user);
+    }
+
+    // Authenticate Google OAuth user
+    public UserDto authenticateGoogleUser(User user, HttpServletResponse response) {
+        // Update last login and streak
+        userService.updateStreakAndLastLogin(user);
+        
+        // Generate JWT token for the user
+        String token = jwtService.generateTokenForUser(user);
+        
+        // Set JWT as HttpOnly cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(false)          // use true in production with HTTPS
+                .path("/")
+                .maxAge(3600)           // 1 hour
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+        
+        // Return user info
         return userMapper.toDto(user);
     }
 

@@ -3,6 +3,7 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
+import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.EmailVerificationRepository;
@@ -100,7 +101,9 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException("User not found"));
 
-        if (!emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress()).isPresent()) {
+        if (!emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress()).isPresent() &&
+                !userRepository.findFirstByEmailAddressAndVerifiedTrue(user.getEmailAddress()).isPresent()
+        ) {
             throw new CustomException("User not verified");
         }
 
@@ -186,6 +189,41 @@ public class UserService {
         }
 
         user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+    }
+
+    public User createUserFromGoogle(String email, String name, String picture) {
+        // Check if user already exists
+        if (userRepository.existsByEmailAddress(email)) {
+            throw new CustomException("An account with this email already exists");
+        }
+
+        // Generate a unique username from the name
+        String baseUsername = name.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        String username = baseUsername;
+        int counter = 1;
+        
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + counter;
+            counter++;
+        }
+
+        // Create user with Google credentials (no password needed for OAuth)
+        User user = new User();
+        user.setEmailAddress(email);
+        user.setUsername(username);
+        user.setDisplayName(name);
+        user.setProfilePictureUrl(picture);
+        user.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+        user.setElo(150);
+        user.setStreak(1);
+        user.setVerified(true); // Google users are pre-verified
+        
+        // Set a random password (won't be used for OAuth login)
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        
+        userRepository.save(user);
+        return user;
     }
 
 }

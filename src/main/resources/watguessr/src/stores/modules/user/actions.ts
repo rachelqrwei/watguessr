@@ -200,6 +200,47 @@ export const actions = {
       commit('SET_LOADING', false);
     }
   },
+
+  async signUpWithGoogle({ commit }: { state: UserState; commit: any }, payload: { email: string; name: string; picture?: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google-signup`, {
+        method: 'POST',
+        credentials: "include",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData.message || errorData.error || 'Google signup failed';
+        throw new Error(message);
+      }
+
+      const user = await response.json();
+      commit('SET_CURRENT_USER', user);
+      commit('SET_AUTHENTICATED', true);
+      return user;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Google signup failed';
+      commit('SET_ERROR', message);
+      throw new Error(message);
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  async startGoogleAuth() {
+    try {
+      // Redirect to backend Google OAuth endpoint
+      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+    } catch (err) {
+      console.error('Failed to start Google auth:', err);
+      throw err;
+    }
+  },
   // Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {
     try {
