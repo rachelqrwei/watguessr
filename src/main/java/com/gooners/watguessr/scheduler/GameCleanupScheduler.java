@@ -1,7 +1,6 @@
 package com.gooners.watguessr.scheduler;
 
 import com.gooners.watguessr.service.GameService;
-import com.gooners.watguessr.service.LobbyService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

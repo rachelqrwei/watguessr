@@ -160,15 +160,17 @@ public class UserService {
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 
-        Integer gamesPlayed = gameRepository.countNonSingleplayerGamesPlayedByUser(user.getId());
+        Integer gamesPlayed = gameRepository.countGamesPlayedByUser(user.getId());
         Integer gamesWon = gameRepository.countGamesWonByUser(user.getId());
+        Integer gamesLost = gameRepository.countGamesLostByUser(user.getId());
 
         gamesPlayed = gamesPlayed != null ? gamesPlayed : 0;
         gamesWon = gamesWon != null ? gamesWon : 0;
+        gamesLost = gamesLost != null ? gamesLost : 0;
 
         leaderboardUser.setGamesPlayed(gamesPlayed);
         leaderboardUser.setGamesWon(gamesWon);
-        leaderboardUser.setGamesLost(gamesPlayed - gamesWon);
+        leaderboardUser.setGamesLost(gamesLost);
 
         return leaderboardUser;
     }

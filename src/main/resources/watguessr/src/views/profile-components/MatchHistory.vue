@@ -26,7 +26,10 @@
               <div class="date">{{ formatDate(item.playedAt) }}</div>
             </div>
             <div class="right">
-              <template v-if="item.gameMode === 'Singleplayer'">
+              <template v-if="!item.finished">
+                <span class="chip chip-grey">Unfinished</span>
+              </template>
+              <template v-else-if="item.gameMode === 'Singleplayer'">
                 <span class="chip chip-green">Survived {{ item.roundsSurvived }} rounds</span>
               </template>
               <template v-else>
@@ -254,6 +257,12 @@ export default {
   background: rgba(255, 127, 127, 0.15);
   color: #FF7F7F;
   border-color: rgba(255, 127, 127, 0.35);
+}
+
+.chip-grey {
+  background: rgba(128, 128, 128, 0.15);
+  color: #808080;
+  border-color: rgba(128, 128, 128, 0.35);
 }
 
 /* Fixed width for Win/Loss chip to keep layout stable */
