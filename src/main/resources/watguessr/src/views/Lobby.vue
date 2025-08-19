@@ -223,25 +223,6 @@ export default {
         }
       }
     },
-
-    async cleanupLobbyState() {
-      if (this.lobbyId && this.gameModeLabel === 'multiplayer') {
-        const currentUser = this.$store.getters["user/getCurrentUser"];
-
-        try {
-          // Force leave the lobby to clean up any stale state
-          forceLeaveLobby(this.lobbyId, currentUser);
-
-          // Also request cleanup of stale lobby entries
-          disconnectLobby();
-
-          console.log('Requested cleanup of stale lobby state');
-        } catch (error) {
-          console.error('Failed to cleanup stale lobby state:', error);
-        }
-      }
-    },
-
     connectToLobbyWebSocket() {
       if (this.gameModeLabel === 'multiplayer' && this.lobbyId) {
         const currentUser = this.$store.getters["user/getCurrentUser"];
