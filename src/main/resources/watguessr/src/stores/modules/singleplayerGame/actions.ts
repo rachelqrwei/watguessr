@@ -9,7 +9,6 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
     commit('SG_SET_STATUS', 'loading');
     commit('gameInfo/SET_GAME_MODE', 'singleplayer', {root: true});
-    commit('gameInfo/SET_CURRENT_VIEW', 'Map', {root: true});
 
     const token = rootGetters['user/getToken'];
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/create/singleplayer`, {
@@ -17,6 +16,7 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
     });
     const gameId = await response.json();
 
+    commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
 
     commit('SG_SET_GAME_ID', gameId);
     commit('SG_SET_STATUS', 'playing');
