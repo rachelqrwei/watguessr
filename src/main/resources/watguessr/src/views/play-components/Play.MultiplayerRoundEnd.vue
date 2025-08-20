@@ -157,14 +157,6 @@ export default {
         if (currentRound && currentRound.guesses) {
           this.allGuesses = currentRound.guesses;
         }
-
-        if (uniqueUserIds.length > 1) {
-          // We have guesses from multiple users across different rounds
-          // Use all guesses but mark them as aggregated
-          this.allGuesses = allGuessesFromAllRounds;
-          this.isAggregatedGuesses = true;
-          return; // Exit early since we're using aggregated guesses
-        }
       } catch (error) {
         console.error('Error fetching all guesses:', error);
       }
@@ -223,7 +215,6 @@ export default {
     handleLiveGuessUpdate(newGuess) {
       // Add the new guess to our list
       this.allGuesses.push(newGuess);
-
       // Add the new marker to the map
       this.addGuessMarker(newGuess, this.allGuesses.length - 1);
 
@@ -259,43 +250,6 @@ export default {
         }, 3000);
       }
     },
-
-    // Add a single guess marker
-    addGuessMarker(guess, index) {
-      const isCurrentUser = guess.userId === this.currentUser?.id;
-      const coordinates = [guess.guessX, guess.guessY];
-
-      // Different colors for different players
-      let markerColor = '#4444ff'; // Default blue for other players
-      let markerLabel = 'Other Player';
-
-      if (isCurrentUser) {
-        markerColor = '#44ff44'; // Green for current user
-        markerLabel = 'Your Guess';
-      } else {
-        // Generate different colors for other players
-        const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
-        markerColor = colors[index % colors.length];
-        markerLabel = `Player ${index + 1}`;
-      }
-
-      const marker = new mapboxgl.Marker({
-        color: markerColor,
-        scale: isCurrentUser ? 1.1 : 1.0
-      })
-        .setLngLat(coordinates)
-        .setPopup(new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`
-            <div style="color: black; font-weight: bold;">
-              ${markerLabel}<br>
-              <small>${guess.username || 'Unknown Player'}</small>
-            </div>
-          `))
-        .addTo(this.map);
-
-      this.markers.push(marker);
-    },
-
     // Set up periodic refresh as backup
     setupPeriodicRefresh() {
       this.refreshInterval = setInterval(() => {
@@ -382,18 +336,15 @@ export default {
         const isCurrentUser = guess.userId === this.currentUser?.id;
         const coordinates = [guess.guessX, guess.guessY];
 
-        // Different colors for different players
-        let markerColor = '#4444ff'; // Default blue for other players
-        let markerLabel = 'Other Player';
-
+        let markerColor, markerLabel;
         if (isCurrentUser) {
           markerColor = '#44ff44'; // Green for current user
-          markerLabel = 'Your Guess';
+          markerLabel = 'You';
         } else {
           // Generate different colors for other players
           const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
           markerColor = colors[index % colors.length];
-          markerLabel = `Player ${index + 1}`;
+          markerLabel = this.multiplayerGame_getPlayers[guess.userId].username;
         }
 
         const marker = new mapboxgl.Marker({
@@ -404,8 +355,7 @@ export default {
           .setPopup(new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
               <div style="color: black; font-weight: bold;">
-                ${markerLabel}<br>
-                <small>${guess.username || 'Unknown Player'}</small>
+                ${markerLabel}
               </div>
             `))
           .addTo(this.map);
