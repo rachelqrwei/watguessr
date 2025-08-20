@@ -54,7 +54,7 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
           callbacks.onQueueJoined?.();
           break;
         case 'left_queue':
-          callbacks.onQueueLeft?.();
+          // callbacks.onQueueLeft?.();
           break;
         case 'match_found':
           callbacks.onMatchFound?.(data.data);
