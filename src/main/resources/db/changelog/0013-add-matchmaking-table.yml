@@ -1,8 +1,12 @@
-# 0011-create-matchmaking-queue-table.yml
 databaseChangeLog:
   - changeSet:
       id: 12-1
       author: STANLEY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: "matchmaking_queue"
       changes:
         - createTable:
             tableName: matchmaking_queue
