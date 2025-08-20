@@ -26,6 +26,7 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "CountdownTimer",
+  emits: ['countdown-complete'],
   props: {
     isVisible: {
       type: Boolean,
