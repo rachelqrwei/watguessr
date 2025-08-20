@@ -88,7 +88,7 @@ public class UserService {
         }
 
         if (dto.getUsername().length() > 24) {
-            throw new CustomException("Username must be at least 24 characters");
+            throw new CustomException("Username must be at most 24 characters");
         }
 
         if (dto.getUsername().contains(" ")) {
