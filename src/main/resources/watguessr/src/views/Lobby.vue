@@ -85,16 +85,28 @@
 
       <!-- RANKED -->
       <div v-else-if="gameModeLabel === 'ranked'">
-        <div class="ranked-info">
-          <p class="waiting-msg">🎯 Ranked matchmaking enabled</p>
+        <!-- Show initial state when not in queue -->
+        <div v-if="rankedQueueState === 'idle'" class="ranked-info">
+          <p class="waiting-msg">🏆 Ranked Matchmaking</p>
           <p class="waiting-msg" style="font-size: 0.9rem; margin-top: 8px;">
-            WebSocket connection for finding opponents
+           Compete against other players in ranked matches and climb the leaderboard!
           </p>
+          <button class="play-button" @click="initiateRankedWebSocketConnection" style="margin-top: 16px;">
+            🎯 Join Ranked Queue
+          </button>
         </div>
-        <button class="test-button" @click="testWebSocketConnection" style="margin-bottom: 16px;">
-          🧪 Test WebSocket
-        </button>
-        <button class="play-button" @click="goToPlay">PLAY RANKED</button>
+
+        <!-- Show matchmaking queue component when in queue, match found, or error -->
+        <MatchmakingQueue
+          v-else
+          :queue-state="rankedQueueState"
+          :match-info="rankedMatchInfo"
+          :error-message="rankedErrorMessage"
+          @cancel-queue="cancelRankedQueue"
+          @retry-connection="retryRankedConnection"
+          @game-start="startRankedGame"
+          :key="'matchmaking-' + rankedQueueState"
+        />
       </div>
     </div>
   </div>
@@ -105,16 +117,30 @@ import { mapMutations, mapActions } from "vuex";
 import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
 import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
-import { connectToMatchmakingWebSocket, disconnectFromMatchmakingWebSocket, joinRankedQueue, testMatchmakingWebSocket } from "@/services/matchmakingWebSocket";
+import {
+  connectToMatchmakingWebSocket,
+  disconnectFromMatchmakingWebSocket,
+  joinRankedQueue,
+  leaveRankedQueue
+} from "@/services/matchmakingWebSocket";
+import MatchmakingQueue from "@/components/MatchmakingQueue.vue";
 
 export default {
   name: "Lobby",
+  components: {
+    MatchmakingQueue
+  },
   data() {
     return {
       players: [],
       myId: "",
       gameStarted: false,
-      lobbyInfo: null
+      lobbyInfo: null,
+      cleanupCalled: false,
+      // Ranked matchmaking state
+      rankedQueueState: 'idle', // 'idle', 'searching', 'match_found', 'error'
+      rankedMatchInfo: null,
+      rankedErrorMessage: ''
     };
   },
   computed: {
@@ -187,15 +213,120 @@ export default {
       }
     },
 
-    testWebSocketConnection() {
-      console.log('🧪 Testing WebSocket connection...');
-      testMatchmakingWebSocket();
+    initiateRankedWebSocketConnection() {
+      console.log('🎯 Starting ranked matchmaking...');
+      this.rankedQueueState = 'searching';
+      this.rankedErrorMessage = '';
 
-      // Also test joining queue
+      // Connect to matchmaking WebSocket with callbacks
+      connectToMatchmakingWebSocket(this.myId, {
+        onQueueJoined: () => {
+          // Ensure we stay in searching state
+          this.rankedQueueState = 'searching';
+        },
+        onQueueLeft: () => {
+          this.rankedQueueState = 'idle';
+        },
+        onMatchFound: (matchInfo) => {
+          this.rankedQueueState = 'match_found';
+
+          // Find opponent from the players list
+          const players = matchInfo.players || [];
+          const opponent = players.find(p => p.id !== this.myId) || players[0];
+
+          this.rankedMatchInfo = {
+            opponentName: opponent?.username || 'Anonymous Player',
+            opponentRating: opponent?.elo || 1200,
+            roundCount: 5, // Default for ranked games
+            timeLimit: 60, // Default for ranked games
+            gameId: matchInfo.gameId
+          };
+        },
+        onQueueTimeout: (message) => {
+          this.rankedQueueState = 'error';
+          this.rankedErrorMessage = message;
+        },
+        onError: (error) => {
+          this.rankedQueueState = 'error';
+          this.rankedErrorMessage = error;
+        }
+      });
+
+      // Join the queue after a delay to ensure connection is established
       setTimeout(() => {
-        console.log('🎯 Testing join queue...');
+        console.log('📤 Sending join queue message...');
         joinRankedQueue(this.myId);
-      }, 1000);
+      }, 1500);
+    },
+
+    cancelRankedQueue() {
+      leaveRankedQueue(this.myId);
+      this.rankedQueueState = 'idle';
+      this.rankedMatchInfo = null;
+      disconnectFromMatchmakingWebSocket();
+    },
+
+    retryRankedConnection() {
+      this.rankedQueueState = 'idle';
+      this.rankedErrorMessage = '';
+      // Try to reconnect
+      this.initiateRankedWebSocketConnection();
+    },
+
+    startRankedGame() {
+      if (this.rankedMatchInfo && this.rankedMatchInfo.gameId) {
+        // Set game mode and navigate to play
+        this.SET_GAME_MODE("ranked");
+
+        // Store game information in Vuex if needed
+        this.$store.commit('gameInfo/SET_GAME_MODE', 'ranked');
+
+        this.$router.push({
+          name: "play",
+          query: {
+            gameMode: "ranked",
+            gameId: this.rankedMatchInfo.gameId
+          }
+        });
+      } else {
+        this.rankedQueueState = 'error';
+        this.rankedErrorMessage = 'Failed to start game: No game ID received';
+      }
+    },
+
+    cleanup() {
+      if (this.cleanupCalled) {
+        console.log("🧹 Cleanup already called, skipping...");
+        return;
+      }
+
+      this.cleanupCalled = true;
+      console.log("🧹 Cleaning up connections for mode:", this.gameModeLabel);
+
+      // Remove window event listener
+      window.removeEventListener('beforeunload', this.cleanup);
+
+      if (this.gameModeLabel === 'multiplayer') {
+        console.log("🧹 Disconnecting from multiplayer lobby...");
+        disconnectLobby();
+      } else if (this.gameModeLabel === 'ranked') {
+        console.log("🧹 Leaving ranked queue and disconnecting...");
+        console.log("🧹 User ID:", this.myId);
+
+        // Leave the ranked queue if we're in it
+        if (this.myId && this.rankedQueueState !== 'idle') {
+          leaveRankedQueue(this.myId);
+        } else {
+          console.warn("⚠️ No user ID available for leaving queue or not in queue");
+        }
+
+        // Reset ranked state
+        this.rankedQueueState = 'idle';
+        this.rankedMatchInfo = null;
+
+        // Disconnect from matchmaking WebSocket
+        disconnectFromMatchmakingWebSocket();
+      }
     }
   },
   mounted() {
@@ -222,8 +353,6 @@ export default {
 
           // The lobby system has already created the game and provided the gameId
           if (startInfo.gameId) {
-            console.log('🎮 Game started with gameId from lobby:', startInfo.gameId);
-
             // Set the game ID from the lobby
             this.$store.commit('multiplayerGame/MG_SET_GAME_ID', startInfo.gameId);
 
@@ -257,17 +386,17 @@ export default {
         joinLobby(currentUser, this.lobbyId);
       }
     } else if (this.gameModeLabel === 'ranked') {
-      // Connect to matchmaking WebSocket for ranked mode
-      console.log('🎯 Connecting to matchmaking WebSocket for ranked mode...');
-      connectToMatchmakingWebSocket();
+      // For ranked mode, we'll connect when user clicks "Join Queue"
+      // Just add window beforeunload listener as backup cleanup
+      window.addEventListener('beforeunload', this.cleanup);
     }
   },
   beforeUnmount() {
-    if (this.gameModeLabel === 'multiplayer') {
-      disconnectLobby();
-    } else if (this.gameModeLabel === 'ranked') {
-      disconnectFromMatchmakingWebSocket();
-    }
+    this.cleanup();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.cleanup();
+    next();
   },
 };
 </script>
@@ -484,22 +613,7 @@ export default {
   background: #45a049;
 }
 
-.test-button {
-  background: #2196F3;
-  color: var(--white);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.test-button:hover {
-  background: #1976D2;
-  transform: translateY(-1px);
-}
 
 .ranked-info {
   margin-bottom: 20px;

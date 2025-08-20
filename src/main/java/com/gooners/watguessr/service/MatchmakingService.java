@@ -35,7 +35,7 @@ public class MatchmakingService {
 	// Constants for matchmaking
 	private static final int MAX_PLAYERS_RANKED = 2;
 	private static final int ELO_RANGE_INITIAL = 100;
-	private static final int ELO_RANGE_MAX = 300;
+	private static final int ELO_RANGE_MAX = 500;
 	private static final long QUEUE_TIMEOUT_MINUTES = 5;
 
 	/**
@@ -71,20 +71,18 @@ public class MatchmakingService {
 		}
 
 		// Notify user they left the queue
-		messagingTemplate.convertAndSendToUser(
-				userId.toString(),
-				"/topic/matchmaking",
-				createMatchmakingUpdate("left_queue", null)
-		);
+		Map<String, Object> update = createMatchmakingUpdate("left_queue", null);
+		String topic = "/topic/matchmaking/" + userId;
+		messagingTemplate.convertAndSend(topic, update);
 	}
 
 	private void findRankedMatch(MatchmakingQueue newEntry) {
-		User newUser = newEntry.getUser();
+ 		User newUser = newEntry.getUser();
 		int userElo = newUser.getElo();
 
 		// Dynamic ELO range based on wait time
 		long waitTimeMinutes = Duration.between(newEntry.getCreatedAt(), OffsetDateTime.now()).toMinutes();
-		int eloRange = Math.min(ELO_RANGE_INITIAL + (int)(waitTimeMinutes * 20), ELO_RANGE_MAX);
+		int eloRange = Math.min(ELO_RANGE_INITIAL + (int)(waitTimeMinutes * 100), ELO_RANGE_MAX);
 
 		List<MatchmakingQueue> compatiblePlayers = queueRepository.findCompatibleRankedPlayers(
 				userElo - eloRange,
@@ -132,8 +130,8 @@ public class MatchmakingService {
 	// Helper methods...
 	private void notifyUserInQueue(UUID userId) {
 		Map<String, Object> update = createMatchmakingUpdate("in_queue", null);
-
-		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
+		String topic = "/topic/matchmaking/" + userId;
+		messagingTemplate.convertAndSend(topic, update);
 	}
 
 	private void notifyPlayerMatched(UUID userId, UUID gameId, List<MatchmakingQueue> allPlayers) {
@@ -152,8 +150,8 @@ public class MatchmakingService {
 		data.put("players", playerList);
 
 		Map<String, Object> update = createMatchmakingUpdate("match_found", data);
-
-		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
+		String topic = "/topic/matchmaking/" + userId;
+		messagingTemplate.convertAndSend(topic, update);
 	}
 
 	private Map<String, Object> createMatchmakingUpdate(String type, Object data) {
@@ -194,7 +192,7 @@ public class MatchmakingService {
 		data.put("message", "Queue timeout - please try again");
 
 		Map<String, Object> update = createMatchmakingUpdate("queue_timeout", data);
-
-		messagingTemplate.convertAndSendToUser(userId.toString(), "/topic/matchmaking", update);
+		String topic = "/topic/matchmaking/" + userId;
+		messagingTemplate.convertAndSend(topic, update);
 	}
 }
