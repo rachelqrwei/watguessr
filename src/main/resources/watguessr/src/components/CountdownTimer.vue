@@ -26,7 +26,7 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "CountdownTimer",
-  emits: ['countdown-complete'],
+  emits: ["countdown-complete"],
   props: {
     isVisible: {
       type: Boolean,
@@ -50,6 +50,11 @@ export default {
   watch: {
     isVisible(newVal) {
       if (newVal) {
+        // reset animation state whenever we show
+        this.stopCountdown();
+        this.stopProgressBar();
+        this.countdownNumber = 3;
+        this.progressWidth = 0;
         if (this.getCurrentRound < 1) {
           this.startCountdown();
         } else {
@@ -119,7 +124,7 @@ export default {
       this.progressTimer = setInterval(() => {
         if (this.progressWidth < 100) {
           this.progressWidth += step;
-          
+
           // Update text based on progress
           if (this.progressWidth < 66) {
             this.countdownText = "Get Ready!";
@@ -157,7 +162,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -232,7 +237,7 @@ export default {
     width: 90%;
     top: 15px;
   }
-  
+
   .progress-container {
     height: 10px;
   }

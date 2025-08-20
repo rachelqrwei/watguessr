@@ -85,7 +85,29 @@
 
       <!-- RANKED -->
       <div v-else-if="gameModeLabel === 'ranked'">
-        <button class="play-button" @click="goToPlay">PLAY RANKED</button>
+
+        <!-- Show initial state when not in queue -->
+        <div v-if="rankedQueueState === 'idle'" class="ranked-info">
+          <p class="waiting-msg">🏆 Ranked Matchmaking</p>
+          <p class="waiting-msg" style="font-size: 0.9rem; margin-top: 8px;">
+            Compete against other players in ranked matches and climb the leaderboard!
+          </p>
+          <button class="play-button" @click="initiateRankedWebSocketConnection" style="margin-top: 16px;">
+            🎯 Join Ranked Queue
+          </button>
+        </div>
+
+        <!-- Show matchmaking queue component when in queue, match found, or error -->
+        <MatchmakingQueue
+          v-else
+          :queue-state="rankedQueueState"
+          :match-info="rankedMatchInfo"
+          :error-message="rankedErrorMessage"
+          @cancel-queue="cancelRankedQueue"
+          @retry-connection="retryRankedConnection"
+          @game-start="startRankedGame"
+          :key="'matchmaking-' + rankedQueueState"
+        />
       </div>
     </div>
   </div>
@@ -96,9 +118,19 @@ import { mapMutations, mapActions } from "vuex";
 import { connectLobby, joinLobby, startGame, disconnectLobby, setPlayerReady, leaveLobby, forceLeaveLobby } from "@/services/lobby";
 import { LobbyManager } from "@/services/lobbyManager";
 import { connectToMultiplayerGame } from "@/services/multiplayerGameWebSocket";
+import {
+  connectToMatchmakingWebSocket,
+  disconnectFromMatchmakingWebSocket,
+  joinRankedQueue,
+  leaveRankedQueue
+} from "@/services/matchmakingWebSocket";
+import MatchmakingQueue from "@/components/MatchmakingQueue.vue";
 
 export default {
   name: "Lobby",
+  components: {
+    MatchmakingQueue
+  },
   data() {
     return {
       players: [],
@@ -107,7 +139,12 @@ export default {
       lobbyInfo: null,
       isConnected: false,
       connectionAttempts: 0,
-      maxConnectionAttempts: 3
+      maxConnectionAttempts: 3,
+      cleanupCalled: false,
+      // Ranked matchmaking state
+      rankedQueueState: 'idle', // 'idle', 'searching', 'match_found', 'error'
+      rankedMatchInfo: null,
+      rankedErrorMessage: ''
     };
   },
   computed: {
@@ -286,6 +323,105 @@ export default {
 
       // Now navigate home
       this.$router.push({ name: "home" });
+    },
+    initiateRankedWebSocketConnection() {
+      console.log('🎯 Starting ranked matchmaking...');
+      this.rankedQueueState = 'searching';
+      this.rankedErrorMessage = '';
+      // Connect to matchmaking WebSocket with callbacks
+      connectToMatchmakingWebSocket(this.myId, {
+        onQueueJoined: () => {
+          // Ensure we stay in searching state
+          this.rankedQueueState = 'searching';
+        },
+        onQueueLeft: () => {
+          this.rankedQueueState = 'idle';
+        },
+        onMatchFound: (matchInfo) => {
+          this.rankedQueueState = 'match_found';
+          // Find opponent from the players list
+          const players = matchInfo.players || [];
+          const opponent = players.find(p => p.id !== this.myId) || players[0];
+          this.rankedMatchInfo = {
+            opponentName: opponent?.username || 'Anonymous Player',
+            opponentRating: opponent?.elo || 1200,
+            roundCount: 5, // Default for ranked games
+            timeLimit: 60, // Default for ranked games
+            gameId: matchInfo.gameId
+          };
+        },
+        onQueueTimeout: (message) => {
+          this.rankedQueueState = 'error';
+          this.rankedErrorMessage = message;
+        },
+        onError: (error) => {
+          this.rankedQueueState = 'error';
+          this.rankedErrorMessage = error;
+        }
+      });
+      // Join the queue after a delay to ensure connection is established
+      setTimeout(() => {
+        console.log('📤 Sending join queue message...');
+        joinRankedQueue(this.myId);
+      }, 1500);
+    },
+    cancelRankedQueue() {
+      leaveRankedQueue(this.myId);
+      this.rankedQueueState = 'idle';
+      this.rankedMatchInfo = null;
+      disconnectFromMatchmakingWebSocket();
+    },
+    retryRankedConnection() {
+      this.rankedQueueState = 'idle';
+      this.rankedErrorMessage = '';
+      // Try to reconnect
+      this.initiateRankedWebSocketConnection();
+    },
+    startRankedGame() {
+      if (this.rankedMatchInfo && this.rankedMatchInfo.gameId) {
+        // Set game mode and navigate to play
+        this.SET_GAME_MODE("ranked");
+        // Store game information in Vuex if needed
+        this.$store.commit('gameInfo/SET_GAME_MODE', 'ranked');
+        this.$router.push({
+          name: "play",
+          query: {
+            gameMode: "ranked",
+            gameId: this.rankedMatchInfo.gameId
+          }
+        });
+      } else {
+        this.rankedQueueState = 'error';
+        this.rankedErrorMessage = 'Failed to start game: No game ID received';
+      }
+    },
+    cleanup() {
+      if (this.cleanupCalled) {
+        console.log("🧹 Cleanup already called, skipping...");
+        return;
+      }
+      this.cleanupCalled = true;
+      console.log("🧹 Cleaning up connections for mode:", this.gameModeLabel);
+      // Remove window event listener
+      window.removeEventListener('beforeunload', this.cleanup);
+      if (this.gameModeLabel === 'multiplayer') {
+        console.log("🧹 Disconnecting from multiplayer lobby...");
+        disconnectLobby();
+      } else if (this.gameModeLabel === 'ranked') {
+        console.log("🧹 Leaving ranked queue and disconnecting...");
+        console.log("🧹 User ID:", this.myId);
+        // Leave the ranked queue if we're in it
+        if (this.myId && this.rankedQueueState !== 'idle') {
+          leaveRankedQueue(this.myId);
+        } else {
+          console.warn("⚠️ No user ID available for leaving queue or not in queue");
+        }
+        // Reset ranked state
+        this.rankedQueueState = 'idle';
+        this.rankedMatchInfo = null;
+        // Disconnect from matchmaking WebSocket
+        disconnectFromMatchmakingWebSocket();
+      }
     }
   },
   async mounted() {
@@ -295,6 +431,10 @@ export default {
     if (this.gameModeLabel === "multiplayer") {
       this.fetchLobbyInfo();
       this.connectToLobbyWebSocket();
+    } else if (this.gameModeLabel === 'ranked') {
+      // For ranked mode, we'll connect when user clicks "Join Queue"
+      // Just add window beforeunload listener as backup cleanup
+      window.addEventListener('beforeunload', this.cleanup);
     }
 
     // Watch for route changes to leave lobby if navigating away
@@ -318,7 +458,13 @@ export default {
       leaveLobby(currentUser);
       disconnectLobby();
     }
-  }
+
+    this.cleanup();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.cleanup();
+    next();
+  },
 }
 
 </script>
@@ -422,6 +568,14 @@ export default {
   margin: 8px 0 0 0;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.ranked-info {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
 .players-list {

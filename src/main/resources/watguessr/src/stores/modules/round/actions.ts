@@ -9,8 +9,6 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
 
-    commit('gameInfo/SET_MAP_CENTER', null, {root: true});
-    commit('gameInfo/SET_MAP_ZOOM', null, {root: true});
 
     if (!gameId) throw new Error('Game ID not found');
 
@@ -82,6 +80,10 @@ export const actions: ActionTree<RoundState, RootState> = {
 
     // Fetch correct answer now that the round is over
     await dispatch('fetchCorrectAnswer');
+
+    // Clear saved map position when round ends - start fresh for next round
+    commit('gameInfo/SET_MAP_CENTER', null, {root: true});
+    commit('gameInfo/SET_MAP_ZOOM', null, {root: true});
 
     // Get the current game mode to dispatch to the correct game store
     const gameMode = rootGetters['gameInfo/getGameMode'];

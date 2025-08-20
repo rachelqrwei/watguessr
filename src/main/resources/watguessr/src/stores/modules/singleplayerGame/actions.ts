@@ -20,6 +20,13 @@ export const actions: ActionTree<singleplayerGameState, RootState> = {
 
     commit('SG_SET_GAME_ID', gameId);
     commit('SG_SET_STATUS', 'playing');
+
+    // prefetch the first round (and its image) during the countdown
+    try {
+      await dispatch('round/startRound', { gameId }, { root: true });
+    } catch (e) {
+      console.error('Failed to prefetch first round:', e);
+    }
   },
 
   async singleplayerGame_restartGame({ state, commit, dispatch }) {

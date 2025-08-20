@@ -25,7 +25,8 @@ export default {
   computed: {
     ...mapGetters('gameInfo', [
       'getMapCenter',
-      'getMapZoom'
+      'getMapZoom',
+      'getCurrentView'
     ]),
     ...mapGetters('guess', [
       'getGuessX',
@@ -56,8 +57,9 @@ export default {
   beforeUnmount() {
     window.removeEventListener('keydown', this.onKeyDown);
 
-    // persist map position when leaving the map view
-    if (this.map) {
+    // persist map position when leaving the map view, but NOT when transitioning to RoundEnd
+    // (because round ending should clear the position for the next round)
+    if (this.map && this.getCurrentView !== 'RoundEnd') {
       const c = this.map.getCenter();
       const z = this.map.getZoom();
       this.SET_MAP_CENTER([c.lng, c.lat]);

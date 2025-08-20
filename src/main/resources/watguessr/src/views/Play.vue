@@ -12,7 +12,9 @@
     @countdown-complete="onCountdownComplete"
   />
 
-  <div class="game-container">
+
+
+  <div class="game-container" :class="{ 'masked': showCountdown && (getCurrentView === 'Image' || getCurrentView === 'Map') }">
     <div v-if="getCurrentView === 'Map'" class="view-pane">
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Image')">
         <font-awesome-icon icon="image" />
@@ -25,12 +27,23 @@
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
         VIEW MAP
       </button>
-      <PlayImageView />
+      <PlayImageView
+        @image-loaded="onImageLoaded"
+        @image-error="onImageError"
+      />
     </div>
 
     <div v-if="getCurrentView === 'RoundEnd'">
-      <PlaySingleplayerRoundEnd v-if="getGameMode === 'singleplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
-      <PlayMultiplayerRoundEnd v-if="getGameMode === 'multiplayer'" :points="getRoundResult.points" :distance="getRoundResult.distance" />
+      <PlaySingleplayerRoundEnd
+        v-if="getGameMode === 'singleplayer'"
+        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
+        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
+      />
+      <PlayMultiplayerRoundEnd
+        v-if="getGameMode === 'multiplayer'"
+        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
+        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
+      />
     </div>
 
     <PlayFloorPanel
@@ -49,16 +62,16 @@
     {{ errorMessage }}
   </div>
 
-  <div v-if="(getCurrentView === 'Map' || getCurrentView === 'Image')">
+  <div v-if="!showCountdown && (getCurrentView === 'Map' || getCurrentView === 'Image')">
     <button class="submit-button submit-button--yellow" @click="handleSubmit">SUBMIT</button>
   </div>
-  <div v-else-if="getCurrentView === 'RoundEnd'">
+  <div v-else-if="!showCountdown && getCurrentView === 'RoundEnd'">
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
       {{ getNextRoundButtonText }}
     </button>
   </div>
 
-  <div id="score-tracker">
+  <div id="score-tracker" v-show="!showCountdown">
     <PlaySingleplayerScoreTracker v-if="getGameMode === 'singleplayer'" />
     <PlayMultiplayerScoreTracker v-if="getGameMode === 'multiplayer'" />
     <PlayRankedScoreTracker v-if="getGameMode === 'ranked'" />
@@ -103,7 +116,8 @@ export default {
       errorMessage: '',
       showCountdown: false,
       countdownShown: false,
-      showStopwatch: false
+      showStopwatch: false,
+      lastRoundSummary: null
     }
   },
   computed: {
@@ -188,7 +202,6 @@ export default {
           // Building not in database, clear floor selection
           this.selectedFloor = '';
         }
-        // Let PlayFloorPanel handle floor selection with proper sorting
       }
     },
     getCurrentView(newVal, oldVal) {
@@ -197,8 +210,6 @@ export default {
         this.selectedBuilding = '';
         this.selectedFloor = '';
         this.resetTimer();
-        this.SET_MAP_CENTER(null);
-        this.SET_MAP_ZOOM(null);
       }
     },
     singleplayerGame_getShouldEnd(newVal) {
@@ -337,6 +348,12 @@ export default {
           return;
         }
 
+        // Snapshot previous round summary
+        this.lastRoundSummary = {
+          points: this.getRoundResult?.points ?? 0,
+          distance: this.getRoundResult?.distance ?? 0
+        };
+
         // Show countdown before starting next round
         this.showCountdown = true;
         this.showStopwatch = false;
@@ -345,9 +362,7 @@ export default {
         this.selectedFloor = '';
         this.resetTimer();
 
-        // Clear saved map position for new round
-        this.SET_MAP_CENTER(null);
-        this.SET_MAP_ZOOM(null);
+        // Do not prefetch to keep RoundEnd data intact during countdown
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
@@ -361,6 +376,16 @@ export default {
           this.multiplayerGame_setPlayerCompleted();
           return;
         }
+
+        // Snapshot previous round summary
+        this.lastRoundSummary = {
+          points: this.getRoundResult?.points ?? 0,
+          distance: this.getRoundResult?.distance ?? 0
+        };
+
+        // Show countdown before starting next round
+        this.showCountdown = true;
+        this.showStopwatch = false;
 
         this.multiplayerGame_setPlayerReady();
       }
@@ -392,23 +417,35 @@ export default {
     },
 
     onCountdownComplete() {
-      this.showCountdown = false;
-      this.showStopwatch = true;
+      // Singleplayer: if we're between rounds (still on RoundEnd), start the next round now
+      if (this.getGameMode === 'singleplayer' && this.getCurrentView === 'RoundEnd') {
+        if (this.singleplayerGame_getGameId) {
+          this.startRound({ gameId: this.singleplayerGame_getGameId });
+        }
+      }
 
-      // also clear saved map view at round start
-      this.SET_MAP_CENTER(null);
-      this.SET_MAP_ZOOM(null);
-
-      // Start the round
+      // Multiplayer: ensure round has been started when players ready
       if (this.getGameMode === 'multiplayer') {
         // For multiplayer, the backend creates the round and sends it via WebSocket
         // Don't call startRound here - it will create individual rounds for each player
         // The round ID will come from the WebSocket round-start event
       }
-      else if (this.getGameMode === 'singleplayer'){
-        this.startSingleplayerRound();
+
+      this.finalizeRoundStart();
+    },
+
+    finalizeRoundStart() {
+      this.showCountdown = false;
+      this.showStopwatch = true;
+      // Don't clear map position here - it will be managed when the map component unmounts/mounts
+      // For singleplayer, increment round counter and ensure Image view
+      if (this.getGameMode === 'singleplayer') {
+        this.SG_INCREMENT_ROUND();
+        this.SET_CURRENT_VIEW("Image");
       }
     },
+
+
 
     async checkGameReady() {
       const players = this.multiplayerGame_getPlayers;
@@ -418,6 +455,8 @@ export default {
           this.showCountdown = true;
           this.showStopwatch  = false;
           this.countdownShown = true;
+
+
         }
       }
     },
@@ -429,9 +468,7 @@ export default {
         this.SG_INCREMENT_ROUND();
         this.SET_CURRENT_VIEW("Image");
 
-        // clear saved map position for new round
-        this.SET_MAP_CENTER(null);
-        this.SET_MAP_ZOOM(null);
+
       } catch (error) {
         console.error('Failed to start singleplayer round:', error);
       }
@@ -492,6 +529,12 @@ export default {
   overflow: hidden;
   z-index: 1;
 }
+
+.game-container.masked * {
+  visibility: hidden;
+}
+
+
 
 .view-change-button {
   position: absolute;
