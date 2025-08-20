@@ -44,11 +44,11 @@
         :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
         :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
       />
-<!--      <PlayRankedRoundEnd-->
-<!--        v-if="getGameMode === 'ranked'"-->
-<!--        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"-->
-<!--        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"-->
-<!--      />-->
+      <PlayRankedRoundEnd
+        v-if="getGameMode === 'ranked'"
+        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
+        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
+      />
     </div>
 
     <PlayFloorPanel

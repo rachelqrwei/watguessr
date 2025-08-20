@@ -124,6 +124,7 @@ import {
   joinRankedQueue,
   leaveRankedQueue
 } from "@/services/matchmakingWebSocket";
+import { connectToRankedGame } from "@/services/rankedGameWebSocket.js";
 import MatchmakingQueue from "@/components/MatchmakingQueue.vue";
 
 export default {
@@ -389,6 +390,7 @@ export default {
             gameId: this.rankedMatchInfo.gameId
           }
         });
+        connectToRankedGame(this.rankedMatchInfo.gameId);
       } else {
         this.rankedQueueState = 'error';
         this.rankedErrorMessage = 'Failed to start game: No game ID received';
