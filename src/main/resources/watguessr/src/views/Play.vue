@@ -450,10 +450,8 @@ export default {
     }
     else if (this.getGameMode == 'multiplayer') {
       // For multiplayer, the game is already initialized from Lobby.vue
-      // Get the gameId from the route query or store
-      const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-
       // Update player status to 'playing'
+      this.SET_CURRENT_VIEW('Image');
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
   },
