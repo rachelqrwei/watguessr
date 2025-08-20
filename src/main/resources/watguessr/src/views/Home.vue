@@ -71,7 +71,6 @@ export default {
     },
 
     handleLobbyCreated(lobby) {
-      console.log('Lobby created:', lobby)
       this.closeCreateModal()
       this.closeLobbyBrowser()
       // Navigate to the lobby
@@ -86,7 +85,6 @@ export default {
     },
 
     handleLobbyJoined(lobby) {
-      console.log('Lobby joined:', lobby)
       this.closeJoinModal()
       this.closeLobbyBrowser()
       // Navigate to the lobby
@@ -121,9 +119,6 @@ export default {
 
             // Clear URL parameters
             window.history.replaceState({}, document.title, window.location.pathname)
-
-            // Show success message or redirect as needed
-            console.log('Successfully signed up with Google!')
           }
         } catch (error) {
           console.error('Google OAuth signup failed:', error)

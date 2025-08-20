@@ -183,7 +183,6 @@ export default {
         return this.singleplayerGame_getCurrentRound;
       } else if (this.getGameMode === 'multiplayer') {
         const currentRound = this.multiplayerGame_getCurrentRound;
-        console.log('🎮 Current multiplayer round number:', currentRound);
         return currentRound;
       }
       return 1;
@@ -208,7 +207,6 @@ export default {
     getCurrentView(newVal, oldVal) {
       // Reset selections when starting a new round (view changes from 'RoundEnd' to either 'Image' or 'Map')
       if (oldVal === 'RoundEnd' && (newVal === 'Image' || newVal === 'Map')) {
-        console.log('New round started, resetting selections');
         this.selectedBuilding = '';
         this.selectedFloor = '';
         this.resetTimer();
@@ -344,10 +342,8 @@ export default {
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
-          console.log('🎮 Game should end, calling endGame before navigation');
           // Call endGame to properly finish the game and set winner
           await this.singleplayerGame_endGame();
-          console.log('🎮 Navigating to singleplayer-game-end');
           this.$router.push('/singleplayer-game-end');
           return;
         }
@@ -387,18 +383,7 @@ export default {
           distance: this.getRoundResult?.distance ?? 0
         };
 
-        // Show countdown before starting next round
-        this.showCountdown = true;
-        this.showStopwatch = false;
-
         this.multiplayerGame_setPlayerReady();
-
-        // Debug: Check if round progression works properly
-        setTimeout(() => {
-          if (this.getCurrentView === 'RoundEnd') {
-            console.log('⚠️ Still on RoundEnd after 3 seconds. Check WebSocket connection.');
-          }
-        }, 3000);
       }
     },
 
@@ -437,12 +422,9 @@ export default {
 
       // Multiplayer: ensure round has been started when players ready
       if (this.getGameMode === 'multiplayer') {
-        const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-        const existingRoundId = this.$store.getters['round/getRoundId'];
-        if (gameId && !existingRoundId) {
-          // If not already started by readiness flow, start now as fallback
-          this.startRound({ gameId });
-        }
+        // For multiplayer, the backend creates the round and sends it via WebSocket
+        // Don't call startRound here - it will create individual rounds for each player
+        // The round ID will come from the WebSocket round-start event
       }
 
       this.finalizeRoundStart();
@@ -501,10 +483,8 @@ export default {
     }
     else if (this.getGameMode == 'multiplayer') {
       // For multiplayer, the game is already initialized from Lobby.vue
-      // Get the gameId from the route query or store
-      const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-
       // Update player status to 'playing'
+      this.SET_CURRENT_VIEW('Image');
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
   },

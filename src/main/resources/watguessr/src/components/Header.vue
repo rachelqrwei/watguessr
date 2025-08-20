@@ -84,12 +84,10 @@ export default {
     ...mapActions('user', ['fetchUserById', 'logout']),
 
     handleSettings() {
-      console.log('Navigating to settings...');
       this.dropdownOpen = false;
     },
 
     handleProfile() {
-      console.log('Navigating to profile...');
       this.dropdownOpen = false;
       const userId = this.getCurrentUser?.id;
       if (userId) {
@@ -100,19 +98,16 @@ export default {
     },
 
     handleLogout() {
-      console.log('Logging out...');
       this.logout();
       this.dropdownOpen = false;
     },
 
     handleLogin() {
-      console.log('Logging in...');
       this.showLogin = true;
       this.dropdownOpen = false;
     },
 
     handleSignUp() {
-      console.log('Signing up...');
       this.showSignUp = true;
       this.dropdownOpen = false;
     },

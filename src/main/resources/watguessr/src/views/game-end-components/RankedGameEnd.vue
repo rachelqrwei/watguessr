@@ -128,13 +128,11 @@ export default {
 
     rematch() {
       // TODO: Implement rematch functionality
-      console.log('Rematch requested');
       this.$router.push('/play?mode=ranked');
     },
 
     playRanked() {
       // TODO: Start a new ranked game
-      console.log('Starting new ranked game');
       this.$router.push('/play?mode=ranked');
     },
 

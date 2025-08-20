@@ -124,7 +124,7 @@ export default {
       this.progressTimer = setInterval(() => {
         if (this.progressWidth < 100) {
           this.progressWidth += step;
-          
+
           // Update text based on progress
           if (this.progressWidth < 66) {
             this.countdownText = "Get Ready!";
@@ -237,7 +237,7 @@ export default {
     width: 90%;
     top: 15px;
   }
-  
+
   .progress-container {
     height: 10px;
   }

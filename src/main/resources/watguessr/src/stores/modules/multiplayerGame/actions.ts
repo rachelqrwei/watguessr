@@ -47,7 +47,6 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
 
     // Send progress update via WebSocket
     const currentScore = state.multiplayerGame_players[userId]?.score || 0;
-    console.log('📊 Updated score for player:', userId, 'new score:', currentScore);
     sendPlayerProgress(state.multiplayerGame_gameId, userId, currentScore, 'ended');
 
     // Always go to RoundEnd view after submitting a guess in multiplayer
@@ -97,11 +96,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   multiplayerGame_setPlayerCompleted({ state, rootGetters }) {
     const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
-
-    console.log('🎮 Setting player completed status:', { userId, gameId: state.multiplayerGame_gameId });
-
     if (userId && state.multiplayerGame_gameId) {
-      console.log('📤 Sending player completed via WebSocket');
       sendPlayerCompleted(state.multiplayerGame_gameId, userId);
     } else {
       console.warn('⚠️ Cannot send player completed: userId or gameId missing', { userId, gameId: state.multiplayerGame_gameId });
