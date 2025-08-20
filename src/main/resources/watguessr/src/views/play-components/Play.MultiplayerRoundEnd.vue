@@ -32,6 +32,12 @@
           <span>Showing guesses from multiple rounds</span>
         </div>
 
+        <!-- Show live updates indicator -->
+        <div v-if="isLiveUpdatesActive" class="live-updates-notice">
+          <span class="notice-icon">🔄</span>
+          <span>Live updates active - watching for new guesses</span>
+        </div>
+
         <div class="map-legend">
           <div class="legend-item">
             <div class="legend-marker answer-marker"></div>
@@ -71,7 +77,10 @@ export default {
       map: null,
       markers: [],
       currentUser: null,
-      isAggregatedGuesses: false
+      isAggregatedGuesses: false,
+      guessUpdateSubscription: null,
+      gameStateSubscription: null,
+      refreshInterval: null
     };
   },
   computed: {
@@ -103,11 +112,25 @@ export default {
     displayPoints() {
       return this.points;
     },
+    isLiveUpdatesActive() {
+      return this.guessUpdateSubscription !== null || this.gameStateSubscription !== null;
+    },
   },
   async mounted() {
     this.currentUser = this.getCurrentUser;
     await this.fetchAllGuesses();
     this.renderMap();
+
+    // Subscribe to live updates for new guesses
+    this.subscribeToLiveUpdates();
+
+    // Set up periodic refresh as backup
+    this.setupPeriodicRefresh();
+  },
+
+  beforeUnmount() {
+    // Clean up subscriptions and intervals
+    this.cleanupLiveUpdates();
   },
   methods: {
     async fetchAllGuesses() {
@@ -144,6 +167,171 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching all guesses:', error);
+      }
+    },
+
+    // Subscribe to live updates for new guesses
+    subscribeToLiveUpdates() {
+      const gameId = this.multiplayerGame_getGameId;
+      if (!gameId) return;
+
+      // Import the WebSocket service dynamically to avoid circular dependencies
+      import('@/services/multiplayerGameWebSocket').then(({ connectToMultiplayerGame }) => {
+        // Check if we're already connected
+        if (window.stompClient && window.stompClient.connected) {
+          this.subscribeToGuessUpdates(gameId);
+        } else {
+          // If not connected, connect and then subscribe
+          connectToMultiplayerGame(gameId);
+          // Wait a bit for connection to establish
+          setTimeout(() => {
+            this.subscribeToGuessUpdates(gameId);
+          }, 1000);
+        }
+      });
+    },
+
+    // Subscribe to guess updates for the current round
+    subscribeToGuessUpdates(gameId) {
+      if (window.stompClient && window.stompClient.connected) {
+        // Subscribe to round updates for the current round
+        const roundId = this.getRoundResult?.roundId;
+        if (roundId) {
+          this.guessUpdateSubscription = window.stompClient.subscribe(
+            `/topic/round/${roundId}/guesses`,
+            (message) => {
+              console.log('🎯 Received live guess update:', message.body);
+              this.handleLiveGuessUpdate(JSON.parse(message.body));
+            }
+          );
+          console.log('📡 Subscribed to live guess updates for round:', roundId);
+        }
+
+        // Also subscribe to game state updates to catch new guesses
+        this.gameStateSubscription = window.stompClient.subscribe(
+          `/topic/game/${gameId}/state`,
+          (message) => {
+            console.log('📊 Received game state update in round end:', message.body);
+            // Refresh guesses when game state updates
+            this.refreshGuesses();
+          }
+        );
+      }
+    },
+
+    // Handle live guess updates
+    handleLiveGuessUpdate(newGuess) {
+      // Add the new guess to our list
+      this.allGuesses.push(newGuess);
+
+      // Add the new marker to the map
+      this.addGuessMarker(newGuess, this.allGuesses.length - 1);
+
+      // Refit map to show all markers
+      this.fitMapToMarkers();
+
+      // Show notification
+      this.showNewGuessNotification(newGuess);
+
+      console.log('✅ Added live guess update:', newGuess);
+    },
+
+    // Show notification for new guess
+    showNewGuessNotification(guess) {
+      // Create a temporary notification element
+      const notification = document.createElement('div');
+      notification.className = 'new-guess-notification';
+      notification.innerHTML = `
+        <span class="notice-icon">🎯</span>
+        <span>${guess.username || 'Player'} just submitted a guess!</span>
+      `;
+
+      // Add to the map container
+      const mapContainer = document.getElementById('answer-map');
+      if (mapContainer) {
+        mapContainer.appendChild(notification);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 3000);
+      }
+    },
+
+    // Add a single guess marker
+    addGuessMarker(guess, index) {
+      const isCurrentUser = guess.userId === this.currentUser?.id;
+      const coordinates = [guess.guessX, guess.guessY];
+
+      // Different colors for different players
+      let markerColor = '#4444ff'; // Default blue for other players
+      let markerLabel = 'Other Player';
+
+      if (isCurrentUser) {
+        markerColor = '#44ff44'; // Green for current user
+        markerLabel = 'Your Guess';
+      } else {
+        // Generate different colors for other players
+        const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
+        markerColor = colors[index % colors.length];
+        markerLabel = `Player ${index + 1}`;
+      }
+
+      const marker = new mapboxgl.Marker({
+        color: markerColor,
+        scale: isCurrentUser ? 1.1 : 1.0
+      })
+        .setLngLat(coordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`
+            <div style="color: black; font-weight: bold;">
+              ${markerLabel}<br>
+              <small>${guess.username || 'Unknown Player'}</small>
+            </div>
+          `))
+        .addTo(this.map);
+
+      this.markers.push(marker);
+    },
+
+    // Set up periodic refresh as backup
+    setupPeriodicRefresh() {
+      this.refreshInterval = setInterval(() => {
+        this.refreshGuesses();
+      }, 2000); // Refresh every 2 seconds
+    },
+
+    // Refresh guesses from the backend
+    async refreshGuesses() {
+      await this.fetchAllGuesses();
+      this.updateMapMarkers();
+    },
+
+    // Update map markers with current guesses
+    updateMapMarkers() {
+      if (this.map) {
+        this.addAllMarkers();
+        this.fitMapToMarkers();
+      }
+    },
+
+    // Clean up live updates
+    cleanupLiveUpdates() {
+      if (this.guessUpdateSubscription) {
+        this.guessUpdateSubscription.unsubscribe();
+        this.guessUpdateSubscription = null;
+      }
+
+      if (this.gameStateSubscription) {
+        this.gameStateSubscription.unsubscribe();
+        this.gameStateSubscription = null;
+      }
+
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        this.refreshInterval = null;
       }
     },
     renderMap() {
@@ -239,7 +427,7 @@ export default {
       // Fit map to show all markers
       this.map.fitBounds(bounds, {
         padding: 80,
-        duration: 2000,
+        duration: 1000,
         easing: (t) => t,
       });
     }
@@ -384,6 +572,58 @@ export default {
   font-size: 12px;
   font-weight: 600;
   text-align: center;
+}
+
+.live-updates-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 6px;
+  color: #00ff00;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.new-guess-notification {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(0, 255, 0, 0.9);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .notice-icon {
