@@ -54,7 +54,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/start")
 	public UUID startGame(@Payload StartGameRequest request) {
-		return lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getRoundCount(), request.getTimer());
+		return lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getGameMode(), request.getRoundCount(), request.getTimer());
 	}
 
 	@MessageMapping("/lobby/cleanup")
@@ -94,11 +94,15 @@ public class LobbyController {
 
 	public static class StartGameRequest {
 		private String lobbyId;
+		private String gameMode;
 		private Integer roundCount;
 		private Integer timer;
 
 		public String getLobbyId() { return lobbyId; }
 		public void setLobbyId(String lobbyId) { this.lobbyId = lobbyId; }
+
+		public String getGameMode() { return gameMode; }
+		public void setGameMode(String gameMode) { this.gameMode = gameMode; }
 
 		public Integer getRoundCount() { return roundCount; }
 		public void setRoundCount(Integer roundCount) { this.roundCount = roundCount; }

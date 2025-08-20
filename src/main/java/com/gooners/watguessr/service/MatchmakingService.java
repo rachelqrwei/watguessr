@@ -21,15 +21,17 @@ public class MatchmakingService {
 	private final GameService gameService;
 	private final UserService userService;
 	private final SimpMessagingTemplate messagingTemplate;
+	private final MultiplayerGameStateService multiplayerGameStateService;
 
 	public MatchmakingService(MatchmakingQueueRepository queueRepository,
-	                          GameService gameService,
-	                          UserService userService,
-	                          SimpMessagingTemplate messagingTemplate) {
+							  GameService gameService,
+							  UserService userService,
+							  SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService) {
 		this.queueRepository = queueRepository;
 		this.gameService = gameService;
 		this.userService = userService;
 		this.messagingTemplate = messagingTemplate;
+		this.multiplayerGameStateService = multiplayerGameStateService;
 	}
 
 	// Constants for matchmaking
@@ -152,6 +154,16 @@ public class MatchmakingService {
 		Map<String, Object> update = createMatchmakingUpdate("match_found", data);
 		String topic = "/topic/matchmaking/" + userId;
 		messagingTemplate.convertAndSend(topic, update);
+
+		// Convert LobbyPlayerDto to User for game initialization
+		List<User> users = allPlayers.stream()
+				.map(p -> {
+					User user = p.getUser();
+					return user;
+				})
+				.toList();
+
+		multiplayerGameStateService.initializeGame(gameId, users, 5, 30);
 	}
 
 	private Map<String, Object> createMatchmakingUpdate(String type, Object data) {

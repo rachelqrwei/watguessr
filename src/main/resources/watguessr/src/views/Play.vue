@@ -44,6 +44,11 @@
         :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
         :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
       />
+<!--      <PlayRankedRoundEnd-->
+<!--        v-if="getGameMode === 'ranked'"-->
+<!--        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"-->
+<!--        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"-->
+<!--      />-->
     </div>
 
     <PlayFloorPanel
@@ -88,6 +93,7 @@ import PlayMultiplayerScoreTracker from '@/views/play-components/score-trackers/
 import PlayRankedScoreTracker from "@/views/play-components/score-trackers/Play.RankedScoreTracker.vue";
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
+import PlayRankedRoundEnd from '@/views/play-components/Play.RankedRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
 import CountdownTimer from '@/components/CountdownTimer.vue'
@@ -103,6 +109,7 @@ export default {
     PlayRankedScoreTracker,
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
+    PlayRankedRoundEnd,
     PlayFloorPanel,
     PlayerDisconnectionAlert,
     CountdownTimer,
@@ -140,6 +147,14 @@ export default {
       'multiplayerGame_getGameId',
       'multiplayerGame_getPlayers'
     ]),
+    ...mapGetters('rankedGame', [
+      'rankedGame_getTimer',
+      'rankedGame_getCurrentRound',
+      'rankedGame_getMaxRounds',
+      'rankedGame_getShouldEnd',
+      'rankedGame_getGameId',
+      'rankedGame_getPlayers'
+    ]),
     ...mapGetters('round', [
       'getWinner',
       'getRoundResult'
@@ -165,12 +180,23 @@ export default {
     getNextRoundButtonText() {
       if (this.getGameMode === 'singleplayer') {
         return this.singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND';
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         if (this.multiplayerGame_getShouldEnd) {
           return 'VIEW RESULTS';
         }
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
+          return 'FINISH GAME';
+        }
+        return 'READY FOR NEXT ROUND';
+      }
+      else if (this.getGameMode === 'ranked') {
+        if (this.rankedGame_getShouldEnd) {
+          return 'VIEW RESULTS';
+        }
+        // Check if this is the last round
+        if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           return 'FINISH GAME';
         }
         return 'READY FOR NEXT ROUND';
@@ -181,8 +207,13 @@ export default {
     getCurrentRoundNumber() {
       if (this.getGameMode === 'singleplayer') {
         return this.singleplayerGame_getCurrentRound;
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         const currentRound = this.multiplayerGame_getCurrentRound;
+        return currentRound;
+      }
+      else if (this.getGameMode === 'ranked') {
+        const currentRound = this.rankedGame_getCurrentRound;
         return currentRound;
       }
       return 1;
@@ -255,6 +286,16 @@ export default {
       'multiplayerGame_setPlayerCompleted',
       'multiplayerGame_disconnect',
       'multiplayerGame_endGame'
+    ]),
+    ...mapActions('rankedGame', [
+      'rankedGame_createRankedGame',
+      'rankedGame_endCurrentRound',
+      'rankedGame_checkRankedState',
+      'rankedGame_updatePlayerStatus',
+      'rankedGame_setPlayerReady',
+      'rankedGame_setPlayerCompleted',
+      'rankedGame_disconnect',
+      'rankedGame_endGame'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -363,7 +404,8 @@ export default {
         this.resetTimer();
 
         // Do not prefetch to keep RoundEnd data intact during countdown
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
           this.$router.push('/multiplayer-game-end');
@@ -384,6 +426,28 @@ export default {
         };
 
         this.multiplayerGame_setPlayerReady();
+      }
+      else if (this.getGameMode === 'ranked') {
+        // Handle multiplayer logic
+        if (this.rankedGame_getShouldEnd) {
+          this.$router.push('/ranked-game-end');
+          return;
+        }
+
+        // Check if this is the last round
+        if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
+          // End the multiplayer game - send completed status
+          this.rankedGame_setPlayerCompleted();
+          return;
+        }
+
+        // Snapshot previous round summary
+        this.lastRoundSummary = {
+          points: this.getRoundResult?.points ?? 0,
+          distance: this.getRoundResult?.distance ?? 0
+        };
+
+        this.rankedGame_setPlayerReady();
       }
     },
 
@@ -421,8 +485,8 @@ export default {
       }
 
       // Multiplayer: ensure round has been started when players ready
-      if (this.getGameMode === 'multiplayer') {
-        // For multiplayer, the backend creates the round and sends it via WebSocket
+      if (this.getGameMode === 'multiplayer' || 'ranked') {
+        // For multiplayer and ranked, the backend creates the round and sends it via WebSocket
         // Don't call startRound here - it will create individual rounds for each player
         // The round ID will come from the WebSocket round-start event
       }
@@ -487,6 +551,12 @@ export default {
       this.SET_CURRENT_VIEW('Image');
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
+    else if (this.getGameMode == 'ranked') {
+      // For multiplayer, the game is already initialized from Lobby.vue
+      // Update player status to 'playing'
+      this.SET_CURRENT_VIEW('Image');
+      this.rankedGame_updatePlayerStatus({ status: 'playing' });
+    }
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
@@ -494,6 +564,10 @@ export default {
     // Disconnect from multiplayer WebSocket when leaving
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
+    }
+    // Disconnect from multiplayer WebSocket when leaving
+    else if (this.getGameMode === 'ranked') {
+      this.rankedGame_disconnect();
     }
   }
 }

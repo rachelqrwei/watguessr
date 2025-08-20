@@ -168,7 +168,6 @@ export default {
   },
   methods: {
     ...mapMutations("gameInfo", ["SET_GAME_MODE"]),
-    ...mapActions("multiplayerGame", ["multiplayerGame_createMultiplayerGame"]),
 
     goToPlay() {
       this.SET_GAME_MODE(this.gameModeLabel);
@@ -185,7 +184,7 @@ export default {
 
     startGameClick() {
       if (this.lobbyId) {
-        startGame(this.lobbyId, this.lobbyInfo.multiplayerRoundCount, this.lobbyInfo.multiplayerTimer); // broadcast to all clients that game is starting
+        startGame(this.lobbyId, this.gameModeLabel, this.lobbyInfo.multiplayerRoundCount, this.lobbyInfo.multiplayerTimer); // broadcast to all clients that game is starting
       }
     },
 
