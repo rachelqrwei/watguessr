@@ -374,10 +374,6 @@ export default {
           return;
         }
 
-        // Show countdown before starting next round
-        this.showCountdown = true;
-        this.showStopwatch = false;
-
         this.multiplayerGame_setPlayerReady();
 
         // Debug: Check if round progression works properly
