@@ -24,23 +24,12 @@ export const actions: ActionTree<RoundState, RootState> = {
       throw new Error('Failed to create round');
     }
 
-    const round: any = await response.json();
-    commit('SET_ROUND_ID', round?.id);
-
-    // Store correct answer information if available
-    if (round?.scene) {
-      const correctAnswer = {
-        buildingName: round.scene.building?.name || 'Unknown Building',
-        locationX: round.scene.locationX,
-        locationY: round.scene.locationY,
-        floor: round.scene.floor || 'Unknown Floor'
-      };
-      commit('SET_CORRECT_ANSWER', correctAnswer);
-    }
+    const roundId: any = await response.json();
+    commit('SET_ROUND_ID', roundId);
 
     // fetch only the image for the round and store it
     try {
-      const imgResp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${round?.id}`);
+      const imgResp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scene/image?roundId=${roundId}`);
       if (imgResp.ok) {
         const blob = await imgResp.blob();
         const imageUrl = URL.createObjectURL(blob);
@@ -52,14 +41,47 @@ export const actions: ActionTree<RoundState, RootState> = {
       commit('SET_IMAGE_URL', null);
     }
 
-    return round;
+    return roundId;
   },
-  endRound({ commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
+
+  async fetchCorrectAnswer({ state, commit, rootGetters }) {
+    const roundId = state.roundId;
+    if (!roundId) {
+      console.error('Cannot fetch correct answer: No roundId found in store');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/${roundId}/scene`, {
+        credentials: "include"
+      });
+
+      if (response.ok) {
+        const scene = await response.json();
+        const correctAnswer = {
+          buildingName: scene.buildingName || 'Unknown Building',
+          locationX: scene.locationX,
+          locationY: scene.locationY,
+          floor: scene.floor || 'Unknown Floor'
+        };
+        commit('SET_CORRECT_ANSWER', correctAnswer);
+      } else {
+        console.error('Failed to fetch correct answer');
+      }
+    } catch (error) {
+      console.error('Error fetching correct answer:', error);
+    }
+  },
+
+  async endRound({ commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     //set winner of the round
     commit('SET_WINNER', payload.winner);
 
     //set round result from round (round-specific score)
     commit('SET_ROUND_RESULT_FROM_ROUND', payload.roundResult);
+
+    // Fetch correct answer now that the round is over
+    await dispatch('fetchCorrectAnswer');
 
     // Get the current game mode to dispatch to the correct game store
     const gameMode = rootGetters['gameInfo/getGameMode'];
