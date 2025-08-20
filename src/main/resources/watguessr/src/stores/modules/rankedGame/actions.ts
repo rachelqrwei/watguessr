@@ -1,0 +1,131 @@
+// src/stores/modules/game/actions.ts
+import type { ActionTree } from 'vuex';
+import type { RootState } from '../../index';
+import type { RankedGameState } from './state';
+import {
+  connectToRankedGame,
+  disconnectFromRankedGame,
+  sendPlayerCompleted,
+  sendPlayerProgress,
+  sendPlayerReady
+} from '../../../services/rankedGameWebSocket';
+
+export const actions: ActionTree<RankedGameState, RootState> = {
+  async rankedGame_createRankedGame({ state, commit, dispatch , rootGetters}) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+    const username = currentUser?.username || 'Player';
+
+    // Reset the game and initialize the current player
+    commit('MG_RESET_GAME', { userId, username });
+    commit('gameInfo/RESET_GAME', null, {root: true});
+
+    // Now we can safely set the status since the player exists
+    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
+    commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
+    commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
+
+    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
+  },
+  async rankedGame_restartGame({ state, commit, dispatch }) {
+    await dispatch('rankedGame_createRankedGame');
+  },
+  rankedGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
+    // Ensure player exists in the game state
+    if (!state.rankedGame_players[userId]) {
+      console.warn('⚠️ Player not found in multiplayer game state, initializing...');
+      commit('MG_SET_PLAYERS', {
+        ...state.rankedGame_players,
+        [userId]: { score: 0, status: 'playing', username: 'Player' }
+      });
+    }
+
+    commit('MG_IMPLEMENT_ROUND_RESULT', { playerId: userId, roundResult: payload.roundResult });
+
+    // Send progress update via WebSocket
+    const currentScore = state.rankedGame_players[userId]?.score || 0;
+    sendPlayerProgress(state.rankedGame_gameId, userId, currentScore, 'ended');
+
+    // Always go to RoundEnd view after submitting a guess in multiplayer
+    commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
+  },
+
+  async rankedGame_endGame({ state, commit, rootGetters }) {
+    try {
+      const currentUser = rootGetters['user/getCurrentUser'];
+      const userId = currentUser?.id;
+      const token = rootGetters['user/getToken'];
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/multiplayer?gameId=${state.rankedGame_gameId}&userId=${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      await response.json();
+      commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
+      commit('MG_RESET_GAME');
+      commit('gameInfo/RESET_GAME', null, {root: true});
+      commit('round/RESET_ROUND', null, {root: true});
+
+      // Disconnect from WebSocket
+      disconnectFromRankedGame();
+    } catch (error) {
+      console.error('Error finishing game:', error);
+      throw error;
+    }
+  },
+
+  // Send player ready status
+  rankedGame_setPlayerReady({ state, rootGetters }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
+    if (userId && state.rankedGame_gameId) {
+      sendPlayerReady(state.rankedGame_gameId, userId);
+    }
+  },
+
+  // Send player completed status
+  rankedGame_setPlayerCompleted({ state, rootGetters }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+    if (userId && state.rankedGame_gameId) {
+      sendPlayerCompleted(state.rankedGame_gameId, userId);
+    } else {
+      console.warn('⚠️ Cannot send player completed: userId or gameId missing', { userId, gameId: state.rankedGame_gameId });
+    }
+  },
+
+  // Load final game data from localStorage
+  rankedGame_loadFinalGameData({ commit }) {
+    commit('MG_LOAD_FINAL_GAME_DATA');
+  },
+
+  // Clear final game data
+  rankedGame_clearFinalGameData({ commit }) {
+    commit('MG_CLEAR_FINAL_GAME_DATA');
+  },
+
+  // Send player status update
+  rankedGame_updatePlayerStatus({ state, rootGetters }, { status }: { status: string }) {
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
+    if (userId && state.rankedGame_gameId) {
+      const currentScore = state.rankedGame_players[userId]?.score || 0;
+      sendPlayerProgress(state.rankedGame_gameId, userId, currentScore, status);
+    }
+  },
+
+  // Disconnect from WebSocket when leaving
+  rankedGame_disconnect() {
+    disconnectFromRankedGame();
+  }
+};
