@@ -23,25 +23,22 @@
       </div>
 
       <div class="map-section">
-        <svg width="100%" height="220" viewBox="0 0 400 220">
-          <defs>
-            <radialGradient id="guessGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ff4136" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ff4136" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="actualGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <line x1="80" y1="110" x2="320" y2="170" stroke="#ffe066" stroke-width="6" stroke-dasharray="10,8" />
-          <circle cx="80" cy="110" r="22" fill="url(#actualGlow)" />
-          <circle cx="80" cy="110" r="12" fill="#ffe066" stroke="#fff" stroke-width="3" />
-          <text x="40" y="105" font-size="16" fill="#ffe066" font-weight="bold">Actual</text>
-          <circle cx="320" cy="170" r="22" fill="url(#guessGlow)" />
-          <circle cx="320" y="170" r="12" fill="#ff4136" stroke="#fff" stroke-width="3" />
-          <text x="330" y="175" font-size="16" fill="#ff4136" font-weight="bold">Guess</text>
-        </svg>
+        <div id="answer-map">
+        </div>
+        <div class="map-legend">
+          <div class="legend-item">
+            <div class="legend-marker answer-marker"></div>
+            <span>Correct Answer</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker your-guess-marker"></div>
+            <span>Your Guess</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker other-guess-marker"></div>
+            <span>Other Players</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -61,15 +58,28 @@ export default {
       required: true
     }
   },
+  data() {
+    return {
+      allGuesses: [],
+      map: null,
+      markers: [],
+      currentUser: null
+    };
+  },
   computed: {
     ...mapGetters("multiplayerGame", [
-      "multiplayerGame_getCurrentRound"
+      "multiplayerGame_getCurrentRound",
+      "multiplayerGame_getGameId",
+      "multiplayerGame_getPlayers"
     ]),
     ...mapGetters('guess', [
       'getGuessTime',
     ]),
     ...mapGetters('round', [
       'getRoundResult',
+    ]),
+    ...mapGetters('user', [
+      'getCurrentUser'
     ]),
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
@@ -86,6 +96,140 @@ export default {
       return this.points;
     },
   },
+  async mounted() {
+    this.currentUser = this.getCurrentUser;
+    await this.fetchAllGuesses();
+    this.renderMap();
+  },
+  methods: {
+    async fetchAllGuesses() {
+      try {
+        const gameId = this.multiplayerGame_getGameId;
+        if (!gameId) {
+          console.error('No game ID available');
+          return;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/by-game-with-guesses?gameId=${gameId}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch guesses: ${response.statusText}`);
+        }
+
+        const roundsData = await response.json();
+        
+        // Find the current round
+        const currentRound = roundsData.find(round => 
+          round.roundId === this.getRoundResult?.roundId || 
+          roundsData.indexOf(round) === this.multiplayerGame_getCurrentRound - 1
+        );
+
+        if (currentRound && currentRound.guesses) {
+          this.allGuesses = currentRound.guesses;
+          console.log('Fetched all guesses:', this.allGuesses);
+        }
+      } catch (error) {
+        console.error('Error fetching all guesses:', error);
+      }
+    },
+
+    renderMap() {
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+      const defaultCenter = [-80.54478250141877, 43.47247223467783];
+
+      this.map = new mapboxgl.Map({
+        container: 'answer-map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: defaultCenter,
+        zoom: 17,
+      });
+
+      this.map.on('load', () => {
+        this.map.resize();
+        this.addAllMarkers();
+        this.fitMapToMarkers();
+      });
+    },
+
+    addAllMarkers() {
+      // Clear existing markers
+      this.markers.forEach(marker => marker.remove());
+      this.markers = [];
+
+      // Add correct answer marker (red)
+      if (this.getRoundResult?.correctAnswer) {
+        const answerCoordinates = [
+          this.getRoundResult.correctAnswer.locationX, 
+          this.getRoundResult.correctAnswer.locationY
+        ];
+        
+        const answerMarker = new mapboxgl.Marker({ 
+          color: '#ff4444',
+          scale: 1.2
+        })
+          .setLngLat(answerCoordinates)
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML('<span style="color: black; font-weight: bold;">🏆 Correct Answer</span>'))
+          .addTo(this.map);
+        
+        this.markers.push(answerMarker);
+      }
+
+      // Add all players' guess markers
+      this.allGuesses.forEach((guess, index) => {
+        const isCurrentUser = guess.userId === this.currentUser?.id;
+        const coordinates = [guess.guessX, guess.guessY];
+        
+        // Different colors for different players
+        let markerColor = '#4444ff'; // Default blue for other players
+        let markerLabel = 'Other Player';
+        
+        if (isCurrentUser) {
+          markerColor = '#44ff44'; // Green for current user
+          markerLabel = 'Your Guess';
+        } else {
+          // Generate different colors for other players
+          const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
+          markerColor = colors[index % colors.length];
+          markerLabel = `Player ${index + 1}`;
+        }
+
+        const marker = new mapboxgl.Marker({ 
+          color: markerColor,
+          scale: isCurrentUser ? 1.1 : 1.0
+        })
+          .setLngLat(coordinates)
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+              <div style="color: black; font-weight: bold;">
+                ${markerLabel}<br>
+                <small>${guess.username || 'Unknown Player'}</small>
+              </div>
+            `))
+          .addTo(this.map);
+        
+        this.markers.push(marker);
+      });
+    },
+
+    fitMapToMarkers() {
+      if (this.markers.length === 0) return;
+
+      const bounds = new mapboxgl.LngLatBounds();
+      
+      // Add all marker coordinates to bounds
+      this.markers.forEach(marker => {
+        bounds.extend(marker.getLngLat());
+      });
+
+      // Fit map to show all markers
+      this.map.fitBounds(bounds, {
+        padding: 80,
+        duration: 2000,
+        easing: (t) => t,
+      });
+    }
+  }
 };
 </script>
 
@@ -196,10 +340,47 @@ export default {
   color: var(--yellow);
 }
 
-.map-section {
+#answer-map {
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  padding: 12px;
+  height: 300px;
+}
+
+.map-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--white);
+  font-weight: 500;
+}
+
+.legend-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.answer-marker {
+  background-color: #ff4444;
+}
+
+.your-guess-marker {
+  background-color: #44ff44;
+}
+
+.other-guess-marker {
+  background-color: #4444ff;
 }
 </style>
