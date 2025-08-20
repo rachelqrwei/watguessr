@@ -275,23 +275,47 @@ export default {
 }
 
 .view-full-leaderboard {
-  background: var(--yellow);
-  color: var(--dark-grey);
-  padding: 11px 23px;
-  border-radius: 9px;
-  font-size: 0.9rem;
+  background: rgba(255, 235, 59, 0.15);
+  color: var(--yellow);
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: none;
+  border: 0.5px solid var(--yellow);
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 13px rgba(255, 203, 59, 0.27);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 15px rgba(255, 235, 59, 0.1);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.view-full-leaderboard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .view-full-leaderboard:hover {
-  background: var(--yellow);
-  box-shadow: 0 6px 20px rgba(255, 203, 59, 0.4);
+  background: rgba(255, 235, 59, 0.2);
+  border-color: rgba(255, 235, 59, 0.8);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 235, 59, 0.2);
+}
+
+.view-full-leaderboard:hover::before {
+  left: 100%;
+}
+
+.view-full-leaderboard:active {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

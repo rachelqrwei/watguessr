@@ -344,7 +344,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,23 +353,24 @@ export default {
 }
 
 .error-modal {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(42, 42, 44, 0.7);
   border-radius: 10px;
-  padding: 30px;
+  padding: 20px;
   text-align: center;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   position: relative;
   overflow: hidden;
   animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: 'Segoe UI', sans-serif;
 }
 
 .error-icon {
   font-size: 48px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   color: var(--yellow);
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
   animation: iconBounce 0.6s ease-out 0.2s both;
@@ -377,9 +378,9 @@ export default {
 
 .error-modal h3 {
   color: var(--white);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -387,13 +388,15 @@ export default {
 }
 
 .error-modal p {
-  color: var(--white);
-  font-size: 16px;
-  font-weight: 600;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.9rem;
+  letter-spacing: 1.0px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-bottom: 24px;
-  line-height: 1.4;
-  letter-spacing: 0.5px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.5s ease-out 0.4s both;
 }
 
@@ -402,8 +405,8 @@ export default {
   color: var(--white);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
-  padding: 12px 32px;
-  font-size: 14px;
+  padding: 10px 28px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;

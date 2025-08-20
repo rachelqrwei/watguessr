@@ -7,7 +7,7 @@
     <SearchBar />
 
     <div v-if="!getProfileUserId && !isLoading && !errorMessage" class="profile-hint">
-      Search for a user or log in to view profile...
+      Search for a user to view their profile...
     </div>
 
     <div v-if="isLoading" class="loading">
@@ -72,7 +72,7 @@ export default {
   watch: {
     getCurrentUser() {
       if (this.getCurrentUser) {
-        if (!this.getProfileUserId) {
+        if (!this.getProfileUserId && !this.userId) {
           this.SET_PROFILE_USER_ID(this.getCurrentUser.id)
         }
       }
@@ -103,6 +103,7 @@ export default {
     } else if (this.getCurrentUser) {
       this.SET_PROFILE_USER_ID(this.getCurrentUser.id)
     }
+    // For guest users without a specific userId, we just show the search interface
   }
 }
 </script>

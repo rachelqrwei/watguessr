@@ -57,6 +57,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/user/leaderboard/**").permitAll()
+                        .requestMatchers("/api/user/*/leaderboard").permitAll()
+                        .requestMatchers("/api/user/*/match-history").permitAll()
+                        .requestMatchers("/api/round/by-game-with-guesses").permitAll()
                         .requestMatchers("/ws-game/**").authenticated()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

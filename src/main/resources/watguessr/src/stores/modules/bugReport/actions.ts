@@ -21,12 +21,6 @@ Category: ${bugReport.category}
 
 Description:
 ${bugReport.description}
-
-Steps to Reproduce:
-${bugReport.steps}
-
-Browser: ${bugReport.browser || 'Not specified'}
-Device: ${bugReport.device || 'Not specified'}
 ${userInfo}
 
 ---

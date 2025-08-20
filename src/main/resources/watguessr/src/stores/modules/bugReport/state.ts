@@ -2,9 +2,6 @@ export interface BugReport {
   title: string
   category: string
   description: string
-  steps: string
-  browser: string
-  device: string
   includeUserInfo: boolean
 }
 
