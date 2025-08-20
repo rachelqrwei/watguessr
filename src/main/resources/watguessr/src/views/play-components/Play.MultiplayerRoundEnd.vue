@@ -116,10 +116,11 @@ export default {
         }
 
         const roundsData = await response.json();
-        
+        console.log(roundsData);
+
         // Find the current round
-        const currentRound = roundsData.find(round => 
-          round.roundId === this.getRoundResult?.roundId || 
+        const currentRound = roundsData.find(round =>
+          round.roundId === this.getRoundResult?.roundId ||
           roundsData.indexOf(round) === this.multiplayerGame_getCurrentRound - 1
         );
 
@@ -131,7 +132,6 @@ export default {
         console.error('Error fetching all guesses:', error);
       }
     },
-
     renderMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -159,11 +159,11 @@ export default {
       // Add correct answer marker (red)
       if (this.getRoundResult?.correctAnswer) {
         const answerCoordinates = [
-          this.getRoundResult.correctAnswer.locationX, 
+          this.getRoundResult.correctAnswer.locationX,
           this.getRoundResult.correctAnswer.locationY
         ];
-        
-        const answerMarker = new mapboxgl.Marker({ 
+
+        const answerMarker = new mapboxgl.Marker({
           color: '#ff4444',
           scale: 1.2
         })
@@ -171,7 +171,7 @@ export default {
           .setPopup(new mapboxgl.Popup({ offset: 25 })
             .setHTML('<span style="color: black; font-weight: bold;">🏆 Correct Answer</span>'))
           .addTo(this.map);
-        
+
         this.markers.push(answerMarker);
       }
 
@@ -179,11 +179,11 @@ export default {
       this.allGuesses.forEach((guess, index) => {
         const isCurrentUser = guess.userId === this.currentUser?.id;
         const coordinates = [guess.guessX, guess.guessY];
-        
+
         // Different colors for different players
         let markerColor = '#4444ff'; // Default blue for other players
         let markerLabel = 'Other Player';
-        
+
         if (isCurrentUser) {
           markerColor = '#44ff44'; // Green for current user
           markerLabel = 'Your Guess';
@@ -194,7 +194,7 @@ export default {
           markerLabel = `Player ${index + 1}`;
         }
 
-        const marker = new mapboxgl.Marker({ 
+        const marker = new mapboxgl.Marker({
           color: markerColor,
           scale: isCurrentUser ? 1.1 : 1.0
         })
@@ -207,7 +207,7 @@ export default {
               </div>
             `))
           .addTo(this.map);
-        
+
         this.markers.push(marker);
       });
     },
@@ -216,7 +216,7 @@ export default {
       if (this.markers.length === 0) return;
 
       const bounds = new mapboxgl.LngLatBounds();
-      
+
       // Add all marker coordinates to bounds
       this.markers.forEach(marker => {
         bounds.extend(marker.getLngLat());
