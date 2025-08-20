@@ -128,6 +128,7 @@ export const actions = {
 
       // Store token and user in state
       commit('SET_CURRENT_USER', user);
+      commit('SET_AUTHENTICATED', true);
 
       return user;
     } catch (err) {
