@@ -75,7 +75,7 @@ public class UserService {
     }
 
     public void signup(UserSignupDto dto) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
+        if (userRepository.existsByUsername(dto.getUsername().toLowerCase())) {
             throw new CustomException("Username already exists");
         }
 
@@ -83,14 +83,22 @@ public class UserService {
             throw new CustomException("Email already exists");
         }
 
-        if (dto.getUsername().length() < 8) {
-            throw new CustomException("Username must be at least 8 characters");
+        if (dto.getUsername().length() < 3) {
+            throw new CustomException("Username must be at least 3 characters");
+        }
+
+        if (dto.getUsername().length() > 24) {
+            throw new CustomException("Username must be at least 24 characters");
+        }
+
+        if (dto.getUsername().contains(" ")) {
+            throw new CustomException("Username cannot contain spaces");
         }
 
         if (!isValidPassword(dto.getPassword())) {
             throw new CustomException("Password does not meet criteria");
         }
-
+        //        -when saving the email, normalize to lowercase (so email@gmail.com is the same as Email@gmail.com, etc)
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
@@ -224,6 +232,12 @@ public class UserService {
         
         userRepository.save(user);
         return user;
+    }
+
+    public void changePassword(String emailAddress, String newPassword) {
+        User user = userRepository.findByEmailAddress(emailAddress);
+        user.setPassword(newPassword);
+        userRepository.save(user);
     }
 
 }
