@@ -412,10 +412,10 @@ export default {
 
       // Start the round
       if (this.getGameMode === 'multiplayer') {
-        const gameId = this.$route.query.gameId || this.$store.getters['multiplayerGame/multiplayerGame_getGameId'];
-        if (gameId) {
-          this.startRound({ gameId });
-        }
+        // For multiplayer, the backend creates the round and sends it via WebSocket
+        // Don't call startRound here - it will create individual rounds for each player
+        // The round ID will come from the WebSocket round-start event
+        console.log('🎮 Multiplayer round starting - waiting for backend round creation...');
       }
       else if (this.getGameMode === 'singleplayer'){
         this.startSingleplayerRound();

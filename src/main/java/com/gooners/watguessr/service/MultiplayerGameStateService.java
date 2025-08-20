@@ -40,8 +40,22 @@ public class MultiplayerGameStateService {
 		}
 		gameState.setPlayers(players);
 		
+		// Create the first round for all players to share
+		try {
+			Round firstRound = roundService.create(gameId);
+			gameState.setCurrentSceneId(firstRound.getId().toString());
+			System.out.println("🎯 Created first round for multiplayer game: " + firstRound.getId());
+			System.out.println("🎯 First round scene ID: " + firstRound.getScene().getId());
+			System.out.println("🎯 Game state currentSceneId set to: " + gameState.getCurrentSceneId());
+		} catch (Exception e) {
+			System.err.println("Failed to create first round: " + e.getMessage());
+		}
+		
 		gameStates.put(gameId, gameState);
 		broadcastGameState(gameId);
+		
+		// Start the first round immediately so all players get the round ID
+		startFirstRound(gameId);
 	}
 
 	public void updatePlayerProgress(UUID gameId, String userId, Integer score, String status) {
@@ -86,11 +100,48 @@ public class MultiplayerGameStateService {
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
 			gameState.setGameStatus("playing");
+			// Note: sceneId parameter is actually the round ID, not the scene ID
+			// This is for consistency with the advanceToNextRound method
+			// TODO: Consider renaming currentSceneId to currentRoundId for clarity
 			gameState.setCurrentSceneId(sceneId.toString());
 			
 			// Set all players to playing status
 			for (PlayerStateDto player : gameState.getPlayers().values()) {
 				player.setStatus("playing");
+			}
+			
+			broadcastGameState(gameId);
+		}
+	}
+
+	public void startFirstRound(UUID gameId) {
+		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		if (gameState != null && gameState.getCurrentSceneId() != null) {
+			// Start the first round that was created in initializeGame
+			gameState.setGameStatus("playing");
+			
+			// Set all players to playing status
+			for (PlayerStateDto player : gameState.getPlayers().values()) {
+				player.setStatus("playing");
+			}
+			
+			// Get the round to access its scene
+			try {
+				Round firstRound = roundService.findById(UUID.fromString(gameState.getCurrentSceneId()));
+				System.out.println("🎯 Starting first round: " + firstRound.getId());
+				System.out.println("🎯 First round scene: " + firstRound.getScene().getId());
+				
+				// Broadcast round start event with the first round details
+				Map<String, Object> roundStartData = Map.of(
+					"gameId", gameId.toString(),
+					"roundId", firstRound.getId().toString(),
+					"roundNumber", 1,
+					"sceneId", firstRound.getScene().getId().toString()
+				);
+				System.out.println("🚀 Broadcasting first round start: " + roundStartData);
+				messagingTemplate.convertAndSend("/topic/game/" + gameId + "/round-start", roundStartData);
+			} catch (Exception e) {
+				System.err.println("Failed to get first round details: " + e.getMessage());
 			}
 			
 			broadcastGameState(gameId);
@@ -149,6 +200,7 @@ public class MultiplayerGameStateService {
 					gameState.setGameStatus("playing");
 					
 					// Broadcast round start event with round details
+					// Note: currentSceneId actually stores the round ID, not the scene ID
 					Map<String, Object> roundStartData = Map.of(
 						"gameId", gameId.toString(),
 						"roundId", newRound.getId().toString(),

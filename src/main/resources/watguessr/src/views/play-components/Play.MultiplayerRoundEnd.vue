@@ -25,6 +25,13 @@
       <div class="map-section">
         <div id="answer-map">
         </div>
+        
+        <!-- Show indicator when displaying aggregated guesses -->
+        <div v-if="isAggregatedGuesses" class="aggregated-notice">
+          <span class="notice-icon">📊</span>
+          <span>Showing guesses from multiple rounds</span>
+        </div>
+        
         <div class="map-legend">
           <div class="legend-item">
             <div class="legend-marker answer-marker"></div>
@@ -63,7 +70,8 @@ export default {
       allGuesses: [],
       map: null,
       markers: [],
-      currentUser: null
+      currentUser: null,
+      isAggregatedGuesses: false
     };
   },
   computed: {
@@ -127,6 +135,28 @@ export default {
         if (currentRound && currentRound.guesses) {
           this.allGuesses = currentRound.guesses;
           console.log('Fetched all guesses:', this.allGuesses);
+        }
+
+        if (uniqueUserIds.length > 1) {
+          // We have guesses from multiple users across different rounds
+          // Use all guesses but mark them as aggregated
+          this.allGuesses = allGuessesFromAllRounds;
+          this.isAggregatedGuesses = true;
+          console.log('Aggregated guesses from multiple rounds:', this.allGuesses);
+          console.log('Number of aggregated guesses:', this.allGuesses.length);
+          
+          // Log each guess for debugging
+          this.allGuesses.forEach((guess, index) => {
+            console.log(`Aggregated guess ${index + 1}:`, {
+              userId: guess.userId,
+              username: guess.username,
+              guessX: guess.guessX,
+              guessY: guess.guessY,
+              isCurrentUser: guess.userId === this.currentUser?.id,
+              roundId: guess.roundId
+            });
+          });
+          return; // Exit early since we're using aggregated guesses
         }
       } catch (error) {
         console.error('Error fetching all guesses:', error);
@@ -354,6 +384,26 @@ export default {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aggregated-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  color: var(--yellow);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.notice-icon {
+  font-size: 14px;
 }
 
 .legend-item {
