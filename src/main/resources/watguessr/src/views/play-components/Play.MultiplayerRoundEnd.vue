@@ -94,10 +94,14 @@ export default {
     ]),
     ...mapGetters('round', [
       'getRoundResult',
+      'getCorrectAnswer'
     ]),
     ...mapGetters('user', [
       'getCurrentUser'
     ]),
+    correctAnswer() {
+      return this.getCorrectAnswer;
+    },
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
       const totalSeconds = Math.floor(this.getGuessTime / 1000);
@@ -313,10 +317,10 @@ export default {
       this.markers = [];
 
       // Add correct answer marker (red)
-      if (this.getRoundResult?.correctAnswer) {
+      if (this.correctAnswer) {
         const answerCoordinates = [
-          this.getRoundResult.correctAnswer.locationX,
-          this.getRoundResult.correctAnswer.locationY
+          this.correctAnswer.locationX,
+          this.correctAnswer.locationY
         ];
 
         const answerMarker = new mapboxgl.Marker({
@@ -325,7 +329,7 @@ export default {
         })
           .setLngLat(answerCoordinates)
           .setPopup(new mapboxgl.Popup({ offset: 25 })
-            .setHTML('<span style="color: black; font-weight: bold;">🏆 Correct Answer</span>'))
+            .setHTML('<span style="color: black; font-weight: bold;">Correct Answer</span>'))
           .addTo(this.map);
 
         this.markers.push(answerMarker);
