@@ -21,5 +21,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		registry.addEndpoint("/ws-game") // WebSocket endpoint
 				.setAllowedOriginPatterns("*") // allow CORS for Vue dev server
 				.withSockJS();
+		registry.addEndpoint("/ws-matchmaking") // WebSocket endpoint
+				.setAllowedOriginPatterns("*") // allow CORS for Vue dev server
+				.withSockJS();
 	}
 }
