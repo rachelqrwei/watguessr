@@ -203,7 +203,6 @@ export default {
           // Building not in database, clear floor selection
           this.selectedFloor = '';
         }
-        // Let PlayFloorPanel handle floor selection with proper sorting
       }
     },
     getCurrentView(newVal, oldVal) {
@@ -213,7 +212,6 @@ export default {
         this.selectedBuilding = '';
         this.selectedFloor = '';
         this.resetTimer();
-        // Don't clear map position here - it will be managed when the map component unmounts/mounts
       }
     },
     singleplayerGame_getShouldEnd(newVal) {
@@ -367,8 +365,6 @@ export default {
         this.selectedBuilding = null;
         this.selectedFloor = '';
         this.resetTimer();
-
-        // Don't clear map position here - it will be managed when the map component unmounts/mounts
 
         // Do not prefetch to keep RoundEnd data intact during countdown
       } else if (this.getGameMode === 'multiplayer') {
