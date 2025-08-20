@@ -226,16 +226,16 @@ public class GameService {
             item.setGameId(game.getId());
             item.setGameMode(game.getGameMode());
             item.setPlayedAt(game.getCreatedAt());
+            User winner = game.getWinner();
+            item.setFinished(winner != null);
 
             if ("Singleplayer".equalsIgnoreCase(game.getGameMode())) {
                 Integer rounds = roundService.getRoundCountForGame(game.getId());
                 item.setRoundsSurvived(rounds);
-                item.setWon(null);
                 item.setNumPlayers(null);
             } else {
-                User winner = game.getWinner();
-                item.setWon(winner != null && winner.getId() != null && winner.getId().equals(userId));
                 item.setRoundsSurvived(null);
+                item.setWon(winner != null && winner.getId() != null && winner.getId().equals(userId));
                 // number of players = distinct users who guessed in this game's rounds
                 int numPlayers = roundService.getUserPointsForGame(game.getId()).size();
                 item.setNumPlayers(numPlayers);
@@ -326,21 +326,14 @@ public class GameService {
         gameRepository.save(game);
     }
 
-    public void delete(UUID id) {
-        gameRepository.deleteById(id);
-    }
 
     public Game findById(UUID id) {
         return gameRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
     }
 
-    public List<Game> findAll() {
-        return gameRepository.findAll();
-    }
-
     public int cleanupExpiredGames() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(24); // 24 hours before now
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(1); // 24 hours before now
         List<Game> oldGames = gameRepository.findByWinnerIsNullAndCreatedAtBefore(cutoff);
 
         if (!oldGames.isEmpty()) {

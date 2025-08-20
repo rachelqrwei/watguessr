@@ -207,8 +207,10 @@ export default {
       if (newVal && this.getCurrentView !== 'RoundEnd') {
         // Only navigate automatically if we're not on RoundEnd view
         // Add a small delay to ensure RoundEnd view has time to show
-        setTimeout(() => {
+        setTimeout(async () => {
           if (this.getCurrentView !== 'RoundEnd') {
+            // call endGame to properly finish the game and set winner
+            await this.singleplayerGame_endGame();
             this.$router.push('/singleplayer-game-end');
           }
         }, 100);
@@ -328,12 +330,12 @@ export default {
     },
 
     async nextRoundOrEndGame() {
-      console.log('🎮 nextRoundOrEndGame called, gameMode:', this.getGameMode);
-      console.log('🎮 singleplayerGame_getShouldEnd:', this.singleplayerGame_getShouldEnd);
-
       if (this.getGameMode === 'singleplayer') {
         // Handle singleplayer logic
         if (this.singleplayerGame_getShouldEnd) {
+          console.log('🎮 Game should end, calling endGame before navigation');
+          // Call endGame to properly finish the game and set winner
+          await this.singleplayerGame_endGame();
           console.log('🎮 Navigating to singleplayer-game-end');
           this.$router.push('/singleplayer-game-end');
           return;
@@ -343,14 +345,6 @@ export default {
         this.showCountdown = true;
         this.showStopwatch = false;
 
-        const shouldEnd = await this.singleplayerGame_checkSingleplayerState();
-        if (shouldEnd) {
-          // Call endGame to properly finish the game
-          await this.singleplayerGame_endGame();
-          this.$router.push('/singleplayer-game-end')
-          return;
-        }
-
         this.selectedBuilding = null;
         this.selectedFloor = '';
         this.resetTimer();
@@ -358,8 +352,6 @@ export default {
         // Clear saved map position for new round
         this.SET_MAP_CENTER(null);
         this.SET_MAP_ZOOM(null);
-
-        this.SET_CURRENT_VIEW("Image");
       } else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {

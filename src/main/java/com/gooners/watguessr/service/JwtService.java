@@ -3,6 +3,7 @@ package com.gooners.watguessr.service;
 import java.time.Duration;
 import java.time.Instant;
 
+import com.gooners.watguessr.entity.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,6 +50,20 @@ public class JwtService {
                 .issuer(issuer)
                 .expiresAt(Instant.now().plus(Duration.ofSeconds(ttlSeconds)))
                 .claim("role", role)
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet))
+                .getTokenValue();
+    }
+
+    // Generate token for Google OAuth user
+    public String generateTokenForUser(User user) {
+        final var claimsSet = JwtClaimsSet.builder()
+                .subject(user.getUsername())
+                .issuer(issuer)
+                .expiresAt(Instant.now().plus(Duration.ofSeconds(ttlSeconds)))
+                .claim("role", "ROLE_USER")
+                .claim("email", user.getEmailAddress())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet))
