@@ -40,7 +40,7 @@ export const mutations: MutationTree<MultiplayerGameState> = {
   MG_SET_SHOULD_END(state, shouldEnd: boolean) {
     state.multiplayerGame_shouldEnd = shouldEnd;
   },
-  
+
   // Save final game data for persistence
   MG_SAVE_FINAL_GAME_DATA(state, finalGameData: {
     players: Record<string, PlayerInfo>;
@@ -55,16 +55,15 @@ export const mutations: MutationTree<MultiplayerGameState> = {
     state.multiplayerGame_currentRound = finalGameData.currentRound;
     state.multiplayerGame_maxRounds = finalGameData.maxRounds;
     state.multiplayerGame_shouldEnd = true;
-    
+
     // Store in localStorage for persistence across page navigation
     try {
       localStorage.setItem('multiplayerGameFinalData', JSON.stringify(finalGameData));
-      console.log('💾 Saved final game data to localStorage:', finalGameData);
     } catch (error) {
       console.error('Failed to save final game data to localStorage:', error);
     }
   },
-  
+
   // Load final game data from localStorage
   MG_LOAD_FINAL_GAME_DATA(state) {
     try {
@@ -77,18 +76,16 @@ export const mutations: MutationTree<MultiplayerGameState> = {
         state.multiplayerGame_currentRound = finalGameData.currentRound;
         state.multiplayerGame_maxRounds = finalGameData.maxRounds;
         state.multiplayerGame_shouldEnd = true;
-        console.log('📂 Loaded final game data from localStorage:', finalGameData);
       }
     } catch (error) {
       console.error('Failed to load final game data from localStorage:', error);
     }
   },
-  
+
   // Clear final game data
   MG_CLEAR_FINAL_GAME_DATA(state) {
     try {
       localStorage.removeItem('multiplayerGameFinalData');
-      console.log('🧹 Cleared final game data from localStorage');
     } catch (error) {
       console.error('Failed to clear final game data from localStorage:', error);
     }

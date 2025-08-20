@@ -44,7 +44,6 @@ export function connectLobby(
     debug: (msg) => console.log(msg),
     reconnectDelay: 5000,
     onConnect: (frame: Frame) => {
-      console.log("Connected to lobby:", frame);
       startHeartbeat();
       setupPageVisibilityHandling();
     },
@@ -52,7 +51,6 @@ export function connectLobby(
       console.error("STOMP error:", frame);
     },
     onDisconnect: () => {
-      console.log("Disconnected from lobby");
       stopHeartbeat();
       cleanupPageVisibilityHandling();
     },
@@ -117,18 +115,10 @@ function sendCleanup() {
  */
 function setupPageVisibilityHandling() {
   // Remove aggressive cleanup on tab switch
-  pageVisibilityHandler = () => {
-    // You can log away status if needed, but DO NOT cleanup
-    if (document.hidden) {
-      console.log("User is away from tab, lobby stays alive");
-    }
-  };
-
   document.addEventListener("visibilitychange", pageVisibilityHandler);
 
   // Only cleanup when user leaves / refreshes
   window.addEventListener("beforeunload", () => {
-    console.log("Page unloading, cleaning up lobby");
     sendCleanup();
   });
 }
@@ -236,8 +226,6 @@ export function disconnectLobby(): void {
   onLobbyUpdateCallback = null;
   onGameStartCallback = null;
   currentLobbyId = null;
-
-  console.log("Disconnected from lobby");
 }
 
 /**

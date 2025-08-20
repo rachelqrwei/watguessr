@@ -32,8 +32,6 @@ export function connectToMultiplayerGame(gameId: string) {
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
-    console.log('Connected to Multiplayer Game WebSocket');
-
     // Subscribe to game state updates for this specific game
     stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
       const gameState: MultiplayerGameStateDto = JSON.parse(message.body);
@@ -55,7 +53,6 @@ export function connectToMultiplayerGame(gameId: string) {
     console.error('WebSocket connection error:', error);
     // Retry connection after 3 seconds
     setTimeout(() => {
-      console.log('Retrying WebSocket connection...');
       connectToMultiplayerGame(gameId);
     }, 3000);
   });
@@ -64,7 +61,6 @@ export function connectToMultiplayerGame(gameId: string) {
 export function disconnectFromMultiplayerGame() {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect(() => {
-      console.log('Disconnected from Multiplayer Game WebSocket');
     });
     stompClient = null;
   }
@@ -148,12 +144,9 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
     };
   });
 
-  console.log('🔄 Updating players state:', players);
-
   // Check for disconnected players
   Object.keys(currentPlayers).forEach(playerId => {
     if (!players[playerId]) {
-      console.log('🔌 Player disconnected:', playerId);
       store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
     }
   });
@@ -175,6 +168,8 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
 
 // Handle round start events
 function handleRoundStart(roundData: any) {
+  console.log("YO");
+
   // Start a new round in the frontend
   if (roundData.roundId) {
     // Set the new round ID in the round store
@@ -224,8 +219,6 @@ async function fetchSceneImage(roundId: string) {
 
 // Handle game completion events
 function handleGameComplete(completionData: MultiplayerGameStateDto) {
-  console.log('🏆 Game completed:', completionData);
-
   // Update the game state with final results
   if (completionData.finalWinner) {
     store.commit('multiplayerGame/MG_SET_FINAL_WINNER', completionData.finalWinner);
@@ -258,7 +251,6 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
   }
 
   // Navigate to multiplayer game end screen
-  console.log('🚀 Navigating to multiplayer game end screen');
   // Use window.location for now since Vue Router context is not available here
   if (window.location.pathname !== '/multiplayer-game-end') {
     window.location.href = '/multiplayer-game-end';

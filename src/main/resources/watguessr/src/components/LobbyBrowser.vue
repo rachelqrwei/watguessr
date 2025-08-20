@@ -37,7 +37,6 @@ export default {
     },
 
     handleLobbySelected(lobby) {
-      console.log('Lobby selected:', lobby);
       // Navigate to the lobby
       this.$router.push({
         name: 'lobby',

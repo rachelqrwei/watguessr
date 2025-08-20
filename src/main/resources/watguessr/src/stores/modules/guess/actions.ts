@@ -29,9 +29,6 @@ export const actions: ActionTree<GuessState, RootState> = {
         floor: state.floor,
         roundId: roundId
       };
-
-      console.log('Submitting guess with body:', createGuessBody);
-
       const token = rootGetters['user/getToken'];
       const createResponse = await fetch(`${baseUrl}/api/guess`, {
         method: 'POST',

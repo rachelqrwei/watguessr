@@ -25,13 +25,13 @@
       <div class="map-section">
         <div id="answer-map">
         </div>
-        
+
         <!-- Show indicator when displaying aggregated guesses -->
         <div v-if="isAggregatedGuesses" class="aggregated-notice">
           <span class="notice-icon">📊</span>
           <span>Showing guesses from multiple rounds</span>
         </div>
-        
+
         <div class="map-legend">
           <div class="legend-item">
             <div class="legend-marker answer-marker"></div>
@@ -124,7 +124,6 @@ export default {
         }
 
         const roundsData = await response.json();
-        console.log(roundsData);
 
         // Find the current round
         const currentRound = roundsData.find(round =>
@@ -134,7 +133,6 @@ export default {
 
         if (currentRound && currentRound.guesses) {
           this.allGuesses = currentRound.guesses;
-          console.log('Fetched all guesses:', this.allGuesses);
         }
 
         if (uniqueUserIds.length > 1) {
@@ -142,20 +140,6 @@ export default {
           // Use all guesses but mark them as aggregated
           this.allGuesses = allGuessesFromAllRounds;
           this.isAggregatedGuesses = true;
-          console.log('Aggregated guesses from multiple rounds:', this.allGuesses);
-          console.log('Number of aggregated guesses:', this.allGuesses.length);
-          
-          // Log each guess for debugging
-          this.allGuesses.forEach((guess, index) => {
-            console.log(`Aggregated guess ${index + 1}:`, {
-              userId: guess.userId,
-              username: guess.username,
-              guessX: guess.guessX,
-              guessY: guess.guessY,
-              isCurrentUser: guess.userId === this.currentUser?.id,
-              roundId: guess.roundId
-            });
-          });
           return; // Exit early since we're using aggregated guesses
         }
       } catch (error) {

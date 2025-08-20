@@ -110,11 +110,8 @@ export default {
         debug: (msg) => console.log(msg),
         reconnectDelay: 5000,
         onConnect: () => {
-          console.log("Connected to lobby updates");
-
           // Subscribe to public lobby updates
           this.stompClient.subscribe("/topic/lobbies/public", (message) => {
-            console.log("Received public lobby update:", message.body);
             // Refresh the lobby list when we receive an update
             this.refreshLobbies();
           });

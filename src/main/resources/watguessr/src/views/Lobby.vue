@@ -188,7 +188,6 @@ export default {
       }
 
       this.connectionAttempts++;
-      console.log(`Attempting to reconnect to lobby (attempt ${this.connectionAttempts}/${this.maxConnectionAttempts})`);
 
       try {
         // Check if lobby still exists and user is still in it
@@ -207,7 +206,6 @@ export default {
         // Reconnect WebSocket
         this.connectToLobbyWebSocket();
 
-        console.log('Successfully reconnected to lobby');
         this.isConnected = true;
         this.connectionAttempts = 0;
       } catch (error) {
@@ -215,7 +213,6 @@ export default {
 
         // If lobby doesn't exist or user can't rejoin, redirect to home
         if (error.message.includes('404') || error.message.includes('not found')) {
-          console.log('Lobby no longer exists, redirecting to home');
           this.$router.push({name: 'home'});
         } else {
           // Try again after a delay
@@ -230,12 +227,8 @@ export default {
         // Connect to lobby WebSocket
         connectLobby(
           (lobbyUpdate) => {
-            console.log('🔍 Lobby update received:', lobbyUpdate);
             this.players = lobbyUpdate.players;
             this.isConnected = true;
-            console.log('🔍 Players array updated:', this.players);
-            console.log('🔍 My ID:', this.myId);
-            console.log('🔍 Players with ready buttons:', this.players.filter(p => p.userId === this.myId));
           },
           (startInfo) => {
             this.gameStarted = true;
@@ -243,8 +236,6 @@ export default {
 
             // The lobby system has already created the game and provided the gameId
             if (startInfo.gameId) {
-              console.log('🎮 Game started with gameId from lobby:', startInfo.gameId);
-
               // Set the game ID from the lobby
               this.$store.commit('multiplayerGame/MG_SET_GAME_ID', startInfo.gameId);
 
@@ -288,7 +279,6 @@ export default {
         try {
           await leaveLobby(currentUser);
           await disconnectLobby();
-          console.log("✅ Cleaned up lobby before going home");
         } catch (err) {
           console.error("❌ Failed to cleanup lobby:", err);
         }
