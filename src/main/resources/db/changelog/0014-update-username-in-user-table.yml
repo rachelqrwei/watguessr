@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 14-1
+      author: KENNY
+      preConditions:
+        - columnExists:
+            tableName: user
+            columnName: username
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE "user" DROP COLUMN IF EXISTS username;
+              ALTER TABLE "user" ADD COLUMN username VARCHAR(24);
+              ALTER TABLE "user" 
+                ADD CONSTRAINT chk_user_username_format
+                CHECK (username ~ '^[A-Za-z0-9_]{3,24}$');
+              ALTER TABLE "user" 
+                ADD CONSTRAINT uq_user_username UNIQUE (username);
