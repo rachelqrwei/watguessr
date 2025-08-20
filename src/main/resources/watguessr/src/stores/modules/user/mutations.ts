@@ -22,6 +22,9 @@ export const mutations = {
 
     // Remove token from localStorage
     localStorage.removeItem('jwt_token');
+
+    // Call backend logout to clear HTTP-only cookie
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
   },
 
   SET_LOADING(state: UserState, loading: boolean) {

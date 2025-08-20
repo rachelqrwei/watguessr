@@ -2,7 +2,9 @@ package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.GoogleSignupRequest;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -72,6 +74,22 @@ public class AuthController {
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
         userService.signup(dto);
         return ResponseEntity.ok("Account created");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        // Overwrite the HttpOnly cookie with empty value and immediate expiration
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)   // set true if using HTTPS
+                .path("/")
+                .maxAge(0)      // expire immediately
+                .sameSite("Strict") // optional: adjust according to your setup
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 
 
