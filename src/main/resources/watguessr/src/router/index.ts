@@ -52,8 +52,7 @@ const router = createRouter({
       path: '/profile/:userId?',
       name: 'profile',
       component: () => import('../views/Profile.vue'),
-      props: true,
-      meta: { requiresAuth: true }
+      props: true
     },
   ],
   scrollBehavior(to, from, savedPosition) {

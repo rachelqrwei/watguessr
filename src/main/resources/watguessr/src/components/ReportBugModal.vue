@@ -1,114 +1,81 @@
 <template>
-  <div class="modal-overlay" v-if="visible">
-    <div class="modal-content">
-      <button class="close-btn" @click="$emit('close')">×</button>
+  <Transition name="modal-fade" appear>
+    <div v-if="visible" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h2>Report A Bug</h2>
+          <button class="close-button" @click="closeModal">&times;</button>
+        </div>
 
-      <div class="modal-header">
-        <h2>REPORT A BUG</h2>
-        <p>Help us improve WatGuessr by reporting any issues you encounter</p>
+        <div class="modal-body">
+
+          <form @submit.prevent="submitReport">
+            <div class="form-group">
+              <label for="title">Bug Title</label>
+              <input
+                id="title"
+                v-model="bugReport.title"
+                type="text"
+                required
+                placeholder="Enter bug title"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="category">Category</label>
+              <select id="category" v-model="bugReport.category" required>
+                <option value="">Select category</option>
+                <option value="gameplay">Gameplay Issue</option>
+                <option value="ui">UI/UX Problem</option>
+                <option value="performance">Performance Issue</option>
+                <option value="authentication">Login/Account Issue</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="description">Description</label>
+              <textarea
+                id="description"
+                v-model="bugReport.description"
+                placeholder="Describe the bug in detail"
+                required
+                rows="4"
+                maxlength="500"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  v-model="bugReport.includeUserInfo"
+                />
+                Include my username for follow-up questions
+              </label>
+            </div>
+
+            <div class="character-count">
+              <span>{{ bugReport.description.length }}/500</span>
+            </div>
+
+            <p v-if="error" class="error-message">{{ error }}</p>
+            <p v-if="success" class="success-message">{{ success }}</p>
+
+            <div class="form-actions">
+              <button type="button" class="cancel-button" @click="closeModal">
+                Cancel
+              </button>
+              <button type="submit" class="create-button" :disabled="loading">
+                {{ loading ? 'Sending...' : 'Submit Report' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <form @submit.prevent="submitReport" class="report-form">
-        <div class="form-group floating-label">
-          <input
-            type="text"
-            id="title"
-            v-model="bugReport.title"
-            placeholder=""
-            required
-            maxlength="100"
-          />
-          <label for="title">BUG TITLE</label>
-        </div>
-
-        <div class="form-group floating-label">
-          <select id="category" v-model="bugReport.category" required>
-            <option value="">Select category</option>
-            <option value="gameplay">Gameplay Issue</option>
-            <option value="ui">UI/UX Problem</option>
-            <option value="performance">Performance Issue</option>
-            <option value="authentication">Login/Account Issue</option>
-            <option value="other">Other</option>
-          </select>
-          <label for="category">CATEGORY</label>
-        </div>
-
-        <div class="form-group floating-label">
-          <textarea
-            id="description"
-            v-model="bugReport.description"
-            placeholder=""
-            required
-            rows="4"
-            maxlength="500"
-          ></textarea>
-          <label for="description">DESCRIPTION</label>
-        </div>
-
-        <div class="form-group floating-label">
-          <input
-            type="text"
-            id="steps"
-            v-model="bugReport.steps"
-            placeholder=""
-            required
-            maxlength="200"
-          />
-          <label for="steps">STEPS TO REPRODUCE</label>
-        </div>
-
-        <div class="form-group floating-label">
-          <input
-            type="text"
-            id="browser"
-            v-model="bugReport.browser"
-            placeholder=""
-            maxlength="100"
-          />
-          <label for="browser">BROWSER (Optional)</label>
-        </div>
-
-        <div class="form-group floating-label">
-          <input
-            type="text"
-            id="device"
-            v-model="bugReport.device"
-            placeholder=""
-            maxlength="100"
-          />
-          <label for="device">DEVICE (Optional)</label>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              v-model="bugReport.includeUserInfo"
-            />
-            <span class="checkmark"></span>
-            Include my username for follow-up questions
-          </label>
-        </div>
-
-        <div class="character-count">
-          <span>{{ bugReport.description.length }}/500</span>
-        </div>
-
-        <p v-if="error" class="error-message">{{ error }}</p>
-        <p v-if="success" class="success-message">{{ success }}</p>
-
-        <div class="form-actions">
-          <button type="button" class="cancel-btn" @click="$emit('close')">
-            CANCEL
-          </button>
-          <button type="submit" class="submit-btn" :disabled="loading">
-            <span v-if="loading">SENDING...</span>
-            <span v-else>SUBMIT REPORT</span>
-          </button>
-        </div>
-      </form>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -130,9 +97,6 @@ const bugReport = ref<BugReport>({
   title: '',
   category: '',
   description: '',
-  steps: '',
-  browser: '',
-  device: '',
   includeUserInfo: false
 })
 
@@ -146,12 +110,13 @@ const resetForm = () => {
     title: '',
     category: '',
     description: '',
-    steps: '',
-    browser: '',
-    device: '',
     includeUserInfo: false
   }
   store.dispatch('bugReport/resetState')
+}
+
+const closeModal = () => {
+  emit('close')
 }
 
 const submitReport = async () => {
@@ -162,7 +127,7 @@ const submitReport = async () => {
 
     if (result.success) {
       setTimeout(() => {
-        emit('close')
+        closeModal()
       }, 2000)
     }
 
@@ -182,161 +147,193 @@ watch(() => props.visible, (newVal) => {
 <style scoped>
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 999;
-  backdrop-filter: blur(4px);
+  justify-content: center;
+  z-index: 6000;
 }
 
 .modal-content {
-  background: rgba(42, 42, 44, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(42, 42, 44, 0.7);
   border-radius: 16px;
-  padding: 32px;
+  padding: 0;
+  max-width: 500px;
   width: 90%;
-  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: var(--light-grey);
-  font-size: 24px;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .modal-header {
-  text-align: center;
-  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(42, 42, 44, 0.65);
+  backdrop-filter: blur(8px);
 }
 
 .modal-header h2 {
-  font-size: 28px;
-  font-weight: 900;
   color: var(--white);
-  margin-bottom: 8px;
-  letter-spacing: 1px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.modal-header p {
-  color: var(--light-grey);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.report-form {
+.close-button {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background: #333;
+  color: white;
+}
+
+.modal-body {
+  padding: 24px;
 }
 
 .form-group {
-  position: relative;
+  margin-bottom: 20px;
 }
 
-.floating-label {
-  position: relative;
-}
-
-.floating-label input,
-.floating-label select,
-.floating-label textarea {
-  width: 100%;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: var(--white);
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.3s ease;
-}
-
-.floating-label input:focus,
-.floating-label select:focus,
-.floating-label textarea:focus {
-  outline: none;
-  border-color: var(--yellow);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(255, 203, 59, 0.1);
-}
-
-.floating-label label {
-  position: absolute;
-  left: 20px;
-  top: 16px;
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
   color: var(--light-grey);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(42, 42, 44, 0.8);
+  color: white;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: "Red Hat Text", sans-serif;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  transition: all 0.3s ease;
-  pointer-events: none;
-  background: rgba(42, 42, 44, 0.95);
-  padding: 0 8px;
 }
 
-.floating-label input:focus + label,
-.floating-label select:focus + label,
-.floating-label textarea:focus + label,
-.floating-label input:not(:placeholder-shown) + label,
-.floating-label select:not([value=""]) + label,
-.floating-label textarea:not(:placeholder-shown) + label {
-  top: -8px;
-  left: 16px;
-  font-size: 10px;
-  color: var(--yellow);
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 48px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.floating-label textarea {
+.form-group select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(42, 42, 44, 0.9);
+}
+
+.form-group select option {
+  background: rgba(42, 42, 44, 0.98);
+  color: white;
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+  padding: 16px 12px;
+  border: none;
+  outline: none;
+}
+
+.form-group select option:hover {
+  background: rgba(127, 185, 255, 0.2);
+}
+
+.form-group select option:checked {
+  background: rgba(127, 185, 255, 0.3);
+  color: #7FB9FF;
+}
+
+.form-group select:not([size]) {
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #7FB9FF;
+  box-shadow: 0 0 0 2px rgba(127, 185, 255, 0.25);
+}
+
+.form-group textarea {
   resize: vertical;
   min-height: 100px;
-}
-
-.floating-label select {
-  cursor: pointer;
-}
-
-.floating-label select option {
-  background: var(--dark-grey);
-  color: var(--white);
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   cursor: pointer;
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
   color: var(--light-grey);
-  font-size: 14px;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--yellow);
+  width: auto;
+  margin: 0;
 }
 
 .character-count {
@@ -344,6 +341,7 @@ watch(() => props.visible, (newVal) => {
   font-size: 12px;
   color: var(--light-grey);
   margin-top: -8px;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .error-message {
@@ -354,6 +352,7 @@ watch(() => props.visible, (newVal) => {
   background: rgba(255, 71, 87, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 71, 87, 0.2);
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .success-message {
@@ -364,70 +363,96 @@ watch(() => props.visible, (newVal) => {
   background: rgba(76, 175, 80, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(76, 175, 80, 0.2);
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .form-actions {
   display: flex;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 24px;
 }
 
-.cancel-btn,
-.submit-btn {
+.cancel-button,
+.create-button {
   flex: 1;
-  padding: 16px 24px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: inherit;
+  border-radius: 6px;
+  font-size: 0.81rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-family: "Red Hat Text", sans-serif;
 }
 
-.cancel-btn {
-  background: rgba(255, 255, 255, 0.1);
+.cancel-button {
+  background: rgba(255, 255, 255, 0.06);
   color: var(--white);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
 }
 
-.cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
-.submit-btn {
-  background: var(--yellow);
-  color: var(--dark-grey);
-  border: 1px solid var(--yellow);
+.create-button {
+  background: rgba(255, 235, 59, 0.15);
+  color: var(--yellow);
+  border: 0.5px solid var(--yellow);
+  box-shadow: 0 4px 15px rgba(255, 235, 59, 0.1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
 }
 
-.submit-btn:hover:not(:disabled) {
-  background: #e6b800;
+.create-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.create-button:hover:not(:disabled) {
+  background: rgba(255, 235, 59, 0.2);
+  border-color: rgba(255, 235, 59, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 203, 59, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 235, 59, 0.2);
 }
 
-.submit-btn:disabled {
-  opacity: 0.6;
+.create-button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.create-button:active {
+  transform: translateY(-1px);
+}
+
+.create-button:disabled {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
   cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
   transform: none;
 }
 
-@media (max-width: 768px) {
-  .modal-content {
-    padding: 24px;
-    margin: 16px;
-    width: calc(100% - 32px);
-  }
+.modal-fade-enter-from .modal-content {
+  transform: translateY(-50px) scale(0.8);
+  opacity: 0;
+}
 
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .modal-header h2 {
-    font-size: 24px;
-  }
+.modal-fade-leave-to .modal-content {
+  transform: translateY(50px) scale(0.8);
+  opacity: 0;
 }
 </style>

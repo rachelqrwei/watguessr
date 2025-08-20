@@ -184,10 +184,10 @@ export default {
 
 .modal-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  padding: 20px 24px 15px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
   background: rgba(42, 42, 44, 0.7);
@@ -196,12 +196,41 @@ export default {
   z-index: 1;
 }
 
-.close-btn {
-  background: transparent;
+.modal-header h3 {
   color: var(--white);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
   border: none;
-  font-size: 18px;
+  color: #999;
+  font-size: 20px;
+  font-weight: 300;
   cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin: 4px -4px 0 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: white;
+  transform: scale(1.05);
+}
+
+.close-btn:active {
+  transform: scale(0.95);
 }
 
 .modal-content {

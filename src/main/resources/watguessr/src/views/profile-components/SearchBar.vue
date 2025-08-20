@@ -60,7 +60,7 @@ export default {
         params.set('searchTerm', query.trim());
         params.set('limit', '5');
 
-        const response = await fetch('/api/user/leaderboard?${params.toString()}', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?${params.toString()}`, {
           credentials: "include"
         });
         if (!response.ok) throw new Error(`Search failed: ${response.status}`);
