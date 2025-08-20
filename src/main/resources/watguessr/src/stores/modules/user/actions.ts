@@ -273,5 +273,60 @@ export const actions = {
   // Check if user is authenticated
   isAuthenticated({ state }: { state: UserState }) {
     return state.isAuthenticated;
-  }
+  },
+
+  async changePassword({ commit }: { state: UserState; commit: any }, payload: { emailAddress: string; newPassword: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+
+    try {
+      const { emailAddress, newPassword } = payload;
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}/newPassword=${newPassword} `, {
+        method: "PUT",
+        credentials: "include" // send HttpOnly cookie
+      });
+    } catch (err) {
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
+      return null;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  async changeUsername({ commit }: { state: UserState; commit: any }, payload: { emailAddress: string; newUsername: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+
+    try {
+      const { emailAddress, newUsername } = payload;
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}/newUsername=${newUsername} `, {
+        method: "PUT",
+        credentials: "include" // send HttpOnly cookie
+      });
+    } catch (err) {
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
+      return null;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  async deleteUser({ commit }: { state: UserState; commit: any }, payload: { emailAddress: string }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+
+    try {
+      const { emailAddress} = payload;
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-password?emailAddress=${emailAddress}`, {
+        method: "DELETE",
+        credentials: "include" // send HttpOnly cookie
+      });
+    } catch (err) {
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
+      return null;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
 };

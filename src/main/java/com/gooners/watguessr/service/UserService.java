@@ -240,4 +240,15 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void deleteUser(String emailAddress) {
+        User user = userRepository.findByEmailAddress(emailAddress);
+        userRepository.delete(user);
+    }
+
+    public void changeUsername(String emailAddress, String newUsername) {
+        User user = userRepository.findByEmailAddress(emailAddress);
+        user.setUsername(newUsername);
+        userRepository.save(user);
+    }
+
 }
