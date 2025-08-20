@@ -196,9 +196,6 @@ function handleRoundStart(roundData: any) {
   store.commit('guess/SET_BUILDING', '');
   store.commit('guess/SET_FLOOR', '');
 
-  store.commit('gameInfo/SET_MAP_CENTER', null);
-  store.commit('gameInfo/SET_MAP_ZOOM', null);
-
   // Force the view change with a small delay to ensure it takes effect
   setTimeout(() => {
     store.commit('gameInfo/SET_CURRENT_VIEW', 'Image');
