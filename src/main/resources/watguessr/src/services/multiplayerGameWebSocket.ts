@@ -32,48 +32,28 @@ export function connectToMultiplayerGame(gameId: string) {
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
-    console.log('✅ WebSocket connected successfully for game:', gameId);
-    console.log('✅ Creating subscriptions...');
-    
+
     // Subscribe to game state updates for this specific game
     const stateSubscription = stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
-      console.log('📊 Game state subscription triggered!');
-      console.log('📊 Message received:', message);
-      console.log('📊 Message body:', message.body);
       const gameState: MultiplayerGameStateDto = JSON.parse(message.body);
       handleGameStateUpdate(gameState);
     });
-    console.log('📡 Game state subscription created for topic:', `/topic/game/${gameId}/state`);
-    console.log('📡 Subscription object:', stateSubscription);
 
     // Subscribe to round start events
     const roundStartSubscription = stompClient?.subscribe(`/topic/game/${gameId}/round-start`, (message) => {
-      console.log('🎯 Round start subscription triggered!');
-      console.log('🎯 Message received:', message);
-      console.log('🎯 Message body:', message.body);
       const roundData = JSON.parse(message.body);
-      console.log('🎯 Parsed round data:', roundData);
       handleRoundStart(roundData);
     });
-    console.log('📡 Round start subscription created for topic:', `/topic/game/${gameId}/round-start`);
-    console.log('📡 Subscription object:', roundStartSubscription);
 
     // Subscribe to game completion events
     const completionSubscription = stompClient?.subscribe(`/topic/game/${gameId}/complete`, (message) => {
-      console.log('🏆 Game completion subscription triggered!');
-      console.log('🏆 Message received:', message);
-      console.log('🏆 Message body:', message.body);
       const completionData = JSON.parse(message.body);
       handleGameComplete(completionData);
     });
-    console.log('📡 Game completion subscription created for topic:', `/topic/game/${gameId}/complete`);
-    console.log('📡 Subscription object:', completionSubscription);
-    
-    console.log('✅ All subscriptions created successfully');
-    
+
     // Request current round state to catch up on missed events
     requestCurrentRoundState(gameId);
-    
+
   }, (error: any) => {
     console.error('WebSocket connection error:', error);
     // Retry connection after 3 seconds
@@ -193,8 +173,6 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
 
 // Handle round start events
 function handleRoundStart(roundData: any) {
-  console.log("YO");
-
   // Start a new round in the frontend
   if (roundData.roundId) {
     // Set the new round ID in the round store
@@ -245,36 +223,29 @@ async function fetchSceneImage(roundId: string) {
 // Request current round state to catch up on missed events
 async function requestCurrentRoundState(gameId: string) {
   try {
-    console.log('🔄 Requesting current round state for game:', gameId);
-    
     // Use the existing endpoint that returns rounds for a game
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/by-game-with-guesses?gameId=${gameId}`, {
       credentials: "include"
     });
-    
+
     if (response.ok) {
       const roundsData = await response.json();
-      console.log('🔄 Received rounds data:', roundsData);
-      
+
       if (roundsData && roundsData.length > 0) {
         // Get the most recent round (last in the array)
         const currentRound = roundsData[roundsData.length - 1];
-        console.log('🔄 Current round data:', currentRound);
-        
+
         if (currentRound.roundId) {
           // Set the round ID in the round store
           store.commit('round/SET_ROUND_ID', currentRound.roundId);
-          
+
           // Fetch the scene image for the current round
           fetchSceneImage(currentRound.roundId);
-          
+
           // Update multiplayer game round number (use array length as round number)
           store.commit('multiplayerGame/MG_SET_CURRENT_ROUND', roundsData.length);
-          
-          console.log('✅ Successfully synced current round state. Round ID:', currentRound.roundId);
+
         }
-      } else {
-        console.log('ℹ️ No rounds found for game yet');
       }
     } else {
       console.warn('⚠️ Failed to fetch rounds data:', response.status);
