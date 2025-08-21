@@ -70,7 +70,6 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
       await response.json();
       commit('RG_SET_STATUS', {playerId: userId, status: 'ended'});
-      commit('RG_RESET_GAME');
       commit('gameInfo/RESET_GAME', null, {root: true});
       commit('round/RESET_ROUND', null, {root: true});
 

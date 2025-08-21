@@ -47,6 +47,12 @@ export function connectToRankedGame(gameId: string) {
 
     // Subscribe to game completion events
     const completionSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/complete`, (message) => {
+      // Don't handle completion if we're already on a game end route
+      if (window.location.pathname.includes('-game-end')) {
+        console.log('🎯 On game end route, ignoring completion event');
+        return;
+      }
+
       const completionData = JSON.parse(message.body);
       handleGameComplete(completionData);
     });
@@ -135,6 +141,12 @@ export function sendStartRound(gameId: string, sceneId: string) {
 
 // Handle incoming game state updates
 function handleGameStateUpdate(gameState: RankedGameStateDto) {
+  // Don't update store if we're on a game end route to prevent interference
+  if (window.location.pathname.includes('-game-end')) {
+    console.log('🎯 On game end route, skipping game state update');
+    return;
+  }
+
   // Get current players from store to detect disconnections
   const currentPlayers = store.getters['rankedGame/rankedGame_getPlayers'] || {};
 
@@ -167,6 +179,15 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   }
 
   if (gameState.shouldEnd) {
+    console.log('🎯 Setting should end to true from game state update');
+    console.log('🎯 Game state details:', {
+      gameId: gameState.gameId,
+      currentRound: gameState.currentRound,
+      maxRounds: gameState.maxRounds,
+      players: gameState.players,
+      shouldEnd: gameState.shouldEnd,
+      finalWinner: gameState.finalWinner
+    });
     store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
 }
@@ -250,12 +271,16 @@ async function requestCurrentRoundState(gameId: string) {
 
 // Handle game completion events
 function handleGameComplete(completionData: RankedGameStateDto) {
+  console.log('🎯 Game completion event received:', completionData);
+
   // Update the game state with final results
   if (completionData.finalWinner) {
+    console.log('🎯 Setting final winner:', completionData.finalWinner);
     store.commit('rankedGame/RG_SET_FINAL_WINNER', completionData.finalWinner);
   }
 
   if (completionData.shouldEnd) {
+    console.log('🎯 Setting should end to true');
     store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
 
@@ -279,11 +304,7 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     };
 
     store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
-  }
-
-  // Navigate to ranked game end screen
-  // Use window.location for now since Vue Router context is not available here
-  if (window.location.pathname !== '/ranked-game-end') {
-    window.location.href = '/ranked-game-end';
+  } else {
+    console.log('🎯 Already on ranked-game-end route, skipping navigation');
   }
 }

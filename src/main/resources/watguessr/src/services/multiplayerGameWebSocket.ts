@@ -135,6 +135,12 @@ export function sendStartRound(gameId: string, sceneId: string) {
 
 // Handle incoming game state updates
 function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
+  // Don't update store if we're on a game end route to prevent interference
+  if (window.location.pathname.includes('-game-end')) {
+    console.log('🎯 On game end route, skipping game state update');
+    return;
+  }
+
   // Get current players from store to detect disconnections
   const currentPlayers = store.getters['multiplayerGame/multiplayerGame_getPlayers'] || {};
 
@@ -286,11 +292,7 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
     };
 
     store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
-  }
-
-  // Navigate to multiplayer game end screen
-  // Use window.location for now since Vue Router context is not available here
-  if (window.location.pathname !== '/multiplayer-game-end') {
-    window.location.href = '/multiplayer-game-end';
+  } else {
+    console.log('🎯 Already on multiplayer-game-end route, skipping navigation');
   }
 }

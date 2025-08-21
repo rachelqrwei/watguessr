@@ -74,6 +74,13 @@
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
       {{ getNextRoundButtonText }}
     </button>
+    <!-- Test buttons to manually navigate to game end screens -->
+    <button class="test-end-btn" @click="testNavigateToRankedEnd" v-if="getGameMode === 'ranked'">
+      🎯 TEST NAVIGATE TO RANKED END
+    </button>
+    <button class="test-end-btn" @click="testNavigateToMultiplayerEnd" v-if="getGameMode === 'multiplayer'" style="left: 460px;">
+      🎯 TEST NAVIGATE TO MULTIPLAYER END
+    </button>
   </div>
 
   <div id="score-tracker" v-show="!showCountdown">
@@ -280,6 +287,36 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    
+    // Watch for when ranked game should end
+    'rankedGame_getShouldEnd': {
+      handler(newShouldEnd, oldShouldEnd) {
+        console.log('🎯 rankedGame_getShouldEnd watcher triggered:', { newShouldEnd, oldShouldEnd, gameMode: this.getGameMode });
+        console.log('🎯 Current route:', this.$route.path);
+        
+        // Don't trigger navigation if we're already on a game end route
+        if (this.$route.path.includes('-game-end')) {
+          console.log('🎯 Already on game end route, ignoring watcher');
+          return;
+        }
+        
+        if (this.getGameMode === 'ranked' && newShouldEnd && !oldShouldEnd) {
+          console.log('🎯 Ranked game should end, navigating to ranked-game-end after delay');
+          // Add small delay to ensure game state is fully updated
+          setTimeout(() => {
+            console.log('🎯 Executing navigation to /ranked-game-end');
+            try {
+              // Use replace instead of push to avoid navigation history issues
+              this.$router.replace('/ranked-game-end');
+              console.log('🎯 Navigation executed successfully');
+            } catch (error) {
+              console.error('🎯 Navigation failed:', error);
+            }
+          }, 100);
+        }
+      },
+      immediate: false // Don't trigger on mount
     }
   },
   methods: {
@@ -452,8 +489,7 @@ export default {
 
         // Handle ranked game logic
         if (this.rankedGame_getShouldEnd) {
-          console.log('🎯 Ranked game should end, navigating to ranked-game-end');
-          this.$router.push('/ranked-game-end');
+          console.log('🎯 Ranked game already ended, watcher should handle navigation');
           return;
         }
 
@@ -589,6 +625,34 @@ export default {
       } catch (error) {
         console.error('Failed to start singleplayer round:', error);
       }
+    },
+    
+    // Test method to manually navigate to ranked game end
+    testNavigateToRankedEnd() {
+      console.log('🎯 Test button clicked - navigating to ranked-game-end');
+      console.log('🎯 Current route:', this.$route.path);
+      console.log('🎯 Router instance:', this.$router);
+      
+      try {
+        this.$router.push('/ranked-game-end');
+        console.log('🎯 Navigation successful');
+      } catch (error) {
+        console.error('🎯 Navigation failed:', error);
+      }
+    },
+    
+    // Test method to manually navigate to multiplayer game end
+    testNavigateToMultiplayerEnd() {
+      console.log('🎯 Test button clicked - navigating to multiplayer-game-end');
+      console.log('🎯 Current route:', this.$route.path);
+      console.log('🎯 Router instance:', this.$router);
+      
+      try {
+        this.$router.push('/multiplayer-game-end');
+        console.log('🎯 Navigation successful');
+      } catch (error) {
+        console.error('🎯 Navigation failed:', error);
+      }
     }
   },
   mounted() {
@@ -618,14 +682,9 @@ export default {
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
 
-    // Disconnect from multiplayer WebSocket when leaving
-    if (this.getGameMode === 'multiplayer') {
-      this.multiplayerGame_disconnect();
-    }
-    // Disconnect from ranked WebSocket when leaving
-    else if (this.getGameMode === 'ranked') {
-      this.rankedGame_disconnect();
-    }
+    // Don't disconnect WebSocket when game ends - let the game end component handle cleanup
+    // The store data needs to persist for the game end screen to display results
+    console.log('🎯 Play component unmounting, keeping WebSocket connected for game end screen');
   }
 }
 </script>
