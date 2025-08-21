@@ -10,15 +10,16 @@
 
     <div v-else-if="errorMessage" class="error">{{ errorMessage }}</div>
 
-    <div v-else class="profile">
-      <div class="profile-content single-column">
-        <div class="hero">
-          <div class="hero-info">
-            <h1 class="name"><font-awesome-icon icon="fa-solid fa-cog" class="cog-icon" /> SETTINGS</h1>
+    <transition name="fade-slide" mode="out-in">
+      <div v-if="!isLoading && !errorMessage" key="settings-card" class="profile">
+        <div class="profile-content single-column">
+          <div class="hero">
+            <div class="hero-info">
+              <h1 class="name"><font-awesome-icon icon="fa-solid fa-cog" class="cog-icon" /> SETTINGS</h1>
+            </div>
           </div>
-        </div>
 
-        <div class="card">
+          <div class="card">
           <!-- <div class="card-label">Account</div> -->
 
           <div class="profile-username-row">
@@ -56,9 +57,10 @@
           <div class="settings-actions-bottom">
             <button class="delete-user-btn" @click="onDeleteUser">Delete User</button>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
@@ -339,6 +341,7 @@ export default {
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
 .icon-btn-text { font-weight: 700; font-size: 12px; letter-spacing: 0.4px; }
@@ -367,6 +370,13 @@ export default {
   letter-spacing: 0.4px;
   font-size: 12px;
   text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.change-password-btn:hover {
+  background: rgba(255, 203, 59, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 203, 59, 0.12);
+  transform: translateY(-1px);
 }
 
 .form-row {
@@ -415,6 +425,18 @@ input[type="email"] {
   font-size: 18px;
 }
 
+/* Fade + slide up transition to match Profile */
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
 .settings-actions-bottom {
   display: flex;
   justify-content: flex-end;
@@ -437,6 +459,18 @@ input[type="email"] {
   letter-spacing: 0.4px;
   font-size: 12px;
   text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.delete-user-btn:hover {
+  background: rgba(255, 127, 127, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 127, 127, 0.12);
+  transform: translateY(-1px);
+}
+
+.edit-inline-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 @media (max-width: 768px) {
