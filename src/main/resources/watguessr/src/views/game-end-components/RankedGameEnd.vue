@@ -37,22 +37,6 @@
         </div>
       </div>
 
-      <!-- Game Stats Section -->
-      <div class="stats-section">
-        <div class="stat-item">
-          <span class="stat-label">ROUNDS PLAYED</span>
-          <span class="stat-value">{{ totalRounds }}/5</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">GAME DURATION</span>
-          <span class="stat-value">{{ gameDuration }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">YOUR BEST ROUND</span>
-          <span class="stat-value">{{ bestRoundScore }} PTS</span>
-        </div>
-      </div>
-
       <!-- ELO Summary -->
       <div class="elo-summary">
         <div class="elo-summary-header">
@@ -78,14 +62,11 @@
 
       <!-- Button Section -->
       <div class="button-section">
-        <button class="btn rematch-btn" @click="rematch">
-          ⚔️ Rematch
-        </button>
         <button class="btn ranked-btn" @click="playRanked">
-          🏆 Play Another Ranked
+          Play Another Ranked
         </button>
         <button class="btn home-btn" @click="goHome">
-          🏠 Back to Home
+          Home
         </button>
       </div>
     </div>
@@ -99,27 +80,108 @@ export default {
   name: "RankedGameEnd",
   data() {
     return {
-      // Hardcoded values for now - will be replaced with real data later
-      player1Score: 1250,
-      player2Score: 980,
-      player1Elo: 1250,
-      player2Elo: 1180,
-      player1EloChange: 25,
-      player2EloChange: -25,
-      winner: 'player1', // 'player1' or 'player2'
-      totalRounds: 5,
-      gameDuration: '8:45',
-      bestRoundScore: 450,
-      startingElo: 1250,
-      newElo: 1275,
-      totalEloChange: 25
+      // These will be computed from store data
+      gameDuration: '0:00', // Will be calculated from actual game time
+      bestRoundScore: 0 // Will be calculated from actual round scores
     };
   },
   computed: {
     ...mapGetters('gameInfo', [
       'getGameMode'
     ]),
-    ...mapGetters('user', ["getCurrentUser"])
+    ...mapGetters('user', ["getCurrentUser"]),
+    ...mapGetters('rankedGame', [
+      'rankedGame_getPlayers',
+      'rankedGame_getCurrentRound',
+      'rankedGame_getMaxRounds',
+      'rankedGame_getFinalWinner',
+      'rankedGame_getShouldEnd'
+    ]),
+
+    // Get current user info
+    currentUser() {
+      return this.getCurrentUser;
+    },
+
+    // Get all players from ranked game store
+    players() {
+      return this.rankedGame_getPlayers || {};
+    },
+
+    // Get current user's player data
+    currentPlayer() {
+      if (!this.currentUser || !this.players) return null;
+      return this.players[this.currentUser.id];
+    },
+
+    // Get opponent player data (first player that's not the current user)
+    opponentPlayer() {
+      if (!this.currentUser || !this.players) return null;
+      const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
+      return opponentId ? this.players[opponentId] : null;
+    },
+
+    // Player 1 (current user) data
+    player1Score() {
+      return this.currentPlayer?.score || 0;
+    },
+
+    player1Elo() {
+      // TODO: Get actual ELO from user profile when available
+      // For now, use a base ELO of 1200
+      return 1200;
+    },
+
+    player1EloChange() {
+      // TODO: Calculate actual ELO change when backend provides it
+      // For now, use a simple calculation based on winner
+      return this.winner === 'player1' ? 25 : -25;
+    },
+
+    // Player 2 (opponent) data
+    player2Score() {
+      return this.opponentPlayer?.score || 0;
+    },
+
+    player2Elo() {
+      // TODO: Get actual ELO from user profile when available
+      // For now, use a base ELO of 1200
+      return 1200;
+    },
+
+    player2EloChange() {
+      // TODO: Calculate actual ELO change when backend provides it
+      // For now, use a simple calculation based on winner
+      return this.winner === 'player2' ? 25 : -25;
+    },
+
+    // Game state data
+    winner() {
+      const finalWinner = this.rankedGame_getFinalWinner;
+      if (finalWinner === this.currentUser?.id) {
+        return 'player1';
+      } else if (finalWinner && finalWinner !== this.currentUser.id) {
+        return 'player2';
+      }
+      // Fallback: determine winner by score
+      return this.player1Score >= this.player2Score ? 'player1' : 'player2';
+    },
+
+    totalRounds() {
+      return this.rankedGame_getMaxRounds || 5;
+    },
+
+    startingElo() {
+      return this.player1Elo;
+    },
+
+    newElo() {
+      return this.startingElo + this.player1EloChange;
+    },
+
+    totalEloChange() {
+      return this.player1EloChange;
+    }
   },
   methods: {
     ...mapActions('singleplayerGame', {
@@ -139,6 +201,42 @@ export default {
     goHome() {
       this.$router.push('/');
     }
+  },
+
+  mounted() {
+    // Debug: Log initial state
+    console.log('🎯 RankedGameEnd mounted');
+    console.log('🎯 Current user:', this.currentUser);
+    console.log('🎯 Players from store:', this.players);
+    console.log('🎯 Current round:', this.rankedGame_getCurrentRound);
+    console.log('🎯 Max rounds:', this.rankedGame_getMaxRounds);
+    console.log('🎯 Final winner:', this.rankedGame_getFinalWinner);
+    console.log('🎯 Winner computed:', this.winner);
+    console.log('🎯 Player 1 score:', this.player1Score);
+    console.log('🎯 Player 2 score:', this.player2Score);
+  },
+
+  watch: {
+    // Watch for changes in store data
+    players: {
+      handler(newPlayers) {
+        console.log('🎯 Players data changed in RankedGameEnd:', newPlayers);
+      },
+      deep: true
+    },
+
+    'rankedGame_getShouldEnd': {
+      handler(newVal) {
+        console.log('🎯 shouldEnd changed in RankedGameEnd:', newVal);
+      }
+    }
+  },
+
+  beforeUnmount() {
+    // Clean up when leaving the game end screen
+    console.log('🎯 RankedGameEnd unmounting, cleaning up');
+    this.$store.dispatch('rankedGame/rankedGame_disconnect');
+    this.$store.dispatch('rankedGame/rankedGame_clearFinalGameData');
   }
 };
 </script>

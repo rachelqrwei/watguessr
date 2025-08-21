@@ -74,13 +74,7 @@
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
       {{ getNextRoundButtonText }}
     </button>
-    <!-- Test buttons to manually navigate to game end screens -->
-    <button class="test-end-btn" @click="testNavigateToRankedEnd" v-if="getGameMode === 'ranked'">
-      🎯 TEST NAVIGATE TO RANKED END
-    </button>
-    <button class="test-end-btn" @click="testNavigateToMultiplayerEnd" v-if="getGameMode === 'multiplayer'" style="left: 460px;">
-      🎯 TEST NAVIGATE TO MULTIPLAYER END
-    </button>
+
   </div>
 
   <div id="score-tracker" v-show="!showCountdown">
@@ -627,33 +621,7 @@ export default {
       }
     },
     
-    // Test method to manually navigate to ranked game end
-    testNavigateToRankedEnd() {
-      console.log('🎯 Test button clicked - navigating to ranked-game-end');
-      console.log('🎯 Current route:', this.$route.path);
-      console.log('🎯 Router instance:', this.$router);
-      
-      try {
-        this.$router.push('/ranked-game-end');
-        console.log('🎯 Navigation successful');
-      } catch (error) {
-        console.error('🎯 Navigation failed:', error);
-      }
-    },
-    
-    // Test method to manually navigate to multiplayer game end
-    testNavigateToMultiplayerEnd() {
-      console.log('🎯 Test button clicked - navigating to multiplayer-game-end');
-      console.log('🎯 Current route:', this.$route.path);
-      console.log('🎯 Router instance:', this.$router);
-      
-      try {
-        this.$router.push('/multiplayer-game-end');
-        console.log('🎯 Navigation successful');
-      } catch (error) {
-        console.error('🎯 Navigation failed:', error);
-      }
-    }
+
   },
   mounted() {
     this.fetchAllBuildings();
