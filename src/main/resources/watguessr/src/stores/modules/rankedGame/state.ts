@@ -9,6 +9,11 @@ export interface PlayerInfo {
   lastSeen?: number; // timestamp when player was last seen
 }
 
+export interface RankedGameResult {
+  userPoints: Record<string, number>;
+  eloChanges: Record<string, number>;
+}
+
 export interface RankedGameState {
   rankedGame_gameId: string;
   rankedGame_players: Record<string, PlayerInfo>; // key: player id, value: info object
@@ -17,6 +22,7 @@ export interface RankedGameState {
   rankedGame_timer: number;
   rankedGame_finalWinner: string | null;
   rankedGame_shouldEnd: boolean;
+  rankedGame_result: RankedGameResult;
   disconnectionCheckInterval?: number; // interval ID for disconnection checking
 }
 

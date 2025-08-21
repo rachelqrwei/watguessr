@@ -95,7 +95,8 @@ export default {
       'rankedGame_getCurrentRound',
       'rankedGame_getMaxRounds',
       'rankedGame_getFinalWinner',
-      'rankedGame_getShouldEnd'
+      'rankedGame_getShouldEnd',
+      'rankedGame_getResult'
     ]),
 
     // Get current user info
@@ -115,6 +116,13 @@ export default {
     },
 
     // Get opponent player data (first player that's not the current user)
+    opponentPlayerId() {
+      if (!this.currentUser || !this.players) return null;
+      const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
+      return opponentId;
+    },
+
+    // Get opponent player data (first player that's not the current user)
     opponentPlayer() {
       if (!this.currentUser || !this.players) return null;
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
@@ -126,16 +134,8 @@ export default {
       return this.currentPlayer?.score || 0;
     },
 
-    player1Elo() {
-      // TODO: Get actual ELO from user profile when available
-      // For now, use a base ELO of 1200
-      return 1200;
-    },
-
     player1EloChange() {
-      // TODO: Calculate actual ELO change when backend provides it
-      // For now, use a simple calculation based on winner
-      return this.winner === 'player1' ? 25 : -25;
+      return this.rankedGame_getResult.eloChanges[this.currentUser.id];
     },
 
     // Player 2 (opponent) data
@@ -143,16 +143,8 @@ export default {
       return this.opponentPlayer?.score || 0;
     },
 
-    player2Elo() {
-      // TODO: Get actual ELO from user profile when available
-      // For now, use a base ELO of 1200
-      return 1200;
-    },
-
     player2EloChange() {
-      // TODO: Calculate actual ELO change when backend provides it
-      // For now, use a simple calculation based on winner
-      return this.winner === 'player2' ? 25 : -25;
+      return this.rankedGame_getResult.eloChanges[this.opponentPlayerId];
     },
 
     // Game state data

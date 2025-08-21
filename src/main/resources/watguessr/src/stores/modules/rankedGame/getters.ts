@@ -11,6 +11,7 @@ export const getters: GetterTree<RankedGameState, RootState> = {
   rankedGame_getFinalWinner: (state) => state.rankedGame_finalWinner,
   rankedGame_getShouldEnd: (state) => state.rankedGame_shouldEnd,
   rankedGame_getTimer: (state) => state.rankedGame_timer,
+  rankedGame_getResult: (state) => state.rankedGame_result,
 
   // New getters for disconnection handling
   rankedGame_getConnectedPlayers: (state) => {

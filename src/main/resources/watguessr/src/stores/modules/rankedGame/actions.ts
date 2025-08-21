@@ -9,6 +9,7 @@ import {
   sendPlayerProgress,
   sendPlayerReady
 } from '../../../services/rankedGameWebSocket';
+import rankedGame from "@/stores/modules/rankedGame/index.ts";
 
 export const actions: ActionTree<RankedGameState, RootState> = {
   async rankedGame_createRankedGame({ state, commit, dispatch , rootGetters}) {
@@ -68,7 +69,8 @@ export const actions: ActionTree<RankedGameState, RootState> = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await response.json();
+      const rankedGameResult = await response.json();
+      commit('RG_SET_RESULT', rankedGameResult);
       commit('RG_SET_STATUS', {playerId: userId, status: 'ended'});
       commit('gameInfo/RESET_GAME', null, {root: true});
       commit('round/RESET_ROUND', null, {root: true});

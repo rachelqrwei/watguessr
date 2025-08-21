@@ -1,6 +1,6 @@
 // src/stores/modules/game/mutations.ts
 import type { MutationTree } from 'vuex';
-import type {RankedGameState, PlayerInfo, PlayerStatus} from './state';
+import type {RankedGameState, PlayerInfo, PlayerStatus, RankedGameResult} from './state';
 
 export const mutations: MutationTree<RankedGameState> = {
   RG_SET_GAME_ID(state, rankedGame_gameId: string) {
@@ -39,6 +39,9 @@ export const mutations: MutationTree<RankedGameState> = {
   },
   RG_SET_SHOULD_END(state, shouldEnd: boolean) {
     state.rankedGame_shouldEnd = shouldEnd;
+  },
+  RG_SET_RESULT(state, result: RankedGameResult) {
+    state.rankedGame_result = result;
   },
 
   // Save final game data for persistence
@@ -95,14 +98,14 @@ export const mutations: MutationTree<RankedGameState> = {
     state.rankedGame_maxRounds = 5;
     state.rankedGame_finalWinner = null;
     state.rankedGame_shouldEnd = false;
-    
+
     // Initialize player if payload is provided
     if (payload) {
       state.rankedGame_players = {
-        [payload.userId]: { 
-          score: 0, 
-          status: 'loading', 
-          username: payload.username 
+        [payload.userId]: {
+          score: 0,
+          status: 'loading',
+          username: payload.username
         }
       };
     } else {
