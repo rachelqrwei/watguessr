@@ -492,7 +492,7 @@ export default {
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 140px 120px;
+  grid-template-columns: 80px 1fr 100px 140px 140px 120px;
   gap: 12px;
   padding: 16px 12px 20px 12px;
   color: var(--white);
@@ -507,7 +507,7 @@ export default {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 140px 120px;
+  grid-template-columns: 80px 1fr 100px 140px 140px 120px;
   gap: 12px;
   padding: 12px;
   background: rgba(255, 255, 255, 0.05);
@@ -763,7 +763,7 @@ export default {
 
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 80px 80px 100px 80px;
+    grid-template-columns: 60px 1fr 80px 100px 100px 80px;
     gap: 10px;
     padding: 12px;
   }
