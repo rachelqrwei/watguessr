@@ -1,6 +1,5 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
@@ -128,7 +127,8 @@ public class UserService {
 
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
-        int actualLimit = limit != null ? limit : 20;
+        int requestedLimit = limit != null ? limit : 20;
+        int actualLimit = Math.min(Math.max(requestedLimit, 1), 50); // enforce 1..50
         int actualOffset = offset != null ? offset : 0;
 
         int page = actualOffset / actualLimit;

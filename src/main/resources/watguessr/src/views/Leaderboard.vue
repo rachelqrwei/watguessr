@@ -1,8 +1,8 @@
 <template>
+  <div class="leaderboard-background" aria-hidden="true"></div>
   <div class="leaderboard-page">
     <div class="leaderboard-header">
       <h1>LEADERBOARD</h1>
-      <p>Compete with the best WatGuessr players worldwide</p>
     </div>
 
     <div class="leaderboard-controls">
@@ -12,9 +12,10 @@
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Search players..."
+            placeholder="Search for users..."
             class="search-input"
-            @input="handleSearch"
+            @input="handleInput"
+            @keyup.enter="handleSearch"
           />
         </div>
       </div>
@@ -58,7 +59,8 @@
         <p class="empty-subtitle">Try adjusting your search or filters</p>
       </div>
 
-      <div v-else class="leaderboard-table">
+      <div v-else>
+        <div class="leaderboard-table">
         <div class="table-header">
           <div class="rank-col">Rank</div>
           <div class="player-col">Player</div>
@@ -68,20 +70,18 @@
           <div class="winrate-col">Win Rate</div>
         </div>
 
-        <div
-          v-for="(player, index) in leaderboard"
+        <div class="table-body">
+          <div
+          v-for="(player, index) in limitedLeaderboard"
           :key="player.id"
           class="table-row"
           :class="{ 'top-player': getRank(index) <= 3 }"
           @click="goToProfile(player.id)"
           style="cursor: pointer;"
-        >
+          >
           <div class="rank-col">
             <div class="rank-badge" :class="getRankClass(getRank(index))">
               {{ getRank(index) }}
-            </div>
-            <div v-if="getRank(index) <= 3" class="rank-medal">
-              {{ getRankMedal(getRank(index)) }}
             </div>
           </div>
 
@@ -97,7 +97,7 @@
 
           <div class="streak-col">
             <div class="streak-value" :class="{ 'hot-streak': player.streak >= 5 }">
-              <font-awesome-icon v-if="player.streak >= 5" icon="fire" class="streak-icon" />
+              <img v-if="player.streak >= 5" src="../assets/images/Header/streak-icon.png" alt="Streak" class="streak-icon" />
               {{ player.streak }}
             </div>
           </div>
@@ -107,6 +107,7 @@
               <div class="games-played">{{ player.gamesPlayed }} played</div>
               <div class="games-record">
                 <span class="wins">{{ player.gamesWon }}W</span>
+                /
                 <span class="losses">{{ player.gamesLost }}L</span>
               </div>
             </div>
@@ -123,32 +124,36 @@
               ></div>
             </div>
           </div>
+          </div>
+        </div>
+        </div>
+
+        <div v-if="limitedLeaderboard && limitedLeaderboard.length > 0" class="pagination">
+          <button
+            @click="previousPage"
+            :disabled="currentPage <= 1"
+            class="pagination-button"
+          >
+            <font-awesome-icon icon="chevron-left" />
+            Previous
+          </button>
+
+          <div class="page-info">
+            Page {{ currentPage }}
+          </div>
+
+          <button
+            @click="nextPage"
+            :disabled="!limitedLeaderboard || limitedLeaderboard.length < 50"
+            class="pagination-button"
+          >
+            Next
+            <font-awesome-icon icon="chevron-right" />
+          </button>
         </div>
       </div>
 
-      <div v-if="leaderboard && leaderboard.length > 0" class="pagination">
-        <button
-          @click="previousPage"
-          :disabled="currentPage <= 1"
-          class="pagination-button"
-        >
-          <font-awesome-icon icon="chevron-left" />
-          Previous
-        </button>
-
-        <div class="page-info">
-          Page {{ currentPage }}
-        </div>
-
-        <button
-          @click="nextPage"
-          :disabled="!leaderboard || leaderboard.length < (currentQuery.limit || 20)"
-          class="pagination-button"
-        >
-          Next
-          <font-awesome-icon icon="chevron-right" />
-        </button>
-      </div>
+      
     </div>
   </div>
 </template>
@@ -166,7 +171,8 @@ export default {
     return {
       router: this.$router,
       searchTerm: '',
-      sortBy: 'elo'
+      sortBy: 'elo',
+      debounceTimer: null
     }
   },
 
@@ -178,7 +184,11 @@ export default {
       error: 'leaderboard/error',
       currentQuery: 'leaderboard/currentQuery',
       currentPage: 'leaderboard/currentPage'
-    })
+    }),
+    limitedLeaderboard() {
+      if (!this.leaderboard) return []
+      return this.leaderboard.slice(0, 50)
+    }
   },
 
   methods: {
@@ -188,11 +198,21 @@ export default {
       clearError: 'leaderboard/clearError'
     }),
 
+    handleInput() {
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer)
+      }
+      this.debounceTimer = setTimeout(() => {
+        this.handleSearch()
+      }, 400)
+    },
+
     handleSearch() {
       const query = {
         ...this.currentQuery,
         searchTerm: this.searchTerm,
-        offset: 0 // Reset to first page when searching
+        offset: 0,
+        limit: 50
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -202,7 +222,8 @@ export default {
       const query = {
         ...this.currentQuery,
         sortBy: this.sortBy,
-        offset: 0 // Reset to first page when sorting
+        offset: 0, // Reset to first page when sorting
+        limit: 50
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -214,20 +235,24 @@ export default {
     },
 
     previousPage() {
-      const newOffset = Math.max(0, (this.currentPage - 2) * (this.currentQuery.limit || 20))
+      const pageSize = 50
+      const newOffset = Math.max(0, (this.currentPage - 2) * pageSize)
       const query = {
         ...this.currentQuery,
-        offset: newOffset
+        offset: newOffset,
+        limit: pageSize
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
     },
 
     nextPage() {
-      const newOffset = this.currentPage * (this.currentQuery.limit || 20)
+      const pageSize = 50
+      const newOffset = this.currentPage * pageSize
       const query = {
         ...this.currentQuery,
-        offset: newOffset
+        offset: newOffset,
+        limit: pageSize
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -239,7 +264,8 @@ export default {
     },
 
     getRank(index) {
-      return (this.currentPage - 1) * (this.currentQuery.limit || 20) + index + 1
+      const pageSize = 50
+      return (this.currentPage - 1) * pageSize + index + 1
     },
 
     getRankClass(rank) {
@@ -249,12 +275,7 @@ export default {
       return ''
     },
 
-    getRankMedal(rank) {
-      if (rank === 1) return '🥇'
-      if (rank === 2) return '🥈'
-      if (rank === 3) return '🥉'
-      return ''
-    },
+
 
     getWinRate(player) {
       if (!player || player.gamesPlayed === 0) return 0
@@ -270,9 +291,25 @@ export default {
 </script>
 
 <style scoped>
-.leaderboard-page {
-  min-height: 100vh;
+.leaderboard-background {
+  position: fixed;
+  inset: 0;
   background: var(--dark-grey);
+  z-index: -1;
+}
+
+.leaderboard-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/ProfilePage.png') center top / cover no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.leaderboard-page {
+  min-height: calc(100vh - 80px);
+  position: relative;
   padding: 40px 20px;
 }
 
@@ -282,7 +319,7 @@ export default {
 }
 
 .leaderboard-header h1 {
-  font-size: 3rem;
+  font-size: 1.8rem;
   font-weight: 900;
   color: var(--white);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -294,6 +331,7 @@ export default {
   font-size: 1.2rem;
   color: var(--light-grey);
   margin: 0;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .leaderboard-controls {
@@ -313,6 +351,8 @@ export default {
 .search-input-wrapper {
   position: relative;
 }
+
+/* search button removed */
 
 .search-icon {
   position: absolute;
@@ -383,6 +423,11 @@ export default {
   margin: 0 auto;
 }
 
+.leaderboard-table .table-body {
+  display: flex;
+  flex-direction: column;
+}
+
 .loading-state,
 .error-state,
 .empty-state {
@@ -433,49 +478,53 @@ export default {
   color: var(--light-grey);
   font-size: 1rem;
   margin-top: 10px;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .leaderboard-table {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
+  background: rgba(42, 42, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 16px;
 }
 
 .table-header {
   display: grid;
   grid-template-columns: 80px 1fr 100px 100px 140px 120px;
-  gap: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  font-weight: 700;
+  gap: 12px;
+  padding: 16px 12px 20px 12px;
   color: var(--white);
   text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+  align-items: center;
+  font-weight: 900;
 }
 
 .table-row {
   display: grid;
   grid-template-columns: 80px 1fr 100px 100px 140px 120px;
-  gap: 20px;
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  margin: 8px 0;
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.07);
 }
 
-.table-row:last-child {
-  border-bottom: none;
-}
 
-.top-player {
-  background: rgba(255, 203, 59, 0.1);
-  border-left: 4px solid var(--yellow);
-}
+
+
 
 .rank-col {
   display: flex;
@@ -483,9 +532,36 @@ export default {
   gap: 10px;
 }
 
+.table-header .rank-col {
+  justify-content: center;
+  padding-left: 0;
+}
+
+.table-header .player-col {
+  justify-content: flex-start;
+  padding-left: 0;
+}
+
+.table-header .elo-col {
+  justify-content: center;
+}
+
+.table-header .streak-col {
+  justify-content: center;
+}
+
+.table-header .games-col {
+  justify-content: flex-start;
+  padding-left: 0;
+}
+
+.table-header .winrate-col {
+  justify-content: center;
+}
+
 .rank-badge {
-  width: 35px;
-  height: 35px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -493,30 +569,25 @@ export default {
   font-weight: 900;
   color: var(--white);
   background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  margin-left: 8px;
 }
 
 .rank-badge.rank-1 {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  border-color: #FFD700;
+  background: #FFD700;
   color: var(--dark-grey);
 }
 
 .rank-badge.rank-2 {
-  background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
-  border-color: #C0C0C0;
+  background: #C0C0C0;
   color: var(--dark-grey);
 }
 
 .rank-badge.rank-3 {
-  background: linear-gradient(135deg, #CD7F32, #A0522D);
-  border-color: #CD7F32;
+  background: #CD7F32;
   color: var(--white);
 }
 
-.rank-medal {
-  font-size: 1.2rem;
-}
+
 
 .player-col {
   display: flex;
@@ -524,7 +595,7 @@ export default {
 }
 
 .player-name {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--white);
   margin-bottom: 2px;
@@ -539,10 +610,11 @@ export default {
 .elo-col {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .elo-value {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 900;
   color: var(--yellow);
 }
@@ -550,29 +622,37 @@ export default {
 .streak-col {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .streak-value {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--white);
+  background: var(--player-1-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .streak-value.hot-streak {
-  color: #ff6b35;
+  background: var(--player-1-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .streak-icon {
-  color: #ff6b35;
-  font-size: 1rem;
+  height: 16px;
+  width: 14px;
 }
 
 .games-col {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .games-stats {
@@ -583,6 +663,7 @@ export default {
   font-size: 0.9rem;
   color: var(--light-grey);
   margin-bottom: 2px;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .games-record {
@@ -607,7 +688,7 @@ export default {
 }
 
 .winrate-value {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--white);
   margin-bottom: 5px;
@@ -632,8 +713,8 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  margin-top: 40px;
-  padding: 20px;
+  margin-top: 12px;
+  padding: 12px;
 }
 
 .pagination-button {
@@ -684,11 +765,11 @@ export default {
   .table-row {
     grid-template-columns: 60px 1fr 80px 80px 100px 80px;
     gap: 10px;
-    padding: 15px;
+    padding: 12px;
   }
 
   .leaderboard-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .games-played {
