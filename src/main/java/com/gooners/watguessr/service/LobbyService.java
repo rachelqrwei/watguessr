@@ -22,13 +22,15 @@ public class LobbyService {
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
 	private final GameService gameService;
+	private final RankedGameStateService rankedGameStateService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService, RankedGameStateService rankedGameStateService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
 		this.gameService = gameService;
+		this.rankedGameStateService = rankedGameStateService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
@@ -159,7 +161,7 @@ public class LobbyService {
 		messagingTemplate.convertAndSend("/topic/lobbies/public", "update");
 	}
 
-	public UUID tryStartGame(UUID lobbyId, Integer roundCount, Integer timer) {
+	public UUID tryStartGame(UUID lobbyId, String gameMode, Integer roundCount, Integer timer) {
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
 		if (players.size() >= 2 && areAllPlayersReady(lobbyId)) { // min 2 players and all ready
 			// Get game details
@@ -174,14 +176,24 @@ public class LobbyService {
 							return user;
 						})
 						.toList();
-				
-				// Initialize multiplayer game state with full user objects
-				multiplayerGameStateService.initializeGame(
-					gameId,
-					users,
-					roundCount,
-					timer
-				);
+
+				if (gameMode.equals("multiplayer")) {
+					// Initialize multiplayer game state with full user objects
+					multiplayerGameStateService.initializeGame(
+							gameId,
+							users,
+							roundCount,
+							timer
+					);
+				}
+				else if (gameMode.equals("ranked")) {
+					rankedGameStateService.initializeGame(
+							gameId,
+							users,
+							roundCount,
+							timer
+					);
+				}
 			} else {
 				System.err.println("❌ Failed to create game - gameId is null");
 			}

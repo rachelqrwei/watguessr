@@ -124,6 +124,7 @@ import {
   joinRankedQueue,
   leaveRankedQueue
 } from "@/services/matchmakingWebSocket";
+import { connectToRankedGame } from "@/services/rankedGameWebSocket.js";
 import MatchmakingQueue from "@/components/MatchmakingQueue.vue";
 
 export default {
@@ -168,7 +169,6 @@ export default {
   },
   methods: {
     ...mapMutations("gameInfo", ["SET_GAME_MODE"]),
-    ...mapActions("multiplayerGame", ["multiplayerGame_createMultiplayerGame"]),
 
     goToPlay() {
       this.SET_GAME_MODE(this.gameModeLabel);
@@ -185,7 +185,7 @@ export default {
 
     startGameClick() {
       if (this.lobbyId) {
-        startGame(this.lobbyId, this.lobbyInfo.multiplayerRoundCount, this.lobbyInfo.multiplayerTimer); // broadcast to all clients that game is starting
+        startGame(this.lobbyId, this.gameModeLabel, this.lobbyInfo.multiplayerRoundCount, this.lobbyInfo.multiplayerTimer); // broadcast to all clients that game is starting
       }
     },
 
@@ -339,9 +339,16 @@ export default {
         },
         onMatchFound: (matchInfo) => {
           this.rankedQueueState = 'match_found';
+          console.log('🎯 Match found! Raw matchInfo:', matchInfo);
+
           // Find opponent from the players list
           const players = matchInfo.players || [];
+          console.log('🎯 Players from matchInfo:', players);
+          console.log('🎯 Current user ID (myId):', this.myId);
+
           const opponent = players.find(p => p.id !== this.myId) || players[0];
+          console.log('🎯 Found opponent:', opponent);
+
           this.rankedMatchInfo = {
             opponentName: opponent?.username || 'Anonymous Player',
             opponentRating: opponent?.elo || 1200,
@@ -349,6 +356,8 @@ export default {
             timeLimit: 60, // Default for ranked games
             gameId: matchInfo.gameId
           };
+
+          console.log('🎯 Created rankedMatchInfo:', this.rankedMatchInfo);
         },
         onQueueTimeout: (message) => {
           this.rankedQueueState = 'error';
@@ -383,6 +392,16 @@ export default {
         this.SET_GAME_MODE("ranked");
         // Store game information in Vuex if needed
         this.$store.commit('gameInfo/SET_GAME_MODE', 'ranked');
+
+        // Initialize the ranked game state
+        this.$store.dispatch('rankedGame/rankedGame_createRankedGame');
+        this.$store.commit('rankedGame/RG_SET_GAME_ID', this.rankedMatchInfo.gameId);
+
+        this.$store.dispatch('rankedGame/rankedGame_storeOpponentElos', {
+          opponentName: this.rankedMatchInfo.opponentName,
+          opponentElo: this.rankedMatchInfo.opponentRating
+        });
+
         this.$router.push({
           name: "play",
           query: {
@@ -390,6 +409,7 @@ export default {
             gameId: this.rankedMatchInfo.gameId
           }
         });
+        connectToRankedGame(this.rankedMatchInfo.gameId);
       } else {
         this.rankedQueueState = 'error';
         this.rankedErrorMessage = 'Failed to start game: No game ID received';

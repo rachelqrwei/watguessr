@@ -10,6 +10,7 @@ import singleplayerGameModule from "@/stores/modules/singleplayerGame";
 import multiplayerGameModule from "@/stores/modules/multiplayerGame";
 import profileModule from './modules/profile/index';
 import bugReportModule from './modules/bugReport/index';
+import rankedGameModule from "@/stores/modules/rankedGame";
 
 import type { RoundState } from './modules/round/state';
 import type { singleplayerGameState } from '@/stores/modules/singleplayerGame/state';
@@ -20,6 +21,7 @@ import type { MultiplayerGameState } from "@/stores/modules/multiplayerGame/stat
 import type { GameInfoState } from "@/stores/modules/gameInfo/state.ts";
 import type { ProfileState } from './modules/profile/state';
 import type { BugReportState } from './modules/bugReport/state';
+import type {RankedGameState} from "@/stores/modules/rankedGame/state.ts";
 
 export interface LeaderboardState {
   leaderboardData: any;
@@ -37,6 +39,7 @@ export interface RootState {
   gameInfo: GameInfoState;
   singleplayerGame: singleplayerGameState;
   multiplayerGame: MultiplayerGameState;
+  rankedGame: RankedGameState;
   profile: ProfileState;
   bugReport: BugReportState;
 }
@@ -51,6 +54,7 @@ const store = createStore<RootState>({
     gameInfo: gameInfoModule as Module<GameInfoState, RootState>,
     singleplayerGame: singleplayerGameModule as Module<singleplayerGameState, RootState>,
     multiplayerGame: multiplayerGameModule as Module<MultiplayerGameState, RootState>,
+    rankedGame: rankedGameModule as Module<RankedGameState, RootState>,
     profile: profileModule as Module<ProfileState, RootState>,
     bugReport: bugReportModule as Module<BugReportState, RootState>
   },

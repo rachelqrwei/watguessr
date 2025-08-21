@@ -1,9 +1,6 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.dto.MatchHistoryItem;
-import com.gooners.watguessr.dto.LobbyCreateDto;
-import com.gooners.watguessr.dto.LobbyDto;
-import com.gooners.watguessr.dto.SingleplayerGameState;
+import com.gooners.watguessr.dto.*;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
@@ -194,8 +191,20 @@ public class GameService {
         return userPoints;
     }
 
-    public HashMap<UUID, Integer> resolveRankedGame(UUID gameId) {
+    public RankedGameResultDto resolveRankedGame(UUID gameId) {
         Game game = findById(gameId);
+        
+        // Check if game has already been resolved (has a winner)
+        if (game.getWinner() != null) {
+            System.out.println("🎯 Game " + gameId + " has already been resolved, returning existing result");
+            // Return a result with existing data to prevent duplicate ELO calculations
+            HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+            RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
+            rankedGameResultDto.setEloChanges(new HashMap<>()); // Empty ELO changes since already calculated
+            rankedGameResultDto.setUserPoints(userPoints);
+            return rankedGameResultDto;
+        }
+        
         HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
         UUID winnerId = findWinner(userPoints);
         Integer averageElo = game.getRankedAverageElo();
@@ -204,9 +213,12 @@ public class GameService {
         game.setWinner(winner);
         update(game);
 
-        updateEloRatings(userPoints, averageElo);
+        HashMap<UUID, Integer> userEloChanges = updateEloRatings(userPoints, averageElo);
+        RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
+        rankedGameResultDto.setEloChanges(userEloChanges);
+        rankedGameResultDto.setUserPoints(userPoints);
 
-        return userPoints;
+        return rankedGameResultDto;
     }
 
     /**
@@ -250,9 +262,10 @@ public class GameService {
      * @param userPoints HashMap containing user IDs and their scores
      * @param averageElo The average ELO of all players in the match
      */
-    private void updateEloRatings(HashMap<UUID, Integer> userPoints, Integer averageElo) {
+    private HashMap<UUID, Integer> updateEloRatings(HashMap<UUID, Integer> userPoints, Integer averageElo) {
         UUID winnerId = findWinner(userPoints);
         Integer winnerScore = userPoints.get(winnerId);
+        HashMap<UUID, Integer> userEloChanges = new HashMap<>();
         
         for (HashMap.Entry<UUID, Integer> entry : userPoints.entrySet()) {
             UUID userId = entry.getKey();
@@ -267,12 +280,16 @@ public class GameService {
             
             // Calculate ELO change using utility
             Integer eloChange = EloCalculator.calculateEloChange(averageElo, user.getElo(), won, scoreDifference);
-            
+
+            userEloChanges.put(userId, eloChange);
+
             // Update user's ELO, ensuring it doesn't go below 0
             Integer newElo = user.getElo() + eloChange;
             user.setElo(Math.max(0, newElo));
             userService.update(user);
         }
+
+        return userEloChanges;
     }
 
     private HashMap<UUID, Integer> getUserPointsForGame(UUID gameId) {

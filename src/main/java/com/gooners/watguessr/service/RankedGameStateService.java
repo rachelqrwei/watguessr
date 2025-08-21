@@ -1,28 +1,31 @@
 package com.gooners.watguessr.service;
 
-import com.gooners.watguessr.dto.MultiplayerGameStateDto;
+import com.gooners.watguessr.dto.RankedGameStateDto;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class MultiplayerGameStateService {
+public class RankedGameStateService {
 	
-	private final Map<UUID, MultiplayerGameStateDto> gameStates = new ConcurrentHashMap<>();
+	private final Map<UUID, RankedGameStateDto> gameStates = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
 
-	public MultiplayerGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
+	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
 		this.messagingTemplate = messagingTemplate;
 		this.roundService = roundService;
 	}
 
 	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
-		MultiplayerGameStateDto gameState = new MultiplayerGameStateDto();
+		RankedGameStateDto gameState = new RankedGameStateDto();
 		gameState.setGameId(gameId.toString());
 		gameState.setCurrentRound(1);
 		gameState.setMaxRounds(roundCount);
@@ -44,7 +47,7 @@ public class MultiplayerGameStateService {
 		try {
 			Round firstRound = roundService.create(gameId);
 			gameState.setCurrentSceneId(firstRound.getId().toString());
-			System.out.println("🎯 Created first round for multiplayer game: " + firstRound.getId());
+			System.out.println("🎯 Created first round for ranked game: " + firstRound.getId());
 			System.out.println("🎯 First round scene ID: " + firstRound.getScene().getId());
 			System.out.println("🎯 Game state currentSceneId set to: " + gameState.getCurrentSceneId());
 		} catch (Exception e) {
@@ -59,7 +62,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void updatePlayerProgress(UUID gameId, String userId, Integer score, String status) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
 			player.setScore(score);
@@ -77,7 +80,7 @@ public class MultiplayerGameStateService {
 	}
 	
 	public void setPlayerStatus(UUID gameId, String userId, String status) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
 			player.setStatus(status);
@@ -97,7 +100,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void startRound(UUID gameId, UUID sceneId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
 			gameState.setGameStatus("playing");
 			// Note: sceneId parameter is actually the round ID, not the scene ID
@@ -115,7 +118,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void startFirstRound(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getCurrentSceneId() != null) {
 			// Start the first round that was created in initializeGame
 			gameState.setGameStatus("playing");
@@ -139,7 +142,7 @@ public class MultiplayerGameStateService {
 					"sceneId", firstRound.getScene().getId().toString()
 				);
 				System.out.println("🚀 Broadcasting first round start: " + roundStartData);
-				messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/round-start", roundStartData);
+				messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/round-start", roundStartData);
 			} catch (Exception e) {
 				System.err.println("Failed to get first round details: " + e.getMessage());
 			}
@@ -149,7 +152,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public boolean checkAllPlayersEnded(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState == null) return false;
 		
 		return gameState.getPlayers().values().stream()
@@ -157,7 +160,7 @@ public class MultiplayerGameStateService {
 	}
 
 	private boolean checkAllPlayersReady(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState == null) return false;
 		
 		return gameState.getPlayers().values().stream()
@@ -165,7 +168,7 @@ public class MultiplayerGameStateService {
 	}
 
 	private boolean checkAllPlayersCompleted(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState == null) return false;
 		
 		return gameState.getPlayers().values().stream()
@@ -173,7 +176,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void advanceToNextRound(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
 			int currentRound = gameState.getCurrentRound();
 			int maxRounds = gameState.getMaxRounds();
@@ -208,7 +211,7 @@ public class MultiplayerGameStateService {
 						"sceneId", newRound.getScene().getId().toString()
 					);
 					System.out.println("🚀 Broadcasting round start: " + roundStartData);
-					messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/round-start", roundStartData);
+					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/round-start", roundStartData);
 				} catch (Exception e) {
 					System.err.println("Failed to create new round: " + e.getMessage());
 				}
@@ -223,7 +226,7 @@ public class MultiplayerGameStateService {
 		}
 	}
 
-	public MultiplayerGameStateDto getGameState(UUID gameId) {
+	public RankedGameStateDto getGameState(UUID gameId) {
 		return gameStates.get(gameId);
 	}
 
@@ -232,31 +235,40 @@ public class MultiplayerGameStateService {
 	}
 
 	private void broadcastGameState(UUID gameId) {
-		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
-			String topic = "/topic/multiplayer-game/" + gameId + "/state";
+			String topic = "/topic/ranked-game/" + gameId + "/state";
+			System.out.println("<UNK> Broadcasting state: " + gameState.getGameStatus());
 			messagingTemplate.convertAndSend(topic, gameState);
 		} else {
 			System.err.println("❌ Cannot broadcast game state: gameState is null for gameId: " + gameId);
 		}
 	}
 
-	private String findWinner(MultiplayerGameStateDto gameState) {
+	private String findWinner(RankedGameStateDto gameState) {
 		if (gameState.getPlayers().isEmpty()) {
+			System.out.println("❌ Cannot find winner: no players in game state");
 			return null;
 		}
 
 		String winnerId = null;
 		Integer maxScore = Integer.MIN_VALUE;
 
+		System.out.println("🔍 Finding winner among players:");
 		for (Map.Entry<String, PlayerStateDto> entry : gameState.getPlayers().entrySet()) {
-			Integer playerScore = entry.getValue().getScore();
+			String playerId = entry.getKey();
+			PlayerStateDto player = entry.getValue();
+			Integer playerScore = player.getScore();
+			System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + playerScore + ", status=" + player.getStatus());
+			
 			if (playerScore > maxScore) {
 				maxScore = playerScore;
-				winnerId = entry.getKey();
+				winnerId = playerId;
+				System.out.println("  🎯 New leader: " + player.getUsername() + " with score " + playerScore);
 			}
 		}
 
+		System.out.println("🏆 Final winner determined: " + (winnerId != null ? "Player " + winnerId + " with score " + maxScore : "None"));
 		return winnerId;
 	}
 
@@ -266,12 +278,12 @@ public class MultiplayerGameStateService {
 		if (completed) {
 			setPlayerStatus(gameId, userId, "completed");
 			
-			// Check if all players are completed
+			// Check if all players completed
 			if (checkAllPlayersCompleted(gameId)) {
 				System.out.println("🏆 All players completed! Ending game...");
 				
 				// Game completed
-				MultiplayerGameStateDto gameState = gameStates.get(gameId);
+				RankedGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
 					// Log final player states
 					System.out.println("📊 Final player states:");
@@ -282,23 +294,33 @@ public class MultiplayerGameStateService {
 					gameState.setGameStatus("game-complete");
 					gameState.setShouldEnd(true);
 
-					// Determine the winner
+					// Determine the winner for WebSocket state
+					System.out.println("🔍 Determining winner for WebSocket state: " + gameId);
 					String winnerId = findWinner(gameState);
 					if (winnerId != null) {
 						gameState.setFinalWinner(winnerId);
-						System.out.println("🏆 Winner determined: " + winnerId);
+						System.out.println("🏆 Winner set in WebSocket state: " + winnerId);
+					} else {
+						System.err.println("❌ Failed to determine winner for WebSocket state: " + gameId);
 					}
 
+					// IMPORTANT: Frontend will call GameService endpoint to resolve game and set database winner
+					System.out.println("🎯 Game completion event sent to frontend - frontend will call backend endpoint to resolve game");
+					System.out.println("🎯 Winner set in WebSocket state: " + gameState.getFinalWinner());
+
+					System.out.println("📢 Broadcasting final game state with winner: " + gameState.getFinalWinner());
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
 					System.out.println("📢 Broadcasting game completion event");
-					messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/complete", gameState);
+					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/complete", gameState);
+				} else {
+					System.err.println("❌ Game state is null for game: " + gameId);
 				}
 			} else {
 				System.out.println("⏳ Waiting for more players to complete...");
 				// Log which players still need to complete
-				MultiplayerGameStateDto gameState = gameStates.get(gameId);
+				RankedGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
 					gameState.getPlayers().entrySet().stream()
 						.filter(entry -> !"completed".equals(entry.getValue().getStatus()))

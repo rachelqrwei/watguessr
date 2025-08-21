@@ -1,13 +1,9 @@
 package com.gooners.watguessr.controller;
 
-import com.gooners.watguessr.dto.MultiplayerGameStateDto;
-import com.gooners.watguessr.entity.Guess;
-import com.gooners.watguessr.entity.User;
-import com.gooners.watguessr.service.MultiplayerGameStateService;
+import com.gooners.watguessr.dto.RankedGameStateDto;
+import com.gooners.watguessr.service.RankedGameStateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -16,43 +12,43 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
-public class MultiplayerGameStateController {
-	private final Map<UUID, List<MultiplayerGameStateDto>> multiplayerGameStates = new ConcurrentHashMap<>();
-	private final MultiplayerGameStateService multiplayerGameStateService;
+public class RankedGameStateController {
+	private final Map<UUID, List<RankedGameStateDto>> rankedGameStates = new ConcurrentHashMap<>();
+	private final RankedGameStateService rankedGameStateService;
 
-	public MultiplayerGameStateController(MultiplayerGameStateService multiplayerGameStateService) {
-		this.multiplayerGameStateService = multiplayerGameStateService;
+	public RankedGameStateController(RankedGameStateService rankedGameStateService) {
+		this.rankedGameStateService = rankedGameStateService;
 	}
 
-	@MessageMapping("/multiplayer-game/update-progress")
+	@MessageMapping("/ranked-game/update-progress")
 	public void updatePlayerProgress(@Payload UpdatePlayerProgressRequest updatePlayerProgressRequest) {
 		UUID gameId = UUID.fromString(updatePlayerProgressRequest.getGameId());
 		String userId = updatePlayerProgressRequest.getUserId();
 		Integer score = updatePlayerProgressRequest.getScore();
 		String status = updatePlayerProgressRequest.getStatus();
 
-		multiplayerGameStateService.updatePlayerProgress(gameId, userId, score, status);
+		rankedGameStateService.updatePlayerProgress(gameId, userId, score, status);
 	}
 
-	@MessageMapping("/multiplayer-game/ready")
+	@MessageMapping("/ranked-game/ready")
 	public void setPlayerReady(@Payload PlayerStatusUpdateRequest request) {
 		UUID gameId = UUID.fromString(request.getGameId());
 		String userId = request.getUserId();
-		multiplayerGameStateService.setPlayerReady(gameId, userId, true);
+		rankedGameStateService.setPlayerReady(gameId, userId, true);
 	}
 
-	@MessageMapping("/multiplayer-game/completed")
+	@MessageMapping("/ranked-game/completed")
 	public void setPlayerCompleted(@Payload PlayerStatusUpdateRequest request) {
 		UUID gameId = UUID.fromString(request.getGameId());
 		String userId = request.getUserId();
-		multiplayerGameStateService.setPlayerCompleted(gameId, userId, true);
+		rankedGameStateService.setPlayerCompleted(gameId, userId, true);
 	}
 
-	@MessageMapping("/multiplayer-game/start-round")
+	@MessageMapping("/ranked-game/start-round")
 	public void startRound(@Payload StartRoundRequest request) {
 		UUID gameId = UUID.fromString(request.getGameId());
 		UUID sceneId = UUID.fromString(request.getSceneId());
-		multiplayerGameStateService.startRound(gameId, sceneId);
+		rankedGameStateService.startRound(gameId, sceneId);
 	}
 
 	/**
