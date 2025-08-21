@@ -293,6 +293,9 @@ public class RankedGameStateService {
 						System.out.println("🏆 Winner determined: " + winnerId);
 					}
 
+					// Note: ELO calculation will be handled by the controller when the game is finished
+					// This prevents circular dependencies
+
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event

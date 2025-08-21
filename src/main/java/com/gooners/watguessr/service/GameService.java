@@ -193,6 +193,18 @@ public class GameService {
 
     public RankedGameResultDto resolveRankedGame(UUID gameId) {
         Game game = findById(gameId);
+        
+        // Check if game has already been resolved (has a winner)
+        if (game.getWinner() != null) {
+            System.out.println("🎯 Game " + gameId + " has already been resolved, returning existing result");
+            // Return a result with existing data to prevent duplicate ELO calculations
+            HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+            RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
+            rankedGameResultDto.setEloChanges(new HashMap<>()); // Empty ELO changes since already calculated
+            rankedGameResultDto.setUserPoints(userPoints);
+            return rankedGameResultDto;
+        }
+        
         HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
         UUID winnerId = findWinner(userPoints);
         Integer averageElo = game.getRankedAverageElo();

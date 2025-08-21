@@ -1,7 +1,24 @@
 <template>
   <div class="game-end-container">
+    <!-- Loading state -->
+    <div v-if="!hasCompleteData" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading game results...</p>
+      <p style="font-size: 14px; opacity: 0.8; margin-top: 10px;">
+        Waiting for WebSocket to complete game...
+      </p>
+      <div class="debug-info" style="background: #333; color: white; padding: 10px; margin: 20px; border-radius: 8px; font-size: 12px;">
+        <strong>Debug Info:</strong><br>
+        Players: {{ Object.keys(players || {}).length }}<br>
+        Has Result: {{ !!rankedGame_getResult }}<br>
+        ELO Changes: {{ Object.keys(rankedGame_getResult?.eloChanges || {}).length }}<br>
+        Current User: {{ currentUser?.id }}<br>
+        Final Winner: {{ rankedGame_getFinalWinner }}
+      </div>
+    </div>
+
     <!-- Game end content -->
-    <div v-if="hasCompleteData" class="game-end-panel">
+    <div v-else-if="hasCompleteData" class="game-end-panel">
       <div class="game-header">
         <span class="game-label">RANKED GAME COMPLETE</span>
         <div v-if="winner" class="winner-announcement">
@@ -84,7 +101,7 @@ export default {
       // These will be computed from store data
       gameDuration: '0:00', // Will be calculated from actual game time
       bestRoundScore: 0, // Will be calculated from actual round scores
-      opponentElo: 1200 // Will be fetched from API
+      completionTimeout: null // Timeout for forcing game completion
     };
   },
   computed: {
@@ -180,10 +197,11 @@ export default {
 
     // Check if we have all the data we need
     hasCompleteData() {
+      // We need at least players data and a final winner to show the game end screen
+      // ELO changes can be loaded later if not immediately available
       return this.players &&
              Object.keys(this.players).length > 0 &&
-             this.rankedGame_getResult?.eloChanges &&
-             Object.keys(this.rankedGame_getResult.eloChanges).length > 0;
+             this.rankedGame_getFinalWinner;
     },
 
     totalRounds() {
@@ -220,30 +238,6 @@ export default {
     goHome() {
       this.$router.push('/');
     },
-    // Fetch opponent ELO data
-    async fetchOpponentElo() {
-      if (!this.opponentPlayerId) {
-        console.warn('🎯 No opponent player ID available');
-        return null;
-      }
-
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${this.opponentPlayerId}`, {
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const opponentData = await response.json();
-        console.log('🎯 Fetched opponent data:', opponentData);
-        return opponentData.elo || 1200;
-      } catch (error) {
-        console.error('🎯 Failed to fetch opponent ELO:', error);
-        return 1200; // Fallback to base ELO
-      }
-    }
   },
 
   mounted() {
@@ -268,16 +262,19 @@ export default {
       this.$store.dispatch('rankedGame/rankedGame_loadFinalGameData');
     }
 
-    // Fetch opponent ELO data
-    if (this.opponentPlayerId) {
-      console.log('🎯 Fetching opponent ELO data...');
-      this.fetchOpponentElo().then(elo => {
-        if (elo !== null) {
-          this.opponentElo = elo;
-          console.log('🎯 Opponent ELO updated:', this.opponentElo);
-        }
-      });
+    // If we have game data but no ELO changes, trigger the game completion
+    if (this.hasCompleteData && (!this.rankedGame_getResult || !this.rankedGame_getResult.eloChanges || Object.keys(this.rankedGame_getResult.eloChanges).length === 0)) {
+      console.log('🎯 Game data available but no ELO changes, triggering game completion...');
+      this.$store.dispatch('rankedGame/rankedGame_endGame');
     }
+
+    // Set a timeout to trigger game completion if ELO changes aren't received within 5 seconds
+    this.completionTimeout = setTimeout(() => {
+      if (this.hasCompleteData && (!this.rankedGame_getResult || !this.rankedGame_getResult.eloChanges || Object.keys(this.rankedGame_getResult.eloChanges).length === 0)) {
+        console.log('🎯 Timeout reached, forcing game completion...');
+        this.$store.dispatch('rankedGame/rankedGame_endGame');
+      }
+    }, 5000);
   },
 
   watch: {
@@ -295,28 +292,28 @@ export default {
       }
     },
 
-    // Watch for opponent player ID changes to fetch ELO
-    opponentPlayerId: {
-      handler(newOpponentId) {
-        if (newOpponentId && newOpponentId !== this.opponentPlayerId) {
-          console.log('🎯 Opponent changed, fetching new ELO data...');
-          this.fetchOpponentElo().then(elo => {
-            if (elo !== null) {
-              this.opponentElo = elo;
-              console.log('🎯 New opponent ELO updated:', this.opponentElo);
-            }
-          });
+    // Watch for ELO changes becoming available
+    'rankedGame_getResult': {
+      handler(newResult) {
+        console.log('🎯 Ranked game result changed in RankedGameEnd:', newResult);
+        if (newResult && newResult.eloChanges && Object.keys(newResult.eloChanges).length > 0) {
+          console.log('🎯 ELO changes now available:', newResult.eloChanges);
         }
       },
-      immediate: false
+      deep: true
     }
   },
 
   beforeUnmount() {
     // Clean up when leaving the game end screen
     console.log('🎯 RankedGameEnd unmounting, cleaning up');
-    this.$store.dispatch('rankedGame/rankedGame_disconnect');
+    // Don't disconnect WebSocket here - let it stay connected to receive completion events
+    // this.$store.dispatch('rankedGame/rankedGame_disconnect');
     this.$store.dispatch('rankedGame/rankedGame_clearFinalGameData');
+    if (this.completionTimeout) {
+      clearTimeout(this.completionTimeout);
+      this.completionTimeout = null;
+    }
   }
 };
 </script>

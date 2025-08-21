@@ -15,6 +15,10 @@ export interface RankedGameStateDto {
   shouldEnd: boolean;
   gameStatus: 'loading' | 'playing' | 'round-complete' | 'game-complete';
   currentSceneId: string | null;
+  rankedGameResult?: {
+    eloChanges: Record<string, number>;
+    userPoints: Record<string, number>;
+  };
 }
 
 export interface PlayerStateDto {
@@ -47,13 +51,10 @@ export function connectToRankedGame(gameId: string) {
 
     // Subscribe to game completion events
     const completionSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/complete`, (message) => {
-      // Don't handle completion if we're already on a game end route
-      if (window.location.pathname.includes('-game-end')) {
-        console.log('🎯 On game end route, ignoring completion event');
-        return;
-      }
-
+      console.log('🎯 WebSocket completion event received for game:', gameId);
+      console.log('🎯 Message body:', message.body);
       const completionData = JSON.parse(message.body);
+      console.log('🎯 Parsed completion data:', completionData);
       handleGameComplete(completionData);
     });
 
@@ -271,7 +272,7 @@ async function requestCurrentRoundState(gameId: string) {
 
 // Handle game completion events
 function handleGameComplete(completionData: RankedGameStateDto) {
-  console.log('🎯 Game completion event received:', completionData);
+  console.log('🎯 handleGameComplete called with data:', completionData);
 
   // Update the game state with final results
   if (completionData.finalWinner) {
@@ -286,6 +287,7 @@ function handleGameComplete(completionData: RankedGameStateDto) {
 
   // Update players with final scores
   if (completionData.players) {
+    console.log('🎯 Updating players data:', completionData.players);
     const players: Record<string, { status: any; score: number; username: string }> = {};
     Object.entries(completionData.players).forEach(([playerId, playerState]) => {
       players[playerId] = {
@@ -303,8 +305,28 @@ function handleGameComplete(completionData: RankedGameStateDto) {
       maxRounds: completionData.maxRounds
     };
 
+    console.log('🎯 Saving final game data:', finalGameData);
     store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
-  } else {
-    console.log('🎯 Already on ranked-game-end route, skipping navigation');
   }
+
+  // Extract ELO results from the WebSocket data if available
+  if (completionData.rankedGameResult) {
+    console.log('🎯 ELO results received from WebSocket:', completionData.rankedGameResult);
+    store.commit('rankedGame/RG_SET_RESULT', completionData.rankedGameResult);
+  } else {
+    console.log('🎯 No ELO results in WebSocket data, will need to call backend');
+  }
+
+  // Handle cleanup after getting the result data
+  const currentUser = store.getters['user/getCurrentUser'];
+  if (currentUser?.id) {
+    console.log('🎯 Setting current user status to ended');
+    store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
+  }
+
+  // Reset game state and disconnect WebSocket
+  console.log('🎯 Resetting game state and disconnecting WebSocket');
+  store.commit('gameInfo/RESET_GAME', null, {root: true});
+  store.commit('round/RESET_ROUND', null, {root: true});
+  disconnectFromRankedGame();
 }

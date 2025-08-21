@@ -14,6 +14,7 @@ public class RankedGameStateDto {
     private Boolean shouldEnd;
     private String gameStatus; // "loading", "playing", "round-complete", "game-complete"
     private String currentSceneId;
+    private RankedGameResultDto rankedGameResult; // Store ELO changes and game results
 
     public RankedGameStateDto() {}
 
@@ -87,5 +88,13 @@ public class RankedGameStateDto {
 
     public void setCurrentSceneId(String currentSceneId) {
         this.currentSceneId = currentSceneId;
+    }
+
+    public RankedGameResultDto getRankedGameResult() {
+        return rankedGameResult;
+    }
+
+    public void setRankedGameResult(RankedGameResultDto rankedGameResult) {
+        this.rankedGameResult = rankedGameResult;
     }
 }

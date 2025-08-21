@@ -59,9 +59,16 @@ export const actions: ActionTree<RankedGameState, RootState> = {
       console.log('🎯 rankedGame_endGame called with gameId:', state.rankedGame_gameId);
       const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
-      const token = rootGetters['user/getToken'];
 
-      console.log('🎯 Calling backend /finish/ranked endpoint...');
+      // Check if we already have result data (from WebSocket)
+      const existingResult = state.rankedGame_result;
+      if (existingResult && Object.keys(existingResult.eloChanges || {}).length > 0) {
+        console.log('🎯 Result data already available from WebSocket, skipping backend call');
+        return;
+      }
+
+      // Only call backend if we don't have results from WebSocket
+      console.log('🎯 No result data from WebSocket, calling backend /finish/ranked endpoint...');
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${state.rankedGame_gameId}`, {
         method: 'POST',
         credentials: 'include'
@@ -72,13 +79,20 @@ export const actions: ActionTree<RankedGameState, RootState> = {
       }
 
       const rankedGameResult = await response.json();
+      console.log('🎯 Received result data from backend:', rankedGameResult);
+      
+      // Check if ELO changes are empty (game already resolved)
+      if (!rankedGameResult.eloChanges || Object.keys(rankedGameResult.eloChanges).length === 0) {
+        console.log('🎯 Game was already resolved by another player, ELO changes already calculated');
+      } else {
+        console.log('🎯 ELO changes calculated successfully:', rankedGameResult.eloChanges);
+      }
+      
       commit('RG_SET_RESULT', rankedGameResult);
       commit('RG_SET_STATUS', {playerId: userId, status: 'ended'});
-      commit('gameInfo/RESET_GAME', null, {root: true});
-      commit('round/RESET_ROUND', null, {root: true});
-
-      // Disconnect from WebSocket
-      disconnectFromRankedGame();
+      
+      // Don't reset game or disconnect WebSocket here - let the WebSocket handle it
+      // This prevents duplicate calls and ensures proper cleanup
     } catch (error) {
       console.error('Error finishing game:', error);
       throw error;
