@@ -180,11 +180,11 @@ export default {
 
     player1Elo() {
       // Get pre-game ELO from store if available
-      if (this.currentUser?.id) {
+      if (this.currentUser?.username) {
         const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-        if (preGameElos && preGameElos[this.currentUser.id]) {
-          console.log('🎯 Using pre-game ELO from store for current user:', preGameElos[this.currentUser.id]);
-          return preGameElos[this.currentUser.id];
+        if (preGameElos && preGameElos[this.currentUser.username]) {
+          console.log('🎯 Using pre-game ELO from store for current user:', preGameElos[this.currentUser.username]);
+          return preGameElos[this.currentUser.username];
         }
       }
       
@@ -209,17 +209,17 @@ export default {
 
     opponentElo() {
       // Get pre-game ELO from store if available
-      if (this.opponentPlayerId) {
+      if (this.opponentPlayer?.username) {
         const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
         console.log('🎯 Debugging opponent ELO:', {
-          opponentPlayerId: this.opponentPlayerId,
+          opponentUsername: this.opponentPlayer.username,
           preGameElos: preGameElos,
-          hasOpponentElo: preGameElos && preGameElos[this.opponentPlayerId]
+          hasOpponentElo: preGameElos && preGameElos[this.opponentPlayer.username]
         });
         
-        if (preGameElos && preGameElos[this.opponentPlayerId]) {
-          console.log('🎯 Using pre-game ELO from store for opponent:', preGameElos[this.opponentPlayerId]);
-          return preGameElos[this.opponentPlayerId];
+        if (preGameElos && preGameElos[this.opponentPlayer.username]) {
+          console.log('🎯 Using pre-game ELO from store for opponent:', preGameElos[this.opponentPlayer.username]);
+          return preGameElos[this.opponentPlayer.username];
         }
       }
       

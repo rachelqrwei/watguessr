@@ -339,9 +339,16 @@ export default {
         },
         onMatchFound: (matchInfo) => {
           this.rankedQueueState = 'match_found';
+          console.log('🎯 Match found! Raw matchInfo:', matchInfo);
+
           // Find opponent from the players list
           const players = matchInfo.players || [];
+          console.log('🎯 Players from matchInfo:', players);
+          console.log('🎯 Current user ID (myId):', this.myId);
+
           const opponent = players.find(p => p.id !== this.myId) || players[0];
+          console.log('🎯 Found opponent:', opponent);
+
           this.rankedMatchInfo = {
             opponentName: opponent?.username || 'Anonymous Player',
             opponentRating: opponent?.elo || 1200,
@@ -349,6 +356,8 @@ export default {
             timeLimit: 60, // Default for ranked games
             gameId: matchInfo.gameId
           };
+
+          console.log('🎯 Created rankedMatchInfo:', this.rankedMatchInfo);
         },
         onQueueTimeout: (message) => {
           this.rankedQueueState = 'error';
@@ -383,11 +392,16 @@ export default {
         this.SET_GAME_MODE("ranked");
         // Store game information in Vuex if needed
         this.$store.commit('gameInfo/SET_GAME_MODE', 'ranked');
-        
+
         // Initialize the ranked game state
         this.$store.dispatch('rankedGame/rankedGame_createRankedGame');
         this.$store.commit('rankedGame/RG_SET_GAME_ID', this.rankedMatchInfo.gameId);
-        
+
+        this.$store.dispatch('rankedGame/rankedGame_storeOpponentElos', {
+          opponentName: this.rankedMatchInfo.opponentName,
+          opponentElo: this.rankedMatchInfo.opponentRating
+        });
+
         this.$router.push({
           name: "play",
           query: {

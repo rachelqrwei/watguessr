@@ -66,28 +66,28 @@ export default {
     ...mapGetters('user', [
       'getCurrentUser'
     ]),
-    
+
     // Get current user info
     currentUser() {
       return this.getCurrentUser;
     },
-    
+
     // Get all players from ranked game store
     players() {
       const players = this.rankedGame_getPlayers || {};
       console.log('🎯 Players from store:', players);
       return players;
     },
-    
+
     // Get current round and max rounds
     currentRound() {
       return this.rankedGame_getCurrentRound || 1;
     },
-    
+
     maxRounds() {
       return this.rankedGame_getMaxRounds || 5;
     },
-    
+
     // Get current user's player data
     currentPlayer() {
       if (!this.currentUser || !this.players) return null;
@@ -95,95 +95,79 @@ export default {
       console.log('🎯 Current player data:', player);
       return player;
     },
-    
+
     // Get opponent player data (first player that's not the current user)
     opponentPlayer() {
+      console.log(this.players);
       if (!this.currentUser || !this.players) return null;
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
       const opponent = opponentId ? this.players[opponentId] : null;
       console.log('🎯 Opponent player data:', opponent);
       return opponent;
     },
-    
+
     // Player 1 (current user) data
     player1Name() {
       return this.currentPlayer?.username || 'YOU';
     },
-    
+
     player1Score() {
       return this.currentPlayer?.score || 0;
     },
-    
+
     player1Status() {
       return this.currentPlayer?.status || 'loading';
     },
-    
+
     player1Elo() {
       // Get pre-game ELO from store if available
-      if (this.currentUser?.id) {
+      if (this.currentUser?.username) {
         const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-        if (preGameElos && preGameElos[this.currentUser.id]) {
-          return preGameElos[this.currentUser.id];
+        if (preGameElos && preGameElos[this.currentUser.username]) {
+          console.log('🎯 ScoreTracker: Using pre-game ELO from store for current user:', this.currentUser.username, preGameElos[this.currentUser.username]);
+          return preGameElos[this.currentUser.username];
         }
       }
-      
+
       // Fallback to current user's ELO if pre-game not available
       if (this.currentUser?.elo) {
         return this.currentUser.elo;
       }
-      
+
       // Final fallback
       return 1200;
     },
-    
+
     // Player 2 (opponent) data
     player2Name() {
       return this.opponentPlayer?.username || 'OPPONENT';
     },
-    
+
     player2Score() {
       return this.opponentPlayer?.score || 0;
     },
-    
+
     player2Status() {
       return this.opponentPlayer?.status || 'loading';
     },
-    
+
     player2Elo() {
-      // Get pre-game ELO from store if available
-      if (this.currentUser?.id && this.players) {
-        // Find the opponent ID (any player that's not the current user)
-        const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
-        if (opponentId) {
-          const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-          if (preGameElos && preGameElos[opponentId]) {
-            console.log('🎯 Using pre-game ELO from store for opponent:', opponentId, preGameElos[opponentId]);
-            return preGameElos[opponentId];
-          } else {
-            console.log('🎯 No pre-game ELO found for opponent:', opponentId, 'Available ELOs:', preGameElos);
-          }
-        } else {
-          console.log('🎯 No opponent ID found in players:', this.players);
-        }
-      }
-      
-      // Fallback value
-      console.log('🎯 Using fallback ELO for opponent: 1200');
-      return 1200;
+      const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+      return preGameElos[this.opponentPlayer?.username];
     },
-    
+
     // Score percentages for progress bars
     player1ScorePercentage() {
       const total = this.player1Score + this.player2Score || 1;
       return Math.floor((this.player1Score * 100) / total);
     },
-    
+
     player2ScorePercentage() {
       const total = this.player1Score + this.player2Score || 1;
       return Math.floor((this.player2Score * 100) / total);
     }
   },
-  
+
   watch: {
     // Watch for score changes to add animation
     player1Score(newScore, oldScore) {
@@ -208,7 +192,7 @@ export default {
       }
     }
   },
-  
+
   methods: {
     // Convert status to display text
     getStatusText(status) {
@@ -225,13 +209,13 @@ export default {
           return status?.toUpperCase() || '';
       }
     },
-    
+
     // Animate score change
     animateScoreChange(player) {
-      const scoreElement = player === 'player1' ? 
+      const scoreElement = player === 'player1' ?
         this.$el.querySelector('.player-score-tracker-1 .player-points') :
         this.$el.querySelector('.player-score-tracker-2 .player-points');
-      
+
       if (scoreElement) {
         scoreElement.classList.add('score-updated');
         setTimeout(() => {
@@ -240,7 +224,7 @@ export default {
       }
     }
   },
-  
+
   mounted() {
     // Debug: Log initial state
     console.log('🎯 RankedScoreTracker mounted');

@@ -195,46 +195,9 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   // Store pre-game ELOs for all players if we don't have them yet
   const currentPreGameElos = store.getters['rankedGame/rankedGame_getPreGameElos'] || {};
   if (Object.keys(currentPreGameElos).length === 0) {
-    console.log('🎯 Fetching pre-game ELOs for all players...');
-    
-    // Use Promise.all to wait for all ELO fetches to complete
-    const eloFetchPromises = Object.keys(players).map(async (playerId) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${playerId}`);
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData.elo) {
-            console.log('🎯 Fetched pre-game ELO for player', playerId, ':', userData.elo);
-            return { playerId, elo: userData.elo };
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to fetch ELO for player', playerId, ':', error);
-      }
-      return null;
-    });
-    
-    // Wait for all ELO fetches to complete
-    Promise.all(eloFetchPromises).then((eloResults) => {
-      const preGameElos: Record<string, number> = {};
-      
-      // Filter out null results and build the ELO map
-      eloResults.forEach((result) => {
-        if (result) {
-          preGameElos[result.playerId] = result.elo;
-        }
-      });
-      
-      // Store the pre-game ELOs in the store
-      if (Object.keys(preGameElos).length > 0) {
-        console.log('🎯 Storing pre-game ELOs in store:', preGameElos);
-        store.commit('rankedGame/RG_SET_PRE_GAME_ELOS', preGameElos);
-      } else {
-        console.warn('⚠️ No ELOs were fetched successfully');
-      }
-    }).catch((error) => {
-      console.error('❌ Error fetching pre-game ELOs:', error);
-    });
+    console.log('🎯 No pre-game ELOs found in store, opponent ELOs should be loaded from match info');
+  } else {
+    console.log('🎯 Pre-game ELOs already available in store:', currentPreGameElos);
   }
 }
 
