@@ -100,9 +100,6 @@
 
       <!-- Button Section -->
       <div class="button-section">
-        <button class="btn ranked-btn" @click="playRanked">
-          Play Another Ranked
-        </button>
         <button class="btn home-btn" @click="goHome">
           Home
         </button>
@@ -187,7 +184,7 @@ export default {
           return preGameElos[this.currentUser.username];
         }
       }
-      
+
       // Fallback to current user's ELO if pre-game not available
       if (!this.getCurrentUser?.elo) {
         return 1200; // Fallback to base ELO
@@ -216,13 +213,13 @@ export default {
           preGameElos: preGameElos,
           hasOpponentElo: preGameElos && preGameElos[this.opponentPlayer.username]
         });
-        
+
         if (preGameElos && preGameElos[this.opponentPlayer.username]) {
           console.log('🎯 Using pre-game ELO from store for opponent:', preGameElos[this.opponentPlayer.username]);
           return preGameElos[this.opponentPlayer.username];
         }
       }
-      
+
       // Fallback value
       console.log('🎯 No pre-game ELO found for opponent, using fallback: 1200');
       return 1200;
@@ -283,16 +280,6 @@ export default {
       doRestartGame: "singleplayerGame_restartGame"
     }),
 
-    rematch() {
-      // TODO: Implement rematch functionality
-      this.$router.push('/play?mode=ranked');
-    },
-
-    playRanked() {
-      // TODO: Start a new ranked game
-      this.$router.push('/play?mode=ranked');
-    },
-
     goHome() {
       this.$router.push('/');
     },
@@ -313,7 +300,7 @@ export default {
     console.log('🎯 ELO changes:', this.rankedGame_getResult?.eloChanges);
     console.log('🎯 Player 1 ELO change:', this.player1EloChange);
     console.log('🎯 Player 2 ELO change:', this.player2EloChange);
-    
+
     // Debug: Log pre-game ELOs
     const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
     console.log('🎯 Pre-game ELOs available on mount:', preGameElos);
