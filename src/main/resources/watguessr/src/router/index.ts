@@ -75,14 +75,14 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     // Get authentication status from Vuex store
     const isAuthenticated = store.getters['user/isAuthenticated']
-    
+
     // If user is not authenticated, redirect to home
     if (!isAuthenticated) {
       next({ name: 'home' })
       return
     }
   }
-  
+
   // Allow navigation for authenticated users or public routes
   next()
 })

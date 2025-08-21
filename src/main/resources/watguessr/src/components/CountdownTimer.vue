@@ -70,6 +70,7 @@ export default {
   computed: {
     ...mapGetters("multiplayerGame", ["multiplayerGame_getCurrentRound"]),
     ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"]),
+    ...mapGetters("rankedGame", ["rankedGame_getCurrentRound"]),
     ...mapGetters("gameInfo", ["getGameMode"]),
     getCurrentRound() {
       if (this.getGameMode === "singleplayer") {
@@ -78,6 +79,10 @@ export default {
       if (this.getGameMode === "multiplayer") {
         return this.multiplayerGame_getCurrentRound;
       }
+      if (this.getGameMode === "ranked") {
+        return this.rankedGame_getCurrentRound;
+      }
+      return 1; // Default fallback
     },
   },
   methods: {

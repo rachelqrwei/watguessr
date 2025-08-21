@@ -5,7 +5,7 @@ import store from '../stores';
 // STOMP client for multiplayer game state updates
 let stompClient: Client | null = null;
 
-export interface MultiplayerGameStateDto {
+export interface RankedGameStateDto {
   gameId: string;
   players: Record<string, PlayerStateDto>;
   currentRound: number;
@@ -15,6 +15,10 @@ export interface MultiplayerGameStateDto {
   shouldEnd: boolean;
   gameStatus: 'loading' | 'playing' | 'round-complete' | 'game-complete';
   currentSceneId: string | null;
+  rankedGameResult?: {
+    eloChanges: Record<string, number>;
+    userPoints: Record<string, number>;
+  };
 }
 
 export interface PlayerStateDto {
@@ -27,27 +31,30 @@ export interface PlayerStateDto {
   isReady: boolean;
 }
 
-export function connectToMultiplayerGame(gameId: string) {
+export function connectToRankedGame(gameId: string) {
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
 
     // Subscribe to game state updates for this specific game
-    const stateSubscription = stompClient?.subscribe(`/topic/multiplayer-game/${gameId}/state`, (message) => {
-      const gameState: MultiplayerGameStateDto = JSON.parse(message.body);
+    const stateSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/state`, (message) => {
+      const gameState: RankedGameStateDto = JSON.parse(message.body);
       handleGameStateUpdate(gameState);
     });
 
     // Subscribe to round start events
-    const roundStartSubscription = stompClient?.subscribe(`/topic/multiplayer-game/${gameId}/round-start`, (message) => {
+    const roundStartSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/round-start`, (message) => {
       const roundData = JSON.parse(message.body);
       handleRoundStart(roundData);
     });
 
     // Subscribe to game completion events
-    const completionSubscription = stompClient?.subscribe(`/topic/multiplayer-game/${gameId}/complete`, (message) => {
+    const completionSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/complete`, (message) => {
+      console.log('🎯 WebSocket completion event received for game:', gameId);
+      console.log('🎯 Message body:', message.body);
       const completionData = JSON.parse(message.body);
+      console.log('🎯 Parsed completion data:', completionData);
       handleGameComplete(completionData);
     });
 
@@ -58,12 +65,12 @@ export function connectToMultiplayerGame(gameId: string) {
     console.error('WebSocket connection error:', error);
     // Retry connection after 3 seconds
     setTimeout(() => {
-      connectToMultiplayerGame(gameId);
+      connectToRankedGame(gameId);
     }, 3000);
   });
 }
 
-export function disconnectFromMultiplayerGame() {
+export function disconnectFromRankedGame() {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect(() => {
     });
@@ -85,7 +92,7 @@ export function sendPlayerProgress(gameId: string, userId: string, score: number
     status: status
   };
 
-  stompClient.send('/app/multiplayer-game/update-progress', {}, JSON.stringify(progressData));
+  stompClient.send('/app/ranked-game/update-progress', {}, JSON.stringify(progressData));
 }
 
 // Send player ready status
@@ -100,7 +107,7 @@ export function sendPlayerReady(gameId: string, userId: string) {
     userId: userId
   };
 
-  stompClient.send('/app/multiplayer-game/ready', {}, JSON.stringify(readyData));
+  stompClient.send('/app/ranked-game/ready', {}, JSON.stringify(readyData));
 }
 
 // Send player ready status
@@ -115,7 +122,7 @@ export function sendPlayerCompleted(gameId: string, userId: string) {
     userId: userId
   };
 
-  stompClient.send('/app/multiplayer-game/completed', {}, JSON.stringify(completedData));
+  stompClient.send('/app/ranked-game/completed', {}, JSON.stringify(completedData));
 }
 
 // Send round start request
@@ -130,11 +137,11 @@ export function sendStartRound(gameId: string, sceneId: string) {
     sceneId: sceneId
   };
 
-  stompClient.send('/app/multiplayer-game/start-round', {}, JSON.stringify(startData));
+  stompClient.send('/app/ranked-game/start-round', {}, JSON.stringify(startData));
 }
 
 // Handle incoming game state updates
-function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
+function handleGameStateUpdate(gameState: RankedGameStateDto) {
   // Don't update store if we're on a game end route to prevent interference
   if (window.location.pathname.includes('-game-end')) {
     console.log('🎯 On game end route, skipping game state update');
@@ -142,7 +149,7 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   }
 
   // Get current players from store to detect disconnections
-  const currentPlayers = store.getters['multiplayerGame/multiplayerGame_getPlayers'] || {};
+  const currentPlayers = store.getters['rankedGame/rankedGame_getPlayers'] || {};
 
   // Convert backend DTO format to frontend store format
   const players: Record<string, { status: any; score: number; username: string }> = {};
@@ -158,22 +165,39 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   // Check for disconnected players
   Object.keys(currentPlayers).forEach(playerId => {
     if (!players[playerId]) {
-      store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
+      store.dispatch('rankedGame/rankedGame_handlePlayerDisconnection', playerId);
     }
   });
 
   // Update Vuex store
-  store.commit('multiplayerGame/MG_SET_GAME_ID', gameState.gameId);
-  store.commit('multiplayerGame/MG_SET_PLAYERS', players);
-  store.commit('multiplayerGame/MG_SET_CURRENT_ROUND', gameState.currentRound);
-  store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', gameState.maxRounds);
+  store.commit('rankedGame/RG_SET_GAME_ID', gameState.gameId);
+  store.commit('rankedGame/RG_SET_PLAYERS', players);
+  store.commit('rankedGame/RG_SET_CURRENT_ROUND', gameState.currentRound);
+  store.commit('rankedGame/RG_SET_MAX_ROUNDS', gameState.maxRounds);
 
   if (gameState.finalWinner) {
-    store.commit('multiplayerGame/MG_SET_FINAL_WINNER', gameState.finalWinner);
+    store.commit('rankedGame/RG_SET_FINAL_WINNER', gameState.finalWinner);
   }
 
   if (gameState.shouldEnd) {
-    store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
+    console.log('🎯 Setting should end to true from game state update');
+    console.log('🎯 Game state details:', {
+      gameId: gameState.gameId,
+      currentRound: gameState.currentRound,
+      maxRounds: gameState.maxRounds,
+      players: gameState.players,
+      shouldEnd: gameState.shouldEnd,
+      finalWinner: gameState.finalWinner
+    });
+    store.commit('rankedGame/RG_SET_SHOULD_END', true);
+  }
+
+  // Store pre-game ELOs for all players if we don't have them yet
+  const currentPreGameElos = store.getters['rankedGame/rankedGame_getPreGameElos'] || {};
+  if (Object.keys(currentPreGameElos).length === 0) {
+    console.log('🎯 No pre-game ELOs found in store, opponent ELOs should be loaded from match info');
+  } else {
+    console.log('🎯 Pre-game ELOs already available in store:', currentPreGameElos);
   }
 }
 
@@ -187,9 +211,9 @@ function handleRoundStart(roundData: any) {
     // Fetch the scene image for the new round
     fetchSceneImage(roundData.roundId);
 
-    // Update multiplayer game round number
+    // Update ranked game round number
     if (roundData.roundNumber) {
-      store.commit('multiplayerGame/MG_SET_CURRENT_ROUND', roundData.roundNumber);
+      store.commit('rankedGame/RG_SET_CURRENT_ROUND', roundData.roundNumber);
     }
   }
 
@@ -199,9 +223,6 @@ function handleRoundStart(roundData: any) {
   // Reset guess building and floor selections
   store.commit('guess/SET_BUILDING', '');
   store.commit('guess/SET_FLOOR', '');
-
-  // Don't reset countdown state here - it should be reset after the countdown completes
-  // The countdown will be shown when all players are ready, and then reset after completion
 
   // Force the view change with a small delay to ensure it takes effect
   setTimeout(() => {
@@ -247,10 +268,6 @@ async function requestCurrentRoundState(gameId: string) {
 
           // Fetch the scene image for the current round
           fetchSceneImage(currentRound.roundId);
-
-          // Update multiplayer game round number (use array length as round number)
-          store.commit('multiplayerGame/MG_SET_CURRENT_ROUND', roundsData.length);
-
         }
       }
     } else {
@@ -262,18 +279,23 @@ async function requestCurrentRoundState(gameId: string) {
 }
 
 // Handle game completion events
-function handleGameComplete(completionData: MultiplayerGameStateDto) {
+function handleGameComplete(completionData: RankedGameStateDto) {
+  console.log('🎯 handleGameComplete called with data:', completionData);
+
   // Update the game state with final results
   if (completionData.finalWinner) {
-    store.commit('multiplayerGame/MG_SET_FINAL_WINNER', completionData.finalWinner);
+    console.log('🎯 Setting final winner:', completionData.finalWinner);
+    store.commit('rankedGame/RG_SET_FINAL_WINNER', completionData.finalWinner);
   }
 
   if (completionData.shouldEnd) {
-    store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
+    console.log('🎯 Setting should end to true');
+    store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
 
   // Update players with final scores
   if (completionData.players) {
+    console.log('🎯 Updating players data:', completionData.players);
     const players: Record<string, { status: any; score: number; username: string }> = {};
     Object.entries(completionData.players).forEach(([playerId, playerState]) => {
       players[playerId] = {
@@ -291,8 +313,62 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
       maxRounds: completionData.maxRounds
     };
 
-    store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
+    console.log('🎯 Saving final game data:', finalGameData);
+    store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
+  }
+
+  // IMPORTANT: Call the backend endpoint to properly resolve the game and set winner in database
+  const gameId = completionData.gameId;
+  if (gameId) {
+    console.log('🎯 Calling backend endpoint to resolve game and set database winner:', gameId);
+    
+    // Call the backend endpoint to finish the game
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${gameId}`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    })
+    .then(gameResult => {
+      console.log('🎯 Game resolved successfully via backend, winner set in database');
+      console.log('🎯 ELO changes received:', gameResult.eloChanges);
+      
+      // Store the game result with ELO changes
+      store.commit('rankedGame/RG_SET_RESULT', gameResult);
+    })
+    .catch(error => {
+      console.error('❌ Failed to resolve game via backend:', error);
+    })
+    .finally(() => {
+      // Handle cleanup after getting the result data
+      const currentUser = store.getters['user/getCurrentUser'];
+      if (currentUser?.id) {
+        console.log('🎯 Setting current user status to ended');
+        store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
+      }
+
+      // Reset game state and disconnect WebSocket
+      console.log('🎯 Resetting game state and disconnecting WebSocket');
+      store.commit('gameInfo/RESET_GAME', null, {root: true});
+      store.commit('round/RESET_ROUND', null, {root: true});
+      disconnectFromRankedGame();
+    });
   } else {
-    console.log('🎯 Already on multiplayer-game-end route, skipping navigation');
+    console.error('❌ No game ID in completion data, cannot resolve game');
+    
+    // Handle cleanup even if we can't resolve the game
+    const currentUser = store.getters['user/getCurrentUser'];
+    if (currentUser?.id) {
+      store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
+    }
+    
+    store.commit('gameInfo/RESET_GAME', null, {root: true});
+    store.commit('round/RESET_ROUND', null, {root: true});
+    disconnectFromRankedGame();
   }
 }

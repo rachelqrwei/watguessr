@@ -1,9 +1,6 @@
 package com.gooners.watguessr.controller;
 
-import com.gooners.watguessr.dto.JoinLobbyDto;
-import com.gooners.watguessr.dto.LobbyCreateDto;
-import com.gooners.watguessr.dto.LobbyDto;
-import com.gooners.watguessr.dto.SingleplayerGameState;
+import com.gooners.watguessr.dto.*;
 import com.gooners.watguessr.service.GameService;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,7 +69,7 @@ public class GameController {
     }
 
     @PostMapping(value = "/finish/ranked")
-    public HashMap<UUID, Integer> finishRankedGame(@RequestParam UUID gameId) { 
+    public RankedGameResultDto finishRankedGame(@RequestParam UUID gameId) {
         return gameService.resolveRankedGame(gameId);
     }
 

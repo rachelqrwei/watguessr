@@ -3,7 +3,7 @@
     <div class="round-end-panel">
       <div class="round-header">
         <span class="round-label">ROUND</span>
-        <span class="round-number">#{{ multiplayerGame_getCurrentRound }}</span>
+        <span class="round-number">#{{ rankedGame_getCurrentRound }}</span>
       </div>
 
       <div class="points-section">
@@ -84,10 +84,10 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("multiplayerGame", [
-      "multiplayerGame_getCurrentRound",
-      "multiplayerGame_getGameId",
-      "multiplayerGame_getPlayers"
+    ...mapGetters("rankedGame", [
+      "rankedGame_getCurrentRound",
+      "rankedGame_getGameId",
+      "rankedGame_getPlayers"
     ]),
     ...mapGetters('guess', [
       'getGuessTime',
@@ -139,7 +139,7 @@ export default {
   methods: {
     async fetchAllGuesses() {
       try {
-        const gameId = this.multiplayerGame_getGameId;
+        const gameId = this.rankedGame_getGameId;
         if (!gameId) {
           console.error('No game ID available');
           return;
@@ -155,7 +155,7 @@ export default {
         // Find the current round
         const currentRound = roundsData.find(round =>
           round.roundId === this.getRoundResult?.roundId ||
-          roundsData.indexOf(round) === this.multiplayerGame_getCurrentRound - 1
+          roundsData.indexOf(round) === this.rankedGame_getCurrentRound - 1
         );
 
         if (currentRound && currentRound.guesses) {
@@ -168,17 +168,17 @@ export default {
 
     // Subscribe to live updates for new guesses
     subscribeToLiveUpdates() {
-      const gameId = this.multiplayerGame_getGameId;
+      const gameId = this.rankedGame_getGameId;
       if (!gameId) return;
 
       // Import the WebSocket service dynamically to avoid circular dependencies
-      import('@/services/multiplayerGameWebSocket').then(({ connectToMultiplayerGame }) => {
+      import('@/services/rankedGameWebSocket').then(({ connectToRankedGame }) => {
         // Check if we're already connected
         if (window.stompClient && window.stompClient.connected) {
           this.subscribeToGuessUpdates(gameId);
         } else {
           // If not connected, connect and then subscribe
-          connectToMultiplayerGame(gameId);
+          connectToRankedGame(gameId);
           // Wait a bit for connection to establish
           setTimeout(() => {
             this.subscribeToGuessUpdates(gameId);
@@ -205,7 +205,7 @@ export default {
 
         // Also subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
-          `/topic/multiplayer-game/${gameId}/state`,
+          `/topic/ranked-game/${gameId}/state`,
           (message) => {
             console.log('📊 Received game state update in round end:', message.body);
             // Refresh guesses when game state updates
@@ -348,7 +348,7 @@ export default {
           // Generate different colors for other players
           const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
           markerColor = colors[index % colors.length];
-          markerLabel = this.multiplayerGame_getPlayers[guess.userId].username;
+          markerLabel = this.rankedGame_getPlayers[guess.userId].username;
         }
 
         const marker = new mapboxgl.Marker({

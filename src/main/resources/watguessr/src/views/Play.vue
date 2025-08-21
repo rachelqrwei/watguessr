@@ -44,6 +44,11 @@
         :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
         :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
       />
+      <PlayRankedRoundEnd
+        v-if="getGameMode === 'ranked'"
+        :points="(showCountdown && lastRoundSummary) ? lastRoundSummary.points : getRoundResult.points"
+        :distance="(showCountdown && lastRoundSummary) ? lastRoundSummary.distance : getRoundResult.distance"
+      />
     </div>
 
     <PlayFloorPanel
@@ -69,6 +74,7 @@
     <button class="submit-button submit-button--white" @click="nextRoundOrEndGame">
       {{ getNextRoundButtonText }}
     </button>
+
   </div>
 
   <div id="score-tracker" v-show="!showCountdown">
@@ -88,6 +94,7 @@ import PlayMultiplayerScoreTracker from '@/views/play-components/score-trackers/
 import PlayRankedScoreTracker from "@/views/play-components/score-trackers/Play.RankedScoreTracker.vue";
 import PlaySingleplayerRoundEnd from '@/views/play-components/Play.SingleplayerRoundEnd.vue'
 import PlayMultiplayerRoundEnd from '@/views/play-components/Play.MultiplayerRoundEnd.vue'
+import PlayRankedRoundEnd from '@/views/play-components/Play.RankedRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
 import CountdownTimer from '@/components/CountdownTimer.vue'
@@ -103,6 +110,7 @@ export default {
     PlayRankedScoreTracker,
     PlaySingleplayerRoundEnd,
     PlayMultiplayerRoundEnd,
+    PlayRankedRoundEnd,
     PlayFloorPanel,
     PlayerDisconnectionAlert,
     CountdownTimer,
@@ -140,6 +148,14 @@ export default {
       'multiplayerGame_getGameId',
       'multiplayerGame_getPlayers'
     ]),
+    ...mapGetters('rankedGame', [
+      'rankedGame_getTimer',
+      'rankedGame_getCurrentRound',
+      'rankedGame_getMaxRounds',
+      'rankedGame_getShouldEnd',
+      'rankedGame_getGameId',
+      'rankedGame_getPlayers'
+    ]),
     ...mapGetters('round', [
       'getWinner',
       'getRoundResult'
@@ -165,12 +181,23 @@ export default {
     getNextRoundButtonText() {
       if (this.getGameMode === 'singleplayer') {
         return this.singleplayerGame_getShouldEnd ? 'END GAME' : 'NEXT ROUND';
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         if (this.multiplayerGame_getShouldEnd) {
           return 'VIEW RESULTS';
         }
         // Check if this is the last round
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
+          return 'FINISH GAME';
+        }
+        return 'READY FOR NEXT ROUND';
+      }
+      else if (this.getGameMode === 'ranked') {
+        if (this.rankedGame_getShouldEnd) {
+          return 'VIEW RESULTS';
+        }
+        // Check if this is the last round
+        if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           return 'FINISH GAME';
         }
         return 'READY FOR NEXT ROUND';
@@ -181,8 +208,13 @@ export default {
     getCurrentRoundNumber() {
       if (this.getGameMode === 'singleplayer') {
         return this.singleplayerGame_getCurrentRound;
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         const currentRound = this.multiplayerGame_getCurrentRound;
+        return currentRound;
+      }
+      else if (this.getGameMode === 'ranked') {
+        const currentRound = this.rankedGame_getCurrentRound;
         return currentRound;
       }
       return 1;
@@ -237,6 +269,48 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    'rankedGame_getPlayers': {
+      handler(newPlayers) {
+        if (this.getGameMode === 'ranked' && newPlayers) {
+          // Only check for game ready if we haven't shown the countdown yet
+          if (!this.countdownShown) {
+            this.checkGameReady();
+          }
+        }
+      },
+      deep: true,
+      immediate: true
+    },
+    
+    // Watch for when ranked game should end
+    'rankedGame_getShouldEnd': {
+      handler(newShouldEnd, oldShouldEnd) {
+        console.log('🎯 rankedGame_getShouldEnd watcher triggered:', { newShouldEnd, oldShouldEnd, gameMode: this.getGameMode });
+        console.log('🎯 Current route:', this.$route.path);
+        
+        // Don't trigger navigation if we're already on a game end route
+        if (this.$route.path.includes('-game-end')) {
+          console.log('🎯 Already on game end route, ignoring watcher');
+          return;
+        }
+        
+        if (this.getGameMode === 'ranked' && newShouldEnd && !oldShouldEnd) {
+          console.log('🎯 Ranked game should end, navigating to ranked-game-end after delay');
+          // Add small delay to ensure game state is fully updated
+          setTimeout(() => {
+            console.log('🎯 Executing navigation to /ranked-game-end');
+            try {
+              // Use replace instead of push to avoid navigation history issues
+              this.$router.replace('/ranked-game-end');
+              console.log('🎯 Navigation executed successfully');
+            } catch (error) {
+              console.error('🎯 Navigation failed:', error);
+            }
+          }, 100);
+        }
+      },
+      immediate: false // Don't trigger on mount
     }
   },
   methods: {
@@ -255,6 +329,15 @@ export default {
       'multiplayerGame_setPlayerCompleted',
       'multiplayerGame_disconnect',
       'multiplayerGame_endGame'
+    ]),
+    ...mapActions('rankedGame', [
+      'rankedGame_endCurrentRound',
+      'rankedGame_checkRankedState',
+      'rankedGame_updatePlayerStatus',
+      'rankedGame_setPlayerReady',
+      'rankedGame_setPlayerCompleted',
+      'rankedGame_disconnect',
+      'rankedGame_endGame'
     ]),
     ...mapActions('round', [
       "startRound"
@@ -334,6 +417,11 @@ export default {
       if (this.getGameMode === 'multiplayer') {
         this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
       }
+      else if (this.getGameMode === 'ranked') {
+        this.rankedGame_updatePlayerStatus({ status: 'ended' });
+      }
+
+      console.log("submitted guess");
 
       await this.submitGuess();
     },
@@ -363,7 +451,8 @@ export default {
         this.resetTimer();
 
         // Do not prefetch to keep RoundEnd data intact during countdown
-      } else if (this.getGameMode === 'multiplayer') {
+      }
+      else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
           this.$router.push('/multiplayer-game-end');
@@ -384,6 +473,36 @@ export default {
         };
 
         this.multiplayerGame_setPlayerReady();
+      }
+      else if (this.getGameMode === 'ranked') {
+        console.log('🎯 Handling ranked game round end:', {
+          shouldEnd: this.rankedGame_getShouldEnd,
+          currentRound: this.rankedGame_getCurrentRound,
+          maxRounds: this.rankedGame_getMaxRounds
+        });
+
+        // Handle ranked game logic
+        if (this.rankedGame_getShouldEnd) {
+          console.log('🎯 Ranked game already ended, watcher should handle navigation');
+          return;
+        }
+
+        // Check if this is the last round
+        if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
+          // End the ranked game - send completed status
+          console.log('🎯 Last round reached, setting player completed');
+          this.rankedGame_setPlayerCompleted();
+          return;
+        }
+
+        // Snapshot previous round summary
+        this.lastRoundSummary = {
+          points: this.getRoundResult?.points ?? 0,
+          distance: this.getRoundResult?.distance ?? 0
+        };
+
+        console.log('🎯 Setting player ready for next round');
+        this.rankedGame_setPlayerReady();
       }
     },
 
@@ -420,9 +539,9 @@ export default {
         }
       }
 
-      // Multiplayer: ensure round has been started when players ready
-      if (this.getGameMode === 'multiplayer') {
-        // For multiplayer, the backend creates the round and sends it via WebSocket
+      // Multiplayer and ranked: ensure round has been started when players ready
+      if (this.getGameMode === 'multiplayer' || this.getGameMode === 'ranked') {
+        // For multiplayer and ranked, the backend creates the round and sends it via WebSocket
         // Don't call startRound here - it will create individual rounds for each player
         // The round ID will come from the WebSocket round-start event
       }
@@ -433,26 +552,58 @@ export default {
     finalizeRoundStart() {
       this.showCountdown = false;
       this.showStopwatch = true;
+      // Reset countdownShown so countdown can be shown again for next round
+      this.countdownShown = false;
+
       // Don't clear map position here - it will be managed when the map component unmounts/mounts
       // For singleplayer, increment round counter and ensure Image view
       if (this.getGameMode === 'singleplayer') {
         this.SG_INCREMENT_ROUND();
         this.SET_CURRENT_VIEW("Image");
       }
+      // For multiplayer and ranked, the view change is handled by the WebSocket round-start event
+      // The backend will send the round-start event which will set the view to 'Image'
     },
 
 
 
     async checkGameReady() {
-      const players = this.multiplayerGame_getPlayers;
-      if (players && Object.keys(players).length > 0) {
-        const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
-        if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
-          this.showCountdown = true;
-          this.showStopwatch  = false;
-          this.countdownShown = true;
+      // Check for multiplayer games
+      if (this.getGameMode === 'multiplayer') {
+        const players = this.multiplayerGame_getPlayers;
+        if (players && Object.keys(players).length > 0) {
+          const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
+          if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
+            this.showCountdown = true;
+            this.showStopwatch = false;
+            this.countdownShown = true;
+          }
+        }
+      }
+      // Check for ranked games
+      else if (this.getGameMode === 'ranked') {
+        const players = this.rankedGame_getPlayers;
+        if (players && Object.keys(players).length > 0) {
+          const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
+          console.log('🎯 All players ready check:', {
+            allPlayersReady,
+            playerStatuses: Object.values(players).map(p => ({ username: p.username, status: p.status }))
+          });
 
-
+          if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
+            console.log('🎯 Showing countdown for ranked game!');
+            this.showCountdown = true;
+            this.showStopwatch = false;
+            this.countdownShown = true;
+          } else {
+            console.log('🎯 Countdown not shown because:', {
+              allPlayersReady,
+              showCountdown: this.showCountdown,
+              countdownShown: this.countdownShown
+            });
+          }
+        } else {
+          console.log('🎯 No players found for ranked game');
         }
       }
     },
@@ -468,7 +619,9 @@ export default {
       } catch (error) {
         console.error('Failed to start singleplayer round:', error);
       }
-    }
+    },
+    
+
   },
   mounted() {
     this.fetchAllBuildings();
@@ -487,14 +640,19 @@ export default {
       this.SET_CURRENT_VIEW('Image');
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
+    else if (this.getGameMode == 'ranked') {
+      // For ranked, the game is initialized in Lobby.vue when match is found
+      // Update player status to 'playing'
+      this.SET_CURRENT_VIEW('Image');
+      this.rankedGame_updatePlayerStatus({ status: 'playing' });
+    }
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
 
-    // Disconnect from multiplayer WebSocket when leaving
-    if (this.getGameMode === 'multiplayer') {
-      this.multiplayerGame_disconnect();
-    }
+    // Don't disconnect WebSocket when game ends - let the game end component handle cleanup
+    // The store data needs to persist for the game end screen to display results
+    console.log('🎯 Play component unmounting, keeping WebSocket connected for game end screen');
   }
 }
 </script>

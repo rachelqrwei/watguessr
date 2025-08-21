@@ -201,12 +201,12 @@ export function setPlayerReady(userId: string, ready: boolean): void {
 /**
  * Start the game
  */
-export function startGame(lobbyId: string, roundCount: number, timer: number): void {
+export function startGame(lobbyId: string, gameMode: string, roundCount: number, timer: number): void {
   if (!stompClient || !stompClient.connected) return;
 
   stompClient.publish({
     destination: "/app/lobby/start",
-    body: JSON.stringify({ lobbyId, roundCount, timer }),
+    body: JSON.stringify({ lobbyId, gameMode, roundCount, timer }),
   });
 }
 
