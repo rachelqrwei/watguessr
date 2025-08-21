@@ -450,7 +450,7 @@ export default {
           maxRounds: this.rankedGame_getMaxRounds
         });
 
-        // Handle multiplayer logic
+        // Handle ranked game logic
         if (this.rankedGame_getShouldEnd) {
           console.log('🎯 Ranked game should end, navigating to ranked-game-end');
           this.$router.push('/ranked-game-end');
@@ -459,7 +459,7 @@ export default {
 
         // Check if this is the last round
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
-          // End the multiplayer game - send completed status
+          // End the ranked game - send completed status
           console.log('🎯 Last round reached, setting player completed');
           this.rankedGame_setPlayerCompleted();
           return;
@@ -609,7 +609,7 @@ export default {
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
     else if (this.getGameMode == 'ranked') {
-      // For multiplayer, the game is already initialized from Lobby.vue
+      // For ranked, the game is already initialized from Lobby.vue
       // Update player status to 'playing'
       this.SET_CURRENT_VIEW('Image');
       this.rankedGame_updatePlayerStatus({ status: 'playing' });
@@ -622,7 +622,7 @@ export default {
     if (this.getGameMode === 'multiplayer') {
       this.multiplayerGame_disconnect();
     }
-    // Disconnect from multiplayer WebSocket when leaving
+    // Disconnect from ranked WebSocket when leaving
     else if (this.getGameMode === 'ranked') {
       this.rankedGame_disconnect();
     }

@@ -106,6 +106,9 @@ export const actions: ActionTree<RoundState, RootState> = {
     } else if (gameMode === 'multiplayer') {
       //end this round in the multiplayer game store
       dispatch('multiplayerGame/multiplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
+    } else if (gameMode === 'ranked') {
+      //end this round in the ranked game store
+      dispatch('rankedGame/rankedGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
     }
   },
 };

@@ -180,7 +180,7 @@ function handleRoundStart(roundData: any) {
     // Fetch the scene image for the new round
     fetchSceneImage(roundData.roundId);
 
-    // Update multiplayer game round number
+    // Update ranked game round number
     if (roundData.roundNumber) {
       store.commit('rankedGame/RG_SET_CURRENT_ROUND', roundData.roundNumber);
     }
@@ -280,9 +280,9 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
   }
 
-  // Navigate to multiplayer game end screen
+  // Navigate to ranked game end screen
   // Use window.location for now since Vue Router context is not available here
-  if (window.location.pathname !== '/multiplayer-game-end') {
-    window.location.href = '/multiplayer-game-end';
+  if (window.location.pathname !== '/ranked-game-end') {
+    window.location.href = '/ranked-game-end';
   }
 }

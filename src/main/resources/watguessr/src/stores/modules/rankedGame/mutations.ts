@@ -90,11 +90,24 @@ export const mutations: MutationTree<RankedGameState> = {
       console.error('Failed to clear final game data from localStorage:', error);
     }
   },
-  RG_RESET_GAME(state) {
+  RG_RESET_GAME(state, payload?: { userId: string; username: string }) {
     state.rankedGame_currentRound = 1;
     state.rankedGame_maxRounds = 5;
     state.rankedGame_finalWinner = null;
     state.rankedGame_shouldEnd = false;
+    
+    // Initialize player if payload is provided
+    if (payload) {
+      state.rankedGame_players = {
+        [payload.userId]: { 
+          score: 0, 
+          status: 'loading', 
+          username: payload.username 
+        }
+      };
+    } else {
+      state.rankedGame_players = {};
+    }
   },
 
   RG_SET_PLAYER_DISCONNECTED(state, playerId: string) {

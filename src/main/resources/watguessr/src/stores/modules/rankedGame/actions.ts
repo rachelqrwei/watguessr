@@ -22,7 +22,7 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
     // Now we can safely set the status since the player exists
     commit('RG_SET_STATUS', { playerId: userId, status: 'loading' });
-    commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
+    commit('gameInfo/SET_GAME_MODE', 'ranked', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
 
     commit('RG_SET_STATUS', { playerId: userId, status: 'loading' });
@@ -36,7 +36,7 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
     // Ensure player exists in the game state
     if (!state.rankedGame_players[userId]) {
-      console.warn('⚠️ Player not found in multiplayer game state, initializing...');
+      console.warn('⚠️ Player not found in ranked game state, initializing...');
       commit('RG_SET_PLAYERS', {
         ...state.rankedGame_players,
         [userId]: { score: 0, status: 'playing', username: 'Player' }
@@ -49,7 +49,7 @@ export const actions: ActionTree<RankedGameState, RootState> = {
     const currentScore = state.rankedGame_players[userId]?.score || 0;
     sendPlayerProgress(state.rankedGame_gameId, userId, currentScore, 'ended');
 
-    // Always go to RoundEnd view after submitting a guess in multiplayer
+    // Always go to RoundEnd view after submitting a guess in ranked game
     commit('gameInfo/SET_CURRENT_VIEW', 'RoundEnd', {root: true});
   },
 
@@ -59,7 +59,7 @@ export const actions: ActionTree<RankedGameState, RootState> = {
       const userId = currentUser?.id;
       const token = rootGetters['user/getToken'];
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/multiplayer?gameId=${state.rankedGame_gameId}&userId=${userId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${state.rankedGame_gameId}&userId=${userId}`, {
         method: 'POST',
         credentials: 'include'
       });
@@ -127,5 +127,10 @@ export const actions: ActionTree<RankedGameState, RootState> = {
   // Disconnect from WebSocket when leaving
   rankedGame_disconnect() {
     disconnectFromRankedGame();
+  },
+
+  // Handle player disconnection
+  rankedGame_handlePlayerDisconnection({ commit }, playerId: string) {
+    commit('RG_SET_PLAYER_DISCONNECTED', playerId);
   }
 };
