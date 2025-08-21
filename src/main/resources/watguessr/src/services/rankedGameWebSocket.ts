@@ -160,6 +160,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   store.commit('rankedGame/RG_SET_GAME_ID', gameState.gameId);
   store.commit('rankedGame/RG_SET_PLAYERS', players);
   store.commit('rankedGame/RG_SET_CURRENT_ROUND', gameState.currentRound);
+  store.commit('rankedGame/RG_SET_MAX_ROUNDS', gameState.maxRounds);
 
   if (gameState.finalWinner) {
     store.commit('rankedGame/RG_SET_FINAL_WINNER', gameState.finalWinner);

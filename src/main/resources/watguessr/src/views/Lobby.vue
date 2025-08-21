@@ -383,6 +383,11 @@ export default {
         this.SET_GAME_MODE("ranked");
         // Store game information in Vuex if needed
         this.$store.commit('gameInfo/SET_GAME_MODE', 'ranked');
+        
+        // Initialize the ranked game state
+        this.$store.dispatch('rankedGame/rankedGame_createRankedGame');
+        this.$store.commit('rankedGame/RG_SET_GAME_ID', this.rankedMatchInfo.gameId);
+        
         this.$router.push({
           name: "play",
           query: {

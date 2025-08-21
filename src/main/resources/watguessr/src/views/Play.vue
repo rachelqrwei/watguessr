@@ -609,7 +609,7 @@ export default {
       this.multiplayerGame_updatePlayerStatus({ status: 'playing' });
     }
     else if (this.getGameMode == 'ranked') {
-      // For ranked, the game is already initialized from Lobby.vue
+      // For ranked, the game is initialized in Lobby.vue when match is found
       // Update player status to 'playing'
       this.SET_CURRENT_VIEW('Image');
       this.rankedGame_updatePlayerStatus({ status: 'playing' });
