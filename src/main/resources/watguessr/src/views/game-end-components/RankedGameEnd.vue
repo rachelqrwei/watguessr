@@ -13,7 +13,27 @@
         Has Result: {{ !!rankedGame_getResult }}<br>
         ELO Changes: {{ Object.keys(rankedGame_getResult?.eloChanges || {}).length }}<br>
         Current User: {{ currentUser?.id }}<br>
-        Final Winner: {{ rankedGame_getFinalWinner }}
+        Final Winner: {{ rankedGame_getFinalWinner }}<br>
+        <br>
+        <strong>Opponent Data:</strong><br>
+        Opponent ID: {{ opponentPlayerId }}<br>
+        Opponent Player: {{ opponentPlayer }}<br>
+        Opponent ELO: {{ opponentElo }}<br>
+        Opponent ELO Change: {{ player2EloChange }}<br>
+        <br>
+        <strong>ELO Debug:</strong><br>
+        Player 1 Starting ELO: {{ startingElo }}<br>
+        Player 1 New ELO: {{ newElo }}<br>
+        Player 1 ELO Change: {{ player1EloChange }}<br>
+        Player 2 Starting ELO: {{ player2Elo }}<br>
+        Player 2 New ELO: {{ player2Elo + player2EloChange }}<br>
+        Player 2 ELO Change: {{ player2EloChange }}<br>
+        <br>
+        <strong>Pre-Game ELOs from Store:</strong><br>
+        {{ $store.getters['rankedGame/rankedGame_getPreGameElos'] ? JSON.stringify($store.getters['rankedGame/rankedGame_getPreGameElos']) : 'No pre-game ELOs stored' }}<br>
+        <br>
+        <strong>Game Result:</strong><br>
+        {{ JSON.stringify(rankedGame_getResult, null, 2) }}
       </div>
     </div>
 
@@ -115,7 +135,8 @@ export default {
       'rankedGame_getMaxRounds',
       'rankedGame_getFinalWinner',
       'rankedGame_getShouldEnd',
-      'rankedGame_getResult'
+      'rankedGame_getResult',
+      'rankedGame_getPreGameElos'
     ]),
 
     // Get current user info
@@ -136,8 +157,12 @@ export default {
 
     // Get opponent player data (first player that's not the current user)
     opponentPlayerId() {
-      if (!this.currentUser || !this.players) return null;
+      if (!this.currentUser || !this.players) {
+        console.log('🎯 opponentPlayerId: Missing currentUser or players', { currentUser: this.currentUser, players: this.players });
+        return null;
+      }
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
+      console.log('🎯 opponentPlayerId computed:', { currentUserId: this.currentUser.id, allPlayerIds: Object.keys(this.players), opponentId });
       return opponentId;
     },
 
@@ -154,6 +179,16 @@ export default {
     },
 
     player1Elo() {
+      // Get pre-game ELO from store if available
+      if (this.currentUser?.id) {
+        const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+        if (preGameElos && preGameElos[this.currentUser.id]) {
+          console.log('🎯 Using pre-game ELO from store for current user:', preGameElos[this.currentUser.id]);
+          return preGameElos[this.currentUser.id];
+        }
+      }
+      
+      // Fallback to current user's ELO if pre-game not available
       if (!this.getCurrentUser?.elo) {
         return 1200; // Fallback to base ELO
       }
@@ -170,6 +205,27 @@ export default {
     // Player 2 (opponent) data
     player2Score() {
       return this.opponentPlayer?.score || 0;
+    },
+
+    opponentElo() {
+      // Get pre-game ELO from store if available
+      if (this.opponentPlayerId) {
+        const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+        console.log('🎯 Debugging opponent ELO:', {
+          opponentPlayerId: this.opponentPlayerId,
+          preGameElos: preGameElos,
+          hasOpponentElo: preGameElos && preGameElos[this.opponentPlayerId]
+        });
+        
+        if (preGameElos && preGameElos[this.opponentPlayerId]) {
+          console.log('🎯 Using pre-game ELO from store for opponent:', preGameElos[this.opponentPlayerId]);
+          return preGameElos[this.opponentPlayerId];
+        }
+      }
+      
+      // Fallback value
+      console.log('🎯 No pre-game ELO found for opponent, using fallback: 1200');
+      return 1200;
     },
 
     player2Elo() {
@@ -209,10 +265,12 @@ export default {
     },
 
     startingElo() {
+      // Use the pre-game ELO from the store
       return this.player1Elo;
     },
 
     newElo() {
+      // Calculate new ELO by adding ELO change to starting ELO
       return this.startingElo + this.player1EloChange;
     },
 
@@ -255,6 +313,19 @@ export default {
     console.log('🎯 ELO changes:', this.rankedGame_getResult?.eloChanges);
     console.log('🎯 Player 1 ELO change:', this.player1EloChange);
     console.log('🎯 Player 2 ELO change:', this.player2EloChange);
+    
+    // Debug: Log pre-game ELOs
+    const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+    console.log('🎯 Pre-game ELOs available on mount:', preGameElos);
+    if (preGameElos && Object.keys(preGameElos).length > 0) {
+      console.log('🎯 Pre-game ELOs details:', preGameElos);
+      if (this.currentUser?.id) {
+        console.log('🎯 Current user pre-game ELO on mount:', preGameElos[this.currentUser.id]);
+      }
+      if (this.opponentPlayerId) {
+        console.log('🎯 Opponent pre-game ELO on mount:', preGameElos[this.opponentPlayerId]);
+      }
+    }
 
     // Try to load final game data if not available
     if (!this.hasCompleteData) {
@@ -298,6 +369,24 @@ export default {
         console.log('🎯 Ranked game result changed in RankedGameEnd:', newResult);
         if (newResult && newResult.eloChanges && Object.keys(newResult.eloChanges).length > 0) {
           console.log('🎯 ELO changes now available:', newResult.eloChanges);
+        }
+      },
+      deep: true
+    },
+
+    // Watch for pre-game ELOs becoming available
+    'rankedGame_getPreGameElos': {
+      handler(newPreGameElos) {
+        console.log('🎯 Pre-game ELOs changed in RankedGameEnd:', newPreGameElos);
+        if (newPreGameElos && Object.keys(newPreGameElos).length > 0) {
+          console.log('🎯 Pre-game ELOs now available:', newPreGameElos);
+          // Log specific ELOs for current user and opponent
+          if (this.currentUser?.id) {
+            console.log('🎯 Current user pre-game ELO:', newPreGameElos[this.currentUser.id]);
+          }
+          if (this.opponentPlayerId) {
+            console.log('🎯 Opponent pre-game ELO:', newPreGameElos[this.opponentPlayerId]);
+          }
         }
       },
       deep: true

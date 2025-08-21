@@ -23,6 +23,7 @@ export interface RankedGameState {
   rankedGame_finalWinner: string | null;
   rankedGame_shouldEnd: boolean;
   rankedGame_result: RankedGameResult;
+  rankedGame_preGameElos: Record<string, number>; // key: player id, value: pre-game ELO
   disconnectionCheckInterval?: number; // interval ID for disconnection checking
 }
 
@@ -38,4 +39,5 @@ export const state = (): RankedGameState => ({
     userPoints: {},
     eloChanges: {}
   },
+  rankedGame_preGameElos: {},
 });

@@ -119,8 +119,21 @@ export default {
     },
     
     player1Elo() {
-      // TODO: Get actual ELO from user profile when available
-      return 1250;
+      // Get pre-game ELO from store if available
+      if (this.currentUser?.id) {
+        const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+        if (preGameElos && preGameElos[this.currentUser.id]) {
+          return preGameElos[this.currentUser.id];
+        }
+      }
+      
+      // Fallback to current user's ELO if pre-game not available
+      if (this.currentUser?.elo) {
+        return this.currentUser.elo;
+      }
+      
+      // Final fallback
+      return 1200;
     },
     
     // Player 2 (opponent) data
@@ -137,8 +150,26 @@ export default {
     },
     
     player2Elo() {
-      // TODO: Get actual ELO from user profile when available
-      return 1180;
+      // Get pre-game ELO from store if available
+      if (this.currentUser?.id && this.players) {
+        // Find the opponent ID (any player that's not the current user)
+        const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
+        if (opponentId) {
+          const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
+          if (preGameElos && preGameElos[opponentId]) {
+            console.log('🎯 Using pre-game ELO from store for opponent:', opponentId, preGameElos[opponentId]);
+            return preGameElos[opponentId];
+          } else {
+            console.log('🎯 No pre-game ELO found for opponent:', opponentId, 'Available ELOs:', preGameElos);
+          }
+        } else {
+          console.log('🎯 No opponent ID found in players:', this.players);
+        }
+      }
+      
+      // Fallback value
+      console.log('🎯 Using fallback ELO for opponent: 1200');
+      return 1200;
     },
     
     // Score percentages for progress bars

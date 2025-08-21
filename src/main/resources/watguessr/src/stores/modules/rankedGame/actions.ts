@@ -26,6 +26,16 @@ export const actions: ActionTree<RankedGameState, RootState> = {
     commit('gameInfo/SET_GAME_MODE', 'ranked', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
 
+    // Store the current user's pre-game ELO
+    if (currentUser?.elo) {
+      commit('RG_SET_PRE_GAME_ELOS', { [userId]: currentUser.elo });
+      console.log('🎯 Stored pre-game ELO for current user:', currentUser.elo);
+    }
+
+    // Note: Opponent ELO will be fetched when the game state updates via WebSocket
+    // This ensures we get the most up-to-date ELO for the opponent
+    console.log('🎯 Current user ELO stored, waiting for opponent data via WebSocket...');
+
     commit('RG_SET_STATUS', { playerId: userId, status: 'loading' });
   },
   async rankedGame_restartGame({ state, commit, dispatch }) {

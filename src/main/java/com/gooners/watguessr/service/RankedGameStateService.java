@@ -247,20 +247,28 @@ public class RankedGameStateService {
 
 	private String findWinner(RankedGameStateDto gameState) {
 		if (gameState.getPlayers().isEmpty()) {
+			System.out.println("❌ Cannot find winner: no players in game state");
 			return null;
 		}
 
 		String winnerId = null;
 		Integer maxScore = Integer.MIN_VALUE;
 
+		System.out.println("🔍 Finding winner among players:");
 		for (Map.Entry<String, PlayerStateDto> entry : gameState.getPlayers().entrySet()) {
-			Integer playerScore = entry.getValue().getScore();
+			String playerId = entry.getKey();
+			PlayerStateDto player = entry.getValue();
+			Integer playerScore = player.getScore();
+			System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + playerScore + ", status=" + player.getStatus());
+			
 			if (playerScore > maxScore) {
 				maxScore = playerScore;
-				winnerId = entry.getKey();
+				winnerId = playerId;
+				System.out.println("  🎯 New leader: " + player.getUsername() + " with score " + playerScore);
 			}
 		}
 
+		System.out.println("🏆 Final winner determined: " + (winnerId != null ? "Player " + winnerId + " with score " + maxScore : "None"));
 		return winnerId;
 	}
 
@@ -270,7 +278,7 @@ public class RankedGameStateService {
 		if (completed) {
 			setPlayerStatus(gameId, userId, "completed");
 			
-			// Check if all players are completed
+			// Check if all players completed
 			if (checkAllPlayersCompleted(gameId)) {
 				System.out.println("🏆 All players completed! Ending game...");
 				
@@ -286,21 +294,28 @@ public class RankedGameStateService {
 					gameState.setGameStatus("game-complete");
 					gameState.setShouldEnd(true);
 
-					// Determine the winner
+					// Determine the winner for WebSocket state
+					System.out.println("🔍 Determining winner for WebSocket state: " + gameId);
 					String winnerId = findWinner(gameState);
 					if (winnerId != null) {
 						gameState.setFinalWinner(winnerId);
-						System.out.println("🏆 Winner determined: " + winnerId);
+						System.out.println("🏆 Winner set in WebSocket state: " + winnerId);
+					} else {
+						System.err.println("❌ Failed to determine winner for WebSocket state: " + gameId);
 					}
 
-					// Note: ELO calculation will be handled by the controller when the game is finished
-					// This prevents circular dependencies
+					// IMPORTANT: Frontend will call GameService endpoint to resolve game and set database winner
+					System.out.println("🎯 Game completion event sent to frontend - frontend will call backend endpoint to resolve game");
+					System.out.println("🎯 Winner set in WebSocket state: " + gameState.getFinalWinner());
 
+					System.out.println("📢 Broadcasting final game state with winner: " + gameState.getFinalWinner());
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
 					System.out.println("📢 Broadcasting game completion event");
 					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/complete", gameState);
+				} else {
+					System.err.println("❌ Game state is null for game: " + gameId);
 				}
 			} else {
 				System.out.println("⏳ Waiting for more players to complete...");

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 public class RankedGameResultDto {
     private HashMap<UUID, Integer> userPoints;
-
     private HashMap<UUID, Integer> eloChanges;
 
     public HashMap<UUID, Integer> getUserPoints() { return userPoints; }

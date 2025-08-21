@@ -191,6 +191,51 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
     });
     store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
+
+  // Store pre-game ELOs for all players if we don't have them yet
+  const currentPreGameElos = store.getters['rankedGame/rankedGame_getPreGameElos'] || {};
+  if (Object.keys(currentPreGameElos).length === 0) {
+    console.log('🎯 Fetching pre-game ELOs for all players...');
+    
+    // Use Promise.all to wait for all ELO fetches to complete
+    const eloFetchPromises = Object.keys(players).map(async (playerId) => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${playerId}`);
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.elo) {
+            console.log('🎯 Fetched pre-game ELO for player', playerId, ':', userData.elo);
+            return { playerId, elo: userData.elo };
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch ELO for player', playerId, ':', error);
+      }
+      return null;
+    });
+    
+    // Wait for all ELO fetches to complete
+    Promise.all(eloFetchPromises).then((eloResults) => {
+      const preGameElos: Record<string, number> = {};
+      
+      // Filter out null results and build the ELO map
+      eloResults.forEach((result) => {
+        if (result) {
+          preGameElos[result.playerId] = result.elo;
+        }
+      });
+      
+      // Store the pre-game ELOs in the store
+      if (Object.keys(preGameElos).length > 0) {
+        console.log('🎯 Storing pre-game ELOs in store:', preGameElos);
+        store.commit('rankedGame/RG_SET_PRE_GAME_ELOS', preGameElos);
+      } else {
+        console.warn('⚠️ No ELOs were fetched successfully');
+      }
+    }).catch((error) => {
+      console.error('❌ Error fetching pre-game ELOs:', error);
+    });
+  }
 }
 
 // Handle round start events
@@ -309,24 +354,58 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
   }
 
-  // Extract ELO results from the WebSocket data if available
-  if (completionData.rankedGameResult) {
-    console.log('🎯 ELO results received from WebSocket:', completionData.rankedGameResult);
-    store.commit('rankedGame/RG_SET_RESULT', completionData.rankedGameResult);
+  // IMPORTANT: Call the backend endpoint to properly resolve the game and set winner in database
+  const gameId = completionData.gameId;
+  if (gameId) {
+    console.log('🎯 Calling backend endpoint to resolve game and set database winner:', gameId);
+    
+    // Call the backend endpoint to finish the game
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${gameId}`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    })
+    .then(gameResult => {
+      console.log('🎯 Game resolved successfully via backend, winner set in database');
+      console.log('🎯 ELO changes received:', gameResult.eloChanges);
+      
+      // Store the game result with ELO changes
+      store.commit('rankedGame/RG_SET_RESULT', gameResult);
+    })
+    .catch(error => {
+      console.error('❌ Failed to resolve game via backend:', error);
+    })
+    .finally(() => {
+      // Handle cleanup after getting the result data
+      const currentUser = store.getters['user/getCurrentUser'];
+      if (currentUser?.id) {
+        console.log('🎯 Setting current user status to ended');
+        store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
+      }
+
+      // Reset game state and disconnect WebSocket
+      console.log('🎯 Resetting game state and disconnecting WebSocket');
+      store.commit('gameInfo/RESET_GAME', null, {root: true});
+      store.commit('round/RESET_ROUND', null, {root: true});
+      disconnectFromRankedGame();
+    });
   } else {
-    console.log('🎯 No ELO results in WebSocket data, will need to call backend');
+    console.error('❌ No game ID in completion data, cannot resolve game');
+    
+    // Handle cleanup even if we can't resolve the game
+    const currentUser = store.getters['user/getCurrentUser'];
+    if (currentUser?.id) {
+      store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
+    }
+    
+    store.commit('gameInfo/RESET_GAME', null, {root: true});
+    store.commit('round/RESET_ROUND', null, {root: true});
+    disconnectFromRankedGame();
   }
-
-  // Handle cleanup after getting the result data
-  const currentUser = store.getters['user/getCurrentUser'];
-  if (currentUser?.id) {
-    console.log('🎯 Setting current user status to ended');
-    store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
-  }
-
-  // Reset game state and disconnect WebSocket
-  console.log('🎯 Resetting game state and disconnecting WebSocket');
-  store.commit('gameInfo/RESET_GAME', null, {root: true});
-  store.commit('round/RESET_ROUND', null, {root: true});
-  disconnectFromRankedGame();
 }

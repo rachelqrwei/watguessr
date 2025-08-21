@@ -44,6 +44,10 @@ export const mutations: MutationTree<RankedGameState> = {
     state.rankedGame_result = result;
   },
 
+  RG_SET_PRE_GAME_ELOS(state, preGameElos: Record<string, number>) {
+    state.rankedGame_preGameElos = preGameElos;
+  },
+
   // Save final game data for persistence
   RG_SAVE_FINAL_GAME_DATA(state, finalGameData: {
     players: Record<string, PlayerInfo>;
