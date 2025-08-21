@@ -120,4 +120,20 @@ public class UserController {
         var dto = userMapper.toUserSettingsDto(user);
         return ResponseEntity.ok(dto);
     }
+
+    @PutMapping("/change-password")
+    public void changePassword(@RequestParam String emailAddress, @RequestParam String newPassword) {
+        userService.changePassword(emailAddress, newPassword);
+    }
+
+    @PutMapping("/change-username")
+    public void changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername) {
+        userService.changeUsername(emailAddress, newUsername);
+    }
+
+    @DeleteMapping("/delete-user")
+    public void deleteUser(@RequestParam String emailAddress) {
+        userService.deleteUser(emailAddress);
+    }
+    
 }
