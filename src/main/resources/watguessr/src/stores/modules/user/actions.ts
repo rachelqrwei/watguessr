@@ -27,6 +27,20 @@ export const actions = {
     }
   },
 
+  async fetchUserSettings(_ctx: { state: UserState }, userId: string) {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/settings`, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error(`Failed to fetch user settings: ${response.status}`);
+      return await response.json();
+    } catch (err) {
+      console.error('Failed to fetch user settings', err);
+      throw err;
+    }
+  },
+
   async fetchLeaderboardForUserId({ state }: { state: UserState }, userId: string) {
     if (!userId) return null;
     state.loading = true;

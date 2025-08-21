@@ -121,7 +121,7 @@ const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
 // Show top-left logo only on Play, Leaderboard, and Profile pages
 const showPageLogo = computed(() => {
   const p = route.path
-  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile')
+  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings')
 })
 
 const navLinks = [

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +106,19 @@ public class UserController {
             return ResponseEntity.internalServerError()
                     .body("Failed to send bug report: " + e.getMessage());
         }
+    }
+
+    @GetMapping(value = "/{id}/settings")
+    public ResponseEntity<UserSettingsDto> getUserSettings(@PathVariable UUID id, Authentication authentication) {
+        var user = userService.findById(id);
+        var requesterUsername = authentication != null ? authentication.getName() : null;
+
+        if (requesterUsername == null || !user.getUsername().equals(requesterUsername)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        var dto = userMapper.toUserSettingsDto(user);
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/change-password")
