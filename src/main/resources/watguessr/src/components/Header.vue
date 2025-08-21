@@ -85,6 +85,11 @@ export default {
 
     handleSettings() {
       this.dropdownOpen = false;
+      if (this.loggedIn) {
+        this.$router.push({ name: 'settings' });
+      } else {
+        this.showLogin = true;
+      }
     },
 
     handleProfile() {
