@@ -108,29 +108,7 @@ export default {
 }
 </script>
 
-<style>
-/* Global custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
 
-::-webkit-scrollbar-track {
-  background: rgba(255, 227, 127, 0.05);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #FFE37F;
-  border-radius: 4px;
-  opacity: 0.8;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #FFE37F;
-  opacity: 1;
-}
-</style>
 
 <style scoped>
 .profile-background {
@@ -155,7 +133,7 @@ export default {
   padding: 40px 20px 40px;
   color: var(--white);
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
 }
 
 .loading,

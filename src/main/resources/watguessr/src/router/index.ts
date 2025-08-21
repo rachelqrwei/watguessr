@@ -13,8 +13,7 @@ const router = createRouter({
     {
       path: '/settings',
       name: 'settings',
-      component: () => import('../views/Settings.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('../views/Settings.vue')
     },
     {
       path: '/lobby',
@@ -59,6 +58,11 @@ const router = createRouter({
       name: 'profile',
       component: () => import('../views/Profile.vue'),
       props: true
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFound.vue'),
     },
   ],
   scrollBehavior(to, from, savedPosition) {
