@@ -9,8 +9,20 @@ export const actions: ActionTree<RoundState, RootState> = {
     commit('guess/RESET_GUESS', null, {root: true});
     commit('RESET_ROUND');
 
-
     if (!gameId) throw new Error('Game ID not found');
+
+    // Check game mode - don't create individual rounds for ranked games
+    const gameMode = rootGetters['gameInfo/getGameMode'];
+    if (gameMode === 'ranked') {
+      console.log('🎯 Ranked game detected - skipping individual round creation. Rounds are managed by the game state service.');
+      // For ranked games, the round ID should already be set by the WebSocket round-start event
+      // Just return the current round ID if it exists
+      if (state.roundId) {
+        return state.roundId;
+      } else {
+        throw new Error('No round ID available for ranked game. Wait for the round-start event from the server.');
+      }
+    }
 
     const token = rootGetters['user/getToken'];
 

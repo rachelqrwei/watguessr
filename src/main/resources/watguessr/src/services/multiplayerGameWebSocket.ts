@@ -194,6 +194,9 @@ function handleRoundStart(roundData: any) {
   store.commit('guess/SET_BUILDING', '');
   store.commit('guess/SET_FLOOR', '');
 
+  // Don't reset countdown state here - it should be reset after the countdown completes
+  // The countdown will be shown when all players are ready, and then reset after completion
+
   // Force the view change with a small delay to ensure it takes effect
   setTimeout(() => {
     store.commit('gameInfo/SET_CURRENT_VIEW', 'Image');

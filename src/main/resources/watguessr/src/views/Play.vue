@@ -268,6 +268,18 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    'rankedGame_getPlayers': {
+      handler(newPlayers) {
+        if (this.getGameMode === 'ranked' && newPlayers) {
+          // Only check for game ready if we haven't shown the countdown yet
+          if (!this.countdownShown) {
+            this.checkGameReady();
+          }
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
@@ -288,7 +300,6 @@ export default {
       'multiplayerGame_endGame'
     ]),
     ...mapActions('rankedGame', [
-      'rankedGame_createRankedGame',
       'rankedGame_endCurrentRound',
       'rankedGame_checkRankedState',
       'rankedGame_updatePlayerStatus',
@@ -375,6 +386,11 @@ export default {
       if (this.getGameMode === 'multiplayer') {
         this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
       }
+      else if (this.getGameMode === 'ranked') {
+        this.rankedGame_updatePlayerStatus({ status: 'ended' });
+      }
+
+      console.log("submitted guess");
 
       await this.submitGuess();
     },
@@ -428,8 +444,15 @@ export default {
         this.multiplayerGame_setPlayerReady();
       }
       else if (this.getGameMode === 'ranked') {
+        console.log('🎯 Handling ranked game round end:', {
+          shouldEnd: this.rankedGame_getShouldEnd,
+          currentRound: this.rankedGame_getCurrentRound,
+          maxRounds: this.rankedGame_getMaxRounds
+        });
+
         // Handle multiplayer logic
         if (this.rankedGame_getShouldEnd) {
+          console.log('🎯 Ranked game should end, navigating to ranked-game-end');
           this.$router.push('/ranked-game-end');
           return;
         }
@@ -437,6 +460,7 @@ export default {
         // Check if this is the last round
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           // End the multiplayer game - send completed status
+          console.log('🎯 Last round reached, setting player completed');
           this.rankedGame_setPlayerCompleted();
           return;
         }
@@ -447,6 +471,7 @@ export default {
           distance: this.getRoundResult?.distance ?? 0
         };
 
+        console.log('🎯 Setting player ready for next round');
         this.rankedGame_setPlayerReady();
       }
     },
@@ -484,8 +509,8 @@ export default {
         }
       }
 
-      // Multiplayer: ensure round has been started when players ready
-      if (this.getGameMode === 'multiplayer' || 'ranked') {
+      // Multiplayer and ranked: ensure round has been started when players ready
+      if (this.getGameMode === 'multiplayer' || this.getGameMode === 'ranked') {
         // For multiplayer and ranked, the backend creates the round and sends it via WebSocket
         // Don't call startRound here - it will create individual rounds for each player
         // The round ID will come from the WebSocket round-start event
@@ -497,26 +522,58 @@ export default {
     finalizeRoundStart() {
       this.showCountdown = false;
       this.showStopwatch = true;
+      // Reset countdownShown so countdown can be shown again for next round
+      this.countdownShown = false;
+
       // Don't clear map position here - it will be managed when the map component unmounts/mounts
       // For singleplayer, increment round counter and ensure Image view
       if (this.getGameMode === 'singleplayer') {
         this.SG_INCREMENT_ROUND();
         this.SET_CURRENT_VIEW("Image");
       }
+      // For multiplayer and ranked, the view change is handled by the WebSocket round-start event
+      // The backend will send the round-start event which will set the view to 'Image'
     },
 
 
 
     async checkGameReady() {
-      const players = this.multiplayerGame_getPlayers;
-      if (players && Object.keys(players).length > 0) {
-        const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
-        if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
-          this.showCountdown = true;
-          this.showStopwatch  = false;
-          this.countdownShown = true;
+      // Check for multiplayer games
+      if (this.getGameMode === 'multiplayer') {
+        const players = this.multiplayerGame_getPlayers;
+        if (players && Object.keys(players).length > 0) {
+          const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
+          if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
+            this.showCountdown = true;
+            this.showStopwatch = false;
+            this.countdownShown = true;
+          }
+        }
+      }
+      // Check for ranked games
+      else if (this.getGameMode === 'ranked') {
+        const players = this.rankedGame_getPlayers;
+        if (players && Object.keys(players).length > 0) {
+          const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
+          console.log('🎯 All players ready check:', {
+            allPlayersReady,
+            playerStatuses: Object.values(players).map(p => ({ username: p.username, status: p.status }))
+          });
 
-
+          if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
+            console.log('🎯 Showing countdown for ranked game!');
+            this.showCountdown = true;
+            this.showStopwatch = false;
+            this.countdownShown = true;
+          } else {
+            console.log('🎯 Countdown not shown because:', {
+              allPlayersReady,
+              showCountdown: this.showCountdown,
+              countdownShown: this.countdownShown
+            });
+          }
+        } else {
+          console.log('🎯 No players found for ranked game');
         }
       }
     },

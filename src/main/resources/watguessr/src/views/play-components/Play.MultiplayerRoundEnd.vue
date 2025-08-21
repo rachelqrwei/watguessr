@@ -205,7 +205,7 @@ export default {
 
         // Also subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
-          `/topic/game/${gameId}/state`,
+          `/topic/multiplayer-game/${gameId}/state`,
           (message) => {
             console.log('📊 Received game state update in round end:', message.body);
             // Refresh guesses when game state updates

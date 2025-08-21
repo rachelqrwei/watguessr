@@ -17,15 +17,15 @@ export const actions: ActionTree<RankedGameState, RootState> = {
     const username = currentUser?.username || 'Player';
 
     // Reset the game and initialize the current player
-    commit('MG_RESET_GAME', { userId, username });
+    commit('RG_RESET_GAME', { userId, username });
     commit('gameInfo/RESET_GAME', null, {root: true});
 
     // Now we can safely set the status since the player exists
-    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
+    commit('RG_SET_STATUS', { playerId: userId, status: 'loading' });
     commit('gameInfo/SET_GAME_MODE', 'multiplayer', {root: true});
     commit('gameInfo/SET_CURRENT_VIEW', 'Image', {root: true});
 
-    commit('MG_SET_STATUS', { playerId: userId, status: 'loading' });
+    commit('RG_SET_STATUS', { playerId: userId, status: 'loading' });
   },
   async rankedGame_restartGame({ state, commit, dispatch }) {
     await dispatch('rankedGame_createRankedGame');
@@ -37,13 +37,13 @@ export const actions: ActionTree<RankedGameState, RootState> = {
     // Ensure player exists in the game state
     if (!state.rankedGame_players[userId]) {
       console.warn('⚠️ Player not found in multiplayer game state, initializing...');
-      commit('MG_SET_PLAYERS', {
+      commit('RG_SET_PLAYERS', {
         ...state.rankedGame_players,
         [userId]: { score: 0, status: 'playing', username: 'Player' }
       });
     }
 
-    commit('MG_IMPLEMENT_ROUND_RESULT', { playerId: userId, roundResult: payload.roundResult });
+    commit('RG_IMPLEMENT_ROUND_RESULT', { playerId: userId, roundResult: payload.roundResult });
 
     // Send progress update via WebSocket
     const currentScore = state.rankedGame_players[userId]?.score || 0;
@@ -69,8 +69,8 @@ export const actions: ActionTree<RankedGameState, RootState> = {
       }
 
       await response.json();
-      commit('MG_SET_STATUS', {playerId: userId, status: 'ended'});
-      commit('MG_RESET_GAME');
+      commit('RG_SET_STATUS', {playerId: userId, status: 'ended'});
+      commit('RG_RESET_GAME');
       commit('gameInfo/RESET_GAME', null, {root: true});
       commit('round/RESET_ROUND', null, {root: true});
 
@@ -105,12 +105,12 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
   // Load final game data from localStorage
   rankedGame_loadFinalGameData({ commit }) {
-    commit('MG_LOAD_FINAL_GAME_DATA');
+    commit('RG_LOAD_FINAL_GAME_DATA');
   },
 
   // Clear final game data
   rankedGame_clearFinalGameData({ commit }) {
-    commit('MG_CLEAR_FINAL_GAME_DATA');
+    commit('RG_CLEAR_FINAL_GAME_DATA');
   },
 
   // Send player status update

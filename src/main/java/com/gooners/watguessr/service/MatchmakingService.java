@@ -22,16 +22,20 @@ public class MatchmakingService {
 	private final UserService userService;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
+	private final RankedGameStateService rankedGameStateService;
 
 	public MatchmakingService(MatchmakingQueueRepository queueRepository,
 							  GameService gameService,
 							  UserService userService,
-							  SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService) {
+							  SimpMessagingTemplate messagingTemplate, 
+							  MultiplayerGameStateService multiplayerGameStateService,
+							  RankedGameStateService rankedGameStateService) {
 		this.queueRepository = queueRepository;
 		this.gameService = gameService;
 		this.userService = userService;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
+		this.rankedGameStateService = rankedGameStateService;
 	}
 
 	// Constants for matchmaking
@@ -163,7 +167,8 @@ public class MatchmakingService {
 				})
 				.toList();
 
-		multiplayerGameStateService.initializeGame(gameId, users, 5, 30);
+		// Use rankedGameStateService for ranked games instead of multiplayerGameStateService
+		rankedGameStateService.initializeGame(gameId, users, 5, 30);
 	}
 
 	private Map<String, Object> createMatchmakingUpdate(String type, Object data) {

@@ -238,6 +238,7 @@ public class RankedGameStateService {
 		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
 			String topic = "/topic/ranked-game/" + gameId + "/state";
+			System.out.println("<UNK> Broadcasting state: " + gameState.getGameStatus());
 			messagingTemplate.convertAndSend(topic, gameState);
 		} else {
 			System.err.println("❌ Cannot broadcast game state: gameState is null for gameId: " + gameId);

@@ -227,7 +227,6 @@ async function requestCurrentRoundState(gameId: string) {
     if (response.ok) {
       const roundsData = await response.json();
 
-      console.log(roundsData);
       if (roundsData && roundsData.length > 0) {
         // Get the most recent round (last in the array)
         const currentRound = roundsData[roundsData.length - 1];
@@ -238,10 +237,6 @@ async function requestCurrentRoundState(gameId: string) {
 
           // Fetch the scene image for the current round
           fetchSceneImage(currentRound.roundId);
-
-          // Update multiplayer game round number (use array length as round number)
-          store.commit('rankedGame/RG_SET_CURRENT_ROUND', roundsData.length);
-
         }
       }
     } else {

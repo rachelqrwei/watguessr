@@ -26,32 +26,32 @@
         <div id="answer-map">
         </div>
 
-        <!-- Show indicator when displaying aggregated guesses -->
-        <div v-if="isAggregatedGuesses" class="aggregated-notice">
-          <span class="notice-icon">📊</span>
-          <span>Showing guesses from multiple rounds</span>
-        </div>
+<!--        &lt;!&ndash; Show indicator when displaying aggregated guesses &ndash;&gt;-->
+<!--        <div v-if="isAggregatedGuesses" class="aggregated-notice">-->
+<!--          <span class="notice-icon">📊</span>-->
+<!--          <span>Showing guesses from multiple rounds</span>-->
+<!--        </div>-->
 
-        <!-- Show live updates indicator -->
-        <div v-if="isLiveUpdatesActive" class="live-updates-notice">
-          <span class="notice-icon">🔄</span>
-          <span>Live updates active - watching for new guesses</span>
-        </div>
+<!--        &lt;!&ndash; Show live updates indicator &ndash;&gt;-->
+<!--        <div v-if="isLiveUpdatesActive" class="live-updates-notice">-->
+<!--          <span class="notice-icon">🔄</span>-->
+<!--          <span>Live updates active - watching for new guesses</span>-->
+<!--        </div>-->
 
-        <div class="map-legend">
-          <div class="legend-item">
-            <div class="legend-marker answer-marker"></div>
-            <span>Correct Answer</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-marker your-guess-marker"></div>
-            <span>Your Guess</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-marker other-guess-marker"></div>
-            <span>Other Players</span>
-          </div>
-        </div>
+<!--        <div class="map-legend">-->
+<!--          <div class="legend-item">-->
+<!--            <div class="legend-marker answer-marker"></div>-->
+<!--            <span>Correct Answer</span>-->
+<!--          </div>-->
+<!--          <div class="legend-item">-->
+<!--            <div class="legend-marker your-guess-marker"></div>-->
+<!--            <span>Your Guess</span>-->
+<!--          </div>-->
+<!--          <div class="legend-item">-->
+<!--            <div class="legend-marker other-guess-marker"></div>-->
+<!--            <span>Other Players</span>-->
+<!--          </div>-->
+<!--        </div>-->
       </div>
     </div>
   </div>
@@ -205,7 +205,7 @@ export default {
 
         // Also subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
-          `/topic/game/${gameId}/state`,
+          `/topic/ranked-game/${gameId}/state`,
           (message) => {
             console.log('📊 Received game state update in round end:', message.body);
             // Refresh guesses when game state updates
