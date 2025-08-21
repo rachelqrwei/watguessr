@@ -202,7 +202,6 @@ public class GameService {
         update(game);
 
         HashMap<UUID, Integer> userEloChanges = updateEloRatings(userPoints, averageElo);
-
         RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
         rankedGameResultDto.setEloChanges(userEloChanges);
         rankedGameResultDto.setUserPoints(userPoints);

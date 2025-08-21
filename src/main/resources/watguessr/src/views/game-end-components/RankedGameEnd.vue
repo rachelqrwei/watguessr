@@ -1,6 +1,7 @@
 <template>
   <div class="game-end-container">
-    <div class="game-end-panel">
+    <!-- Game end content -->
+    <div v-if="hasCompleteData" class="game-end-panel">
       <div class="game-header">
         <span class="game-label">RANKED GAME COMPLETE</span>
         <div v-if="winner" class="winner-announcement">
@@ -82,7 +83,8 @@ export default {
     return {
       // These will be computed from store data
       gameDuration: '0:00', // Will be calculated from actual game time
-      bestRoundScore: 0 // Will be calculated from actual round scores
+      bestRoundScore: 0, // Will be calculated from actual round scores
+      opponentElo: 1200 // Will be fetched from API
     };
   },
   computed: {
@@ -134,8 +136,18 @@ export default {
       return this.currentPlayer?.score || 0;
     },
 
+    player1Elo() {
+      if (!this.getCurrentUser?.elo) {
+        return 1200; // Fallback to base ELO
+      }
+      return this.getCurrentUser.elo;
+    },
+
     player1EloChange() {
-      return this.rankedGame_getResult.eloChanges[this.currentUser.id];
+      if (!this.rankedGame_getResult?.eloChanges || !this.currentUser?.id) {
+        return 0;
+      }
+      return this.rankedGame_getResult.eloChanges[this.currentUser.id] || 0;
     },
 
     // Player 2 (opponent) data
@@ -143,8 +155,15 @@ export default {
       return this.opponentPlayer?.score || 0;
     },
 
+    player2Elo() {
+      return this.opponentElo;
+    },
+
     player2EloChange() {
-      return this.rankedGame_getResult.eloChanges[this.opponentPlayerId];
+      if (!this.rankedGame_getResult?.eloChanges || !this.opponentPlayerId) {
+        return 0;
+      }
+      return this.rankedGame_getResult.eloChanges[this.opponentPlayerId] || 0;
     },
 
     // Game state data
@@ -157,6 +176,14 @@ export default {
       }
       // Fallback: determine winner by score
       return this.player1Score >= this.player2Score ? 'player1' : 'player2';
+    },
+
+    // Check if we have all the data we need
+    hasCompleteData() {
+      return this.players &&
+             Object.keys(this.players).length > 0 &&
+             this.rankedGame_getResult?.eloChanges &&
+             Object.keys(this.rankedGame_getResult.eloChanges).length > 0;
     },
 
     totalRounds() {
@@ -192,6 +219,30 @@ export default {
 
     goHome() {
       this.$router.push('/');
+    },
+    // Fetch opponent ELO data
+    async fetchOpponentElo() {
+      if (!this.opponentPlayerId) {
+        console.warn('🎯 No opponent player ID available');
+        return null;
+      }
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${this.opponentPlayerId}`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const opponentData = await response.json();
+        console.log('🎯 Fetched opponent data:', opponentData);
+        return opponentData.elo || 1200;
+      } catch (error) {
+        console.error('🎯 Failed to fetch opponent ELO:', error);
+        return 1200; // Fallback to base ELO
+      }
     }
   },
 
@@ -206,6 +257,27 @@ export default {
     console.log('🎯 Winner computed:', this.winner);
     console.log('🎯 Player 1 score:', this.player1Score);
     console.log('🎯 Player 2 score:', this.player2Score);
+    console.log('🎯 Ranked game result:', this.rankedGame_getResult);
+    console.log('🎯 ELO changes:', this.rankedGame_getResult?.eloChanges);
+    console.log('🎯 Player 1 ELO change:', this.player1EloChange);
+    console.log('🎯 Player 2 ELO change:', this.player2EloChange);
+
+    // Try to load final game data if not available
+    if (!this.hasCompleteData) {
+      console.log('🎯 Incomplete data, trying to load final game data...');
+      this.$store.dispatch('rankedGame/rankedGame_loadFinalGameData');
+    }
+
+    // Fetch opponent ELO data
+    if (this.opponentPlayerId) {
+      console.log('🎯 Fetching opponent ELO data...');
+      this.fetchOpponentElo().then(elo => {
+        if (elo !== null) {
+          this.opponentElo = elo;
+          console.log('🎯 Opponent ELO updated:', this.opponentElo);
+        }
+      });
+    }
   },
 
   watch: {
@@ -221,6 +293,22 @@ export default {
       handler(newVal) {
         console.log('🎯 shouldEnd changed in RankedGameEnd:', newVal);
       }
+    },
+
+    // Watch for opponent player ID changes to fetch ELO
+    opponentPlayerId: {
+      handler(newOpponentId) {
+        if (newOpponentId && newOpponentId !== this.opponentPlayerId) {
+          console.log('🎯 Opponent changed, fetching new ELO data...');
+          this.fetchOpponentElo().then(elo => {
+            if (elo !== null) {
+              this.opponentElo = elo;
+              console.log('🎯 New opponent ELO updated:', this.opponentElo);
+            }
+          });
+        }
+      },
+      immediate: false
     }
   },
 
@@ -234,6 +322,36 @@ export default {
 </script>
 
 <style scoped>
+.loading-container {
+  text-align: center;
+  color: white;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  z-index: 1;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .game-end-container {
   position: absolute;
   inset: 0;

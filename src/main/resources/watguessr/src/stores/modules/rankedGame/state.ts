@@ -34,4 +34,8 @@ export const state = (): RankedGameState => ({
   rankedGame_timer: 30000,
   rankedGame_finalWinner: null,
   rankedGame_shouldEnd: false,
+  rankedGame_result: {
+    userPoints: {},
+    eloChanges: {}
+  },
 });

@@ -56,11 +56,13 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
   async rankedGame_endGame({ state, commit, rootGetters }) {
     try {
+      console.log('🎯 rankedGame_endGame called with gameId:', state.rankedGame_gameId);
       const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
       const token = rootGetters['user/getToken'];
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${state.rankedGame_gameId}&userId=${userId}`, {
+      console.log('🎯 Calling backend /finish/ranked endpoint...');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${state.rankedGame_gameId}`, {
         method: 'POST',
         credentials: 'include'
       });
