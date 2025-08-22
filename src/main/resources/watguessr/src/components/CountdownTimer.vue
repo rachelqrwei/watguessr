@@ -1,5 +1,5 @@
 <template>
-  <div class="countdown-overlay"   v-if="isVisible && (getGameMode === 'singleplayer' ? getCurrentRound === 0 : getCurrentRound === 1)">
+  <div class="countdown-overlay"   v-if="isVisible && getCurrentRound === 1">
     <div class="countdown-container">
       <div class="countdown-number" :class="{ 'animate': isAnimating }">
         {{ countdownNumber }}
@@ -58,7 +58,8 @@ export default {
 
         if (this.getCurrentRound <= 1) {
           this.startCountdown();
-        } else {
+        }
+        else if (this.getCurrentRound >= 1) {
           this.startProgressBar();
         }
       } else {

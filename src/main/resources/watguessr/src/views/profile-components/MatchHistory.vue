@@ -329,4 +329,225 @@ export default {
 .fade-slide-leave-active {
   transition: opacity 300ms ease, transform 300ms ease;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .history-header h2 {
+    font-size: 1.4rem;
+    letter-spacing: 0.8px;
+  }
+
+  .pager-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .history-item {
+    padding: 10px 12px;
+  }
+
+  .history-item .mode {
+    font-size: 0.9rem;
+  }
+
+  .history-item .date {
+    font-size: 0.8rem;
+    letter-spacing: 0.8px;
+  }
+
+  .chip {
+    padding: 5px 8px;
+    font-size: 0.6rem;
+  }
+
+  .chip-result {
+    width: 70px;
+  }
+
+  .players-badge {
+    font-size: 0.8rem;
+  }
+
+  .players-icon {
+    font-size: 0.9rem;
+  }
+
+  .players-count {
+    font-size: 0.8rem;
+  }
+
+  .history-loading span {
+    font-size: 0.9rem;
+  }
+
+  .history-error,
+  .history-empty {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .history-header h2 {
+    font-size: 1.2rem;
+    letter-spacing: 0.6px;
+  }
+
+  .pager-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .history-item {
+    padding: 8px 10px;
+  }
+
+  .history-item .mode {
+    font-size: 0.85rem;
+  }
+
+  .history-item .date {
+    font-size: 0.75rem;
+    letter-spacing: 0.7px;
+  }
+
+  .chip {
+    padding: 4px 7px;
+    font-size: 0.6rem;
+  }
+
+  .chip-result {
+    width: 65px;
+  }
+
+  .players-badge {
+    font-size: 0.75rem;
+  }
+
+  .players-icon {
+    font-size: 0.8rem;
+  }
+
+  .players-count {
+    font-size: 0.75rem;
+  }
+
+  .history-loading span {
+    font-size: 0.85rem;
+  }
+
+  .history-error,
+  .history-empty {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-header h2 {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+
+  .pager-btn {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .history-item {
+    padding: 6px 8px;
+  }
+
+  .history-item .mode {
+    font-size: 0.8rem;
+  }
+
+  .history-item .date {
+    font-size: 0.7rem;
+    letter-spacing: 0.6px;
+  }
+
+  .chip {
+    padding: 3px 6px;
+    font-size: 0.7rem;
+  }
+
+  .chip-result {
+    width: 60px;
+  }
+
+  .players-badge {
+    font-size: 0.7rem;
+  }
+
+  .players-icon {
+    font-size: 0.75rem;
+  }
+
+  .players-count {
+    font-size: 0.7rem;
+  }
+
+  .history-loading span {
+    font-size: 0.8rem;
+  }
+
+  .history-error,
+  .history-empty {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .history-header h2 {
+    font-size: 1rem;
+    letter-spacing: 0.4px;
+  }
+
+  .pager-btn {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+
+  .history-item {
+    padding: 5px 6px;
+  }
+
+  .history-item .mode {
+    font-size: 0.75rem;
+  }
+
+  .history-item .date {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+  }
+
+  .chip {
+    padding: 2px 5px;
+    font-size: 0.5rem;
+  }
+
+  .chip-result {
+    width: 55px;
+  }
+
+  .players-badge {
+    font-size: 0.65rem;
+  }
+
+  .players-icon {
+    font-size: 0.7rem;
+  }
+
+  .players-count {
+    font-size: 0.65rem;
+  }
+
+  .history-loading span {
+    font-size: 0.75rem;
+  }
+
+  .history-error,
+  .history-empty {
+    font-size: 0.75rem;
+  }
+}
 </style>

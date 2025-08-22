@@ -219,10 +219,16 @@ export default {
 .home-content-scale {
   transform: none;
   transform-origin: top center;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .section-with-goose {
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Ensure the section content stacks above the decorative image */
@@ -259,13 +265,42 @@ export default {
 }
 
 @media (max-width: 1200px) {
-  .goose1 { width: 220px; right: 0; }
-  .goose2 { width: 160px; left: 0; }
+  .goose1 { 
+    width: 220px; 
+    right: 0; 
+    top: -120px;
+  }
+  .goose2 { 
+    width: 160px; 
+    left: 0; 
+    top: -8px;
+  }
 }
 
 @media (max-width: 992px) {
-  .goose1 { width: 180px; right: 0; }
-  .goose2 { width: 130px; left: 0; }
+  .goose1 { 
+    width: 180px; 
+    right: 0; 
+    top: -100px;
+  }
+  .goose2 { 
+    width: 130px; 
+    left: 0; 
+    top: -6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .goose1 { 
+    width: 160px; 
+    right: 0; 
+    top: -80px;
+  }
+  .goose2 { 
+    width: 110px; 
+    left: 0; 
+    top: -5px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -281,6 +316,79 @@ export default {
   /* Hide decorative geese on small screens for cleanliness */
   .goose-decor {
     display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-container {
+    padding-top: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding-top: 60px;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-container {
+    padding-top: 50px;
+  }
+}
+
+/* Additional responsive improvements for ultra-wide screens */
+@media (min-width: 1400px) {
+  .home-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .home-container {
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+}
+
+/* Ensure proper spacing on landscape mobile devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home-container {
+    padding-top: 60px;
+  }
+  
+  .goose-decor {
+    display: none;
+  }
+}
+
+/* Ensure content fits within viewport on all screen sizes */
+@media (max-width: 1200px) {
+  .home-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-container {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
@@ -340,11 +448,65 @@ export default {
 
   .lobby-browser-container {
     width: 95vw;
+    max-height: 90vh;
   }
 
   .close-lobby-browser {
     top: -50px;
     right: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .lobby-browser-overlay {
+    padding: 8px;
+  }
+
+  .lobby-browser-container {
+    width: 98vw;
+    max-height: 95vh;
+  }
+
+  .close-lobby-browser {
+    top: -45px;
+    right: 8px;
+    font-size: 28px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lobby-browser-overlay {
+    padding: 5px;
+  }
+
+  .lobby-browser-container {
+    width: 100vw;
+    max-height: 98vh;
+    border-radius: 12px;
+  }
+
+  .close-lobby-browser {
+    top: -40px;
+    right: 5px;
+    font-size: 24px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  .lobby-browser-container {
+    border-radius: 8px;
+  }
+
+  .close-lobby-browser {
+    top: -35px;
+    right: 3px;
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
   }
 }
 

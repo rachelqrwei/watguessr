@@ -176,4 +176,145 @@ export default {
   }
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-view {
+    padding: 30px 16px 30px;
+    margin-top: 80px;
+  }
+  
+  .profile-hint {
+    margin: 12px 0 20px 0;
+    font-size: 0.9rem;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+  }
+  
+  .loading-spinner.small {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-view {
+    padding: 24px 12px 24px;
+    margin-top: 80px;
+  }
+  
+  .profile-hint {
+    margin: 16px 0 24px 0;
+    font-size: 0.85rem;
+  }
+  
+  .loading-spinner {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+  }
+  
+  .loading-spinner.small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-view {
+    padding: 20px 8px 20px;
+    margin-top: 80px;
+  }
+  
+  .profile-hint {
+    margin: 20px 0 28px 0;
+    font-size: 0.8rem;
+  }
+  
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border-width: 2px;
+  }
+  
+  .loading-spinner.small {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-view {
+    padding: 16px 6px 16px;
+    margin-top: 80px;
+  }
+  
+  .profile-hint {
+    margin: 24px 0 32px 0;
+    font-size: 0.75rem;
+  }
+  
+  .loading-spinner {
+    width: 28px;
+    height: 28px;
+    border-width: 2px;
+  }
+  
+  .loading-spinner.small {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+  }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .profile-view {
+    padding: 20px 20px;
+    margin-top: 60px;
+  }
+  
+  .profile-hint {
+    margin: 8px 0 12px 0;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .loading-spinner {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .profile-background {
+    display: none;
+  }
+  
+  .profile-view {
+    padding: 0;
+    margin: 0;
+    min-height: auto;
+    color: black;
+  }
+  
+  .profile-hint {
+    color: #666;
+  }
+}
 </style>

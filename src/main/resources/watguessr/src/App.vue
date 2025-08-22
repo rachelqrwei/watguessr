@@ -2,9 +2,9 @@
   <Header />
 
   <!-- global page logo for Play, Leaderboard, and Profile pages -->
-  <div v-if="showPageLogo" class="page-logo">
+  <div v-if="showPageLogo" class="page-logo" @click="handleLogoClick">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+    <span class="logo-text">WATGUESSR.IO</span>
   </div>
 
   <div class="layout" :class="{ 'layout-with-sidebar': showHeader }">
@@ -50,7 +50,7 @@
         <div class="report-bug-sidebar">
           <h4>REPORT A BUG</h4>
           <p v-if="!getCurrentUser">To leave feedback, please
-            <span class="link" @click="openLogin">LOG IN</span>
+            <span class="link" @click="showLogin = true">LOG IN</span>
           </p>
           <p v-else>
             <span class="link" @click="showReportBug = true">CLICK HERE</span> to report a bug
@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useRoute } from 'vue-router'
-import store from './stores'
+import { useStore } from 'vuex'
 import {fetchAndCacheOSMBuildings} from './services/osmBuilding.ts';
 
 import Header from './components/Header.vue'
@@ -108,6 +108,8 @@ import ReportBugModal from "@/components/ReportBugModal.vue";
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
+const showLogin = ref(false) //  reactive state for login modal
+const showSignUp = ref(false);
 const showReportBug = ref(false);
 
 const isHomePage = computed(() => route.path === '/')
@@ -122,9 +124,12 @@ const openSignUp = () => store.commit('user/OPEN_SIGNUP')
 const closeSignUp = () => store.commit('user/CLOSE_SIGNUP')
 
 // Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
+const windowWidth = ref(window.innerWidth)
+
 const showPageLogo = computed(() => {
   const p = route.path
-  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings') || p.startsWith('/lobby')
+  const isTabletOrMobile = windowWidth.value <= 768
+  return (isTabletOrMobile)|| (p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings') || p.startsWith('/lobby'))
 })
 
 const navLinks = [
@@ -133,12 +138,38 @@ const navLinks = [
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
 
+// Handle logo click - open side menu on mobile/tablet, navigate home on desktop
+const handleLogoClick = () => {
+  // Check if we're on mobile/tablet (you can adjust this breakpoint)
+  if (window.innerWidth <= 768) {
+    // On mobile/tablet, emit event to open side menu
+    // We'll need to communicate with the Header component
+    window.dispatchEvent(new CustomEvent('openSideMenu'));
+  } else {
+    // On desktop, navigate to home
+    window.location.href = '/';
+  }
+}
+
+const store = useStore()
 
 onMounted(() => {
   (async () => {
     await fetchAndCacheOSMBuildings();
     store.dispatch("user/initializeAuth");
   })();
+
+  // Add window resize listener
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth
+  }
+
+  window.addEventListener('resize', handleResize)
+
+  // Clean up on unmount
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+  })
 });
 
 </script>
@@ -152,9 +183,98 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.layout {
+.page-logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+  color: var(--white);
+}
+
+  .logo-text {
+    color: var(--white);
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+
+  /* Responsive Logo Sizing */
+  @media (max-width: 768px) {
+    .page-logo {
+      top: 3%;
+      left: 7%;
+      gap: 10px;
+      border: none;
+      padding: 5px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 2px 2px 5px #ffffff;
+    }
+
+    .logo-icon {
+      font-size: 1.3rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .page-logo {
+      top: 2.5%;
+      left: 6%;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-size: 1.1rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-logo {
+      top: 2%;
+      left: 5%;
+      gap: 6px;
+    }
+
+    .logo-icon {
+      font-size: 1rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .page-logo {
+      top: 1.5%;
+      left: 4%;
+      gap: 5px;
+    }
+
+    .logo-icon {
+      font-size: 0.9rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  .layout {
   display: flex;
   min-height: 100vh;
   position: relative;
