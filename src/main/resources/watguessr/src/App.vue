@@ -75,12 +75,12 @@
     </main>
 
     <AuthModalManager
-      :showLogin="showLogin"
-      :showSignUp="showSignUp"
-      @closeLogin="showLogin = false"
-      @closeSignUp="showSignUp = false"
-      @openLogin="() => { showLogin = true; showSignUp = false }"
-      @openSignUp="() => { showSignUp = true; showLogin = false }"
+      :showLogin="uiShowLogin"
+      :showSignUp="uiShowSignUp"
+      @closeLogin="closeLogin"
+      @closeSignUp="closeSignUp"
+      @openLogin="openLogin"
+      @openSignUp="openSignUp"
     />
 
     <ReportBugModal
@@ -116,6 +116,12 @@ const isHomePage = computed(() => route.path === '/')
 const isPlayPage = computed(() => route.path === '/play')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
+const uiShowLogin = computed(() => store.getters['user/showLogin'])
+const uiShowSignUp = computed(() => store.getters['user/showSignUp'])
+const openLogin = () => store.commit('user/OPEN_LOGIN')
+const closeLogin = () => store.commit('user/CLOSE_LOGIN')
+const openSignUp = () => store.commit('user/OPEN_SIGNUP')
+const closeSignUp = () => store.commit('user/CLOSE_SIGNUP')
 
 // Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
 const windowWidth = ref(window.innerWidth)
