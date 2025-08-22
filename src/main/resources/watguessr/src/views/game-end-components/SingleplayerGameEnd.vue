@@ -1,12 +1,12 @@
 <template>
   <div class="game-end-background" aria-hidden="true"></div>
-  
+
   <!-- Home Button -->
   <div class="page-logo">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
-  
+
   <div class="game-end-container">
     <div class="game-end-panel">
       <div class="game-header">
@@ -85,31 +85,31 @@ export default {
     ...mapActions("singleplayerGame", { doRestartGame: "singleplayerGame_restartGame" }),
     async restartGame() {
       await this.doRestartGame();
-      this.$router.push('/play');
+      this.$router.push({name: "play", query: {gameMode: 'singleplayer'}});
     },
     goHome() {
       this.$router.push('/');
     },
     async loadRounds() {
       if (!this.gameId) return;
-      
+
       this.isLoadingRounds = true;
       this.roundsError = null;
       this.rounds = [];
-      
+
       try {
         const res = await fetch(`/api/round/by-game-with-guesses?gameId=${this.gameId}`);
         if (!res.ok) throw new Error('Failed to fetch round details');
-        
+
         const payload = await res.json();
         const list = Array.isArray(payload) ? payload : [];
-        
+
         // Build rounds array with guess data
         this.rounds = list.map(item => ({
           id: item.roundId,
           guess: Array.isArray(item.guesses) && item.guesses.length > 0 ? item.guesses[0] : null
         }));
-        
+
       } catch (e) {
         this.roundsError = e instanceof Error ? e.message : 'Failed to load round details';
       } finally {
@@ -453,19 +453,19 @@ export default {
     padding: 24px 20px 20px;
     gap: 14px;
   }
-  
+
   .game-label {
     font-size: 38px;
   }
-  
+
   .final-points-value {
     font-size: 32px;
   }
-  
+
   .final-points-label {
     font-size: 15px;
   }
-  
+
   .btn {
     padding: 9px 18px;
     font-size: 15px;
@@ -478,19 +478,19 @@ export default {
     padding: 22px 18px 18px;
     gap: 12px;
   }
-  
+
   .game-label {
     font-size: 34px;
   }
-  
+
   .final-points-value {
     font-size: 28px;
   }
-  
+
   .final-points-label {
     font-size: 14px;
   }
-  
+
   .btn {
     padding: 8px 16px;
     font-size: 14px;
@@ -503,24 +503,24 @@ export default {
     padding: 20px 16px 16px;
     gap: 10px;
   }
-  
+
   .game-label {
     font-size: 30px;
   }
-  
+
   .final-points-value {
     font-size: 24px;
   }
-  
+
   .final-points-label {
     font-size: 13px;
   }
-  
+
   .btn {
     padding: 7px 14px;
     font-size: 13px;
   }
-  
+
   .button-section {
     gap: 12px;
   }
@@ -532,24 +532,24 @@ export default {
     padding: 18px 14px 14px;
     gap: 8px;
   }
-  
+
   .game-label {
     font-size: 26px;
   }
-  
+
   .final-points-value {
     font-size: 20px;
   }
-  
+
   .final-points-label {
     font-size: 12px;
   }
-  
+
   .btn {
     padding: 6px 12px;
     font-size: 12px;
   }
-  
+
   .button-section {
     gap: 10px;
   }

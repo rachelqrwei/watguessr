@@ -1,5 +1,5 @@
 <template>
-  <div class="countdown-overlay"   v-if="isVisible && (getGameMode === 'singleplayer' ? getCurrentRound === 0 : getCurrentRound === 1)">
+  <div class="countdown-overlay"   v-if="isVisible && getCurrentRound === 1">
     <div class="countdown-container">
       <div class="countdown-number" :class="{ 'animate': isAnimating }">
         {{ countdownNumber }}
