@@ -65,6 +65,25 @@ library.add(
   faUserGroup,
 )
 
+// Global fetch wrapper to detect expired/invalid sessions
+const originalFetch = window.fetch.bind(window);
+window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const res = await originalFetch(input as any, init);
+  try {
+    const url = typeof input === 'string' ? input : (input as Request).url;
+    const status = (res as Response).status;
+    const isLogout = url?.includes('/api/auth/logout');
+    if (!isLogout && (status === 401 || status === 403)) {
+      // Clear auth and prompt login with a reason message
+      store.commit('user/CLEAR_AUTH');
+      store.commit('user/OPEN_LOGIN', 'Your session expired. Please log in again.');
+    }
+  } catch {
+    // no-op
+  }
+  return res;
+};
+
 // clear profile state only when navigating away from the profile page
 router.afterEach((to, from) => {
   const isToProfile = typeof to?.path === 'string' && to.path.startsWith('/profile')

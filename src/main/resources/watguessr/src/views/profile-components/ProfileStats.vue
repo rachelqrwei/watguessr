@@ -5,7 +5,7 @@
         <div class="left-column">
           <div class="hero">
             <div class="avatar-wrap">
-              <div class="avatar" :style="{ background: avatarColors.bg, color: avatarColors.fg }" aria-hidden="true">{{ leaderboardUser.username.charAt(0).toUpperCase() }}</div>
+              <div class="avatar" :style="{ background: avatarColors.bg, color: avatarColors.fg }" aria-hidden="true">{{ (leaderboardUser?.username || 'G').charAt(0).toUpperCase() }}</div>
             </div>
             <div class="hero-info">
               <h1 class="name">{{ leaderboardUser.username }}</h1>
