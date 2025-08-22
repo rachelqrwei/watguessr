@@ -539,5 +539,210 @@ export default {
     height: 64px;
     font-size: 1.4rem;
   }
+  
+  .name {
+    font-size: 1.6rem;
+    letter-spacing: 0.8px;
+  }
+  
+  .elo-pill {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+  
+  .card-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+  }
+  
+  .streak-number {
+    font-size: 1.2rem;
+  }
+  
+  .card-value {
+    font-size: 1.2rem;
+  }
+  
+  .win-percentage {
+    font-size: 1.3rem;
+  }
+  
+  .legend-value {
+    font-size: 1rem;
+  }
+  
+  .legend-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.7px;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-content {
+    padding: 16px 14px;
+    gap: 8px;
+  }
+  
+  .hero {
+    gap: 10px;
+  }
+  
+  .avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.2rem;
+  }
+  
+  .name {
+    font-size: 1.4rem;
+    letter-spacing: 0.6px;
+  }
+  
+  .elo-pill {
+    font-size: 0.75rem;
+    padding: 5px 8px;
+  }
+  
+  .card-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .streak-number {
+    font-size: 1.1rem;
+  }
+  
+  .card-value {
+    font-size: 1.1rem;
+  }
+  
+  .win-percentage {
+    font-size: 1.1rem;
+  }
+  
+  .legend-value {
+    font-size: 0.9rem;
+  }
+  
+  .legend-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-content {
+    padding: 14px 10px;
+    gap: 6px;
+  }
+  
+  .hero {
+    gap: 8px;
+  }
+  
+  .avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+  
+  .name {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .elo-pill {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+  
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.4px;
+  }
+  
+  .streak-number {
+    font-size: 1rem;
+  }
+  
+  .card-value {
+    font-size: 1rem;
+  }
+  
+  .win-percentage {
+    font-size: 1rem;
+  }
+  
+  .legend-value {
+    font-size: 0.8rem;
+  }
+  
+  .legend-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .donut-chart-container {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-content {
+    padding: 12px 8px;
+    gap: 5px;
+  }
+  
+  .hero {
+    gap: 6px;
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+  
+  .name {
+    font-size: 1.1rem;
+    letter-spacing: 0.4px;
+  }
+  
+  .elo-pill {
+    font-size: 0.65rem;
+    padding: 3px 5px;
+  }
+  
+  .card-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3px;
+  }
+  
+  .streak-number {
+    font-size: 0.9rem;
+  }
+  
+  .card-value {
+    font-size: 0.9rem;
+  }
+  
+  .win-percentage {
+    font-size: 0.9rem;
+  }
+  
+  .legend-value {
+    font-size: 0.75rem;
+  }
+  
+  .legend-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.4px;
+  }
+  
+  .donut-chart-container {
+    width: 100px;
+    height: 100px;
+  }
 }
 </style>
