@@ -97,11 +97,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { disconnectLobby } from "@/services/lobby"; // adjust path if needed
-
+import {fetchAndCacheOSMBuildings} from './services/osmBuilding.ts';
 
 import Header from './components/Header.vue'
 import AuthModalManager from "@/views/auth/AuthModalManager.vue";
@@ -132,10 +131,12 @@ const navLinks = [
 
 const store = useStore()
 
-// Initialize authentication on app startup
 onMounted(() => {
-  store.dispatch('user/initializeAuth')
-})
+  (async () => {
+    await fetchAndCacheOSMBuildings();
+    store.dispatch("user/initializeAuth");
+  })();
+});
 
 </script>
 

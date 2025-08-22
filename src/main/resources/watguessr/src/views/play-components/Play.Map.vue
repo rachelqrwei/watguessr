@@ -10,6 +10,7 @@ import * as turf from '@turf/turf';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { point, polygon, multiPolygon } from '@turf/helpers';
 import { mapMutations, mapGetters } from 'vuex';
+import {getNearbyName} from "@/services/osmBuilding.js";
 
 export default {
   name: 'MapboxMap',
@@ -168,78 +169,7 @@ export default {
             .setLngLat(coords)
             .addTo(map);
 
-          const buildingFeatures = map.queryRenderedFeatures(e.point, { layers: ['building'] });
-          let buildingName = null;
-
-          if (buildingFeatures.length > 0) {
-            const props = buildingFeatures[0].properties;
-            buildingName = props?.name?.trim() || null;
-
-            const geom = buildingFeatures[0].geometry;
-            if (geom && Array.isArray(geom.coordinates)) {
-              let buildingPolygon;
-              if (geom.type === 'Polygon') {
-                buildingPolygon = polygon(geom.coordinates);
-              } else if (geom.type === 'MultiPolygon') {
-                buildingPolygon = multiPolygon(geom.coordinates);
-              }
-
-              if (buildingPolygon) {
-                const bbox = turf.bbox(buildingPolygon);
-                const sw = map.project([bbox[0], bbox[1]]);
-                const ne = map.project([bbox[2], bbox[3]]);
-                const queryBox = [[sw.x, ne.y], [ne.x, sw.y]];
-
-                const labelFeatures = map.queryRenderedFeatures(queryBox, { layers: labelLayerIds });
-                const labelsInside = labelFeatures.filter(lf => {
-                  let coords = lf.geometry?.coordinates;
-
-                  // If it's a MultiPoint (array of arrays), take the first point
-                  if (Array.isArray(coords) && Array.isArray(coords[0])) {
-                    coords = coords[0];
-                  }
-
-                  // Validate coordinate format
-                  if (
-                    !Array.isArray(coords) ||
-                    coords.length < 2 ||
-                    typeof coords[0] !== 'number' ||
-                    typeof coords[1] !== 'number'
-                  ) {
-                    return false;
-                  }
-
-                  return booleanPointInPolygon(point(coords), buildingPolygon);
-                });
-
-                const labelWithName = labelsInside.find(l => l.properties?.name?.trim());
-                if (labelWithName) buildingName = labelWithName.properties.name;
-              }
-            }
-          }
-
-          // Nearby label fallback
-          if (!buildingName) {
-            const searchBox = [
-              [e.point.x - 10, e.point.y - 10],
-              [e.point.x + 10, e.point.y + 10]
-            ];
-            const nearbyLabels = map.queryRenderedFeatures(searchBox, { layers: labelLayerIds });
-            if (nearbyLabels.length > 0) {
-              nearbyLabels.sort((a, b) => {
-                const distA = this.distanceToPoint(a.geometry.coordinates, e.point, map);
-                const distB = this.distanceToPoint(b.geometry.coordinates, e.point, map);
-                return distA - distB;
-              });
-              buildingName = nearbyLabels[0].properties?.name?.trim() || 'Unnamed Place';
-            }
-          }
-
-          // Reverse geocode fallback
-          if (!buildingName) {
-            buildingName = await this.reverseGeocode(coords[0], coords[1]);
-          }
-
+          let buildingName = await getNearbyName(coords[1], coords[0]);
           this.SET_BUILDING_AND_LOCATIONS({
             building: buildingName,
             guessX: coords[0],
