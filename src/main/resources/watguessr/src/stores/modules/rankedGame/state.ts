@@ -32,7 +32,7 @@ export const state = (): RankedGameState => ({
   rankedGame_players: {},
   rankedGame_currentRound: 1,
   rankedGame_maxRounds: 5,
-  rankedGame_timer: 30000,
+  rankedGame_timer: 20000,
   rankedGame_finalWinner: null,
   rankedGame_shouldEnd: false,
   rankedGame_result: {

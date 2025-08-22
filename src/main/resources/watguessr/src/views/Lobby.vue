@@ -1,38 +1,79 @@
 <template>
-  <div class="lobby-container">
-    <div class="logo-container cursor-pointer" @click.prevent="goHome">
-      <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-      <span class="logo-text">WATGUESSR.IO</span>
-    </div>
-
-    <div class="lobby-card">
-      <h1 class="lobby-title">Lobby</h1>
-      <p class="lobby-subtitle">Mode: {{ gameModeLabel }}</p>
-
-      <!-- SINGLEPLAYER -->
-      <div v-if="gameModeLabel === 'singleplayer'">
-        <button class="play-button" @click="goToPlay">PLAY</button>
+  <div class="lobby-background" aria-hidden="true"></div>
+  <div class="lobby-page">
+    <transition name="card-fade" appear>
+      <div class="lobby-card">
+      <div class="lobby-header">
+        <h1 class="lobby-title">{{ gameModeLabel === 'multiplayer' && lobbyInfo ? lobbyInfo.lobbyName : 'LOBBY' }}</h1>
+        <div class="game-mode-tag" :class="gameModeLabel.toLowerCase()">
+          {{ gameModeLabel.toUpperCase() }}
+        </div>
       </div>
 
-      <!-- MULTIPLAYER -->
-      <div v-else-if="gameModeLabel === 'multiplayer'">
-        <div v-if="lobbyInfo" class="lobby-info">
-          <h3>{{ lobbyInfo.lobbyName }}</h3>
-          <p v-if="lobbyInfo.isPrivate && lobbyInfo.lobbyCode" class="lobby-code">
-            Lobby Code: <span class="code">{{ lobbyInfo.lobbyCode }}</span>
-          </p>
-          <p class="lobby-settings">
-            {{ lobbyInfo.multiplayerRoundCount }} rounds • {{ displayTimer }}s timer
-          </p>
-          <p class="lobby-players">
-            Players: {{ players.length }}/{{ lobbyInfo.maxPlayers }}
-          </p>
-          <p class="ready-count">
-            Ready: {{ readyCount }}/{{ players.length }}
-          </p>
+      <div class="lobby-content">
+        <transition name="fade-slide" mode="out-in">
+        <!-- SINGLEPLAYER -->
+        <div v-if="gameModeLabel === 'singleplayer'" key="singleplayer" class="singleplayer-section">
+          <div class="game-settings">
+            <h3>Game Settings</h3>
+            <div class="settings-grid">
+              <div class="setting-item">
+                <span class="setting-label">Timer</span>
+                <span class="setting-value">30 seconds</span>
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Rounds</span>
+                <span class="setting-value">Unlimited</span>
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Health</span>
+                <span class="setting-value">1000 points</span>
+              </div>
+            </div>
+          </div>
+          <button class="play-button" @click="goToPlay">PLAY</button>
         </div>
 
-        <ul class="players-list">
+      <!-- MULTIPLAYER -->
+      <div v-else-if="gameModeLabel === 'multiplayer'" key="multiplayer" class="multiplayer-section">
+        <div v-if="lobbyInfo" class="lobby-details">
+          <div v-if="lobbyInfo.isPrivate && lobbyInfo.lobbyCode" class="lobby-code">
+            <span class="code-label">Lobby Code:</span>
+            <span class="code">{{ lobbyInfo.lobbyCode }}</span>
+          </div>
+          
+          <div class="lobby-stats">
+            <div class="stat-group">
+              <h4>Game Settings</h4>
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <span class="setting-label">Timer</span>
+                  <span class="setting-value">{{ displayTimer }}s</span>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">Rounds</span>
+                  <span class="setting-value">{{ lobbyInfo.multiplayerRoundCount }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-group lobby-status">
+              <h4>Lobby Status</h4>
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <span class="setting-label">Players</span>
+                  <span class="setting-value">{{ players.length }}/{{ lobbyInfo.maxPlayers }}</span>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">Ready</span>
+                  <span class="setting-value ready-indicator-text">{{ readyCount }}/{{ players.length }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <transition-group name="list-fade" tag="ul" class="players-list">
           <li v-for="player in players" :key="player.userId" class="player-item">
             <div class="player-info">
               <span class="player-name">{{ player.username }}</span>
@@ -54,7 +95,7 @@
               </span>
             </div>
           </li>
-        </ul>
+        </transition-group>
 
         <!-- Show message if no players -->
         <div v-if="players.length === 0" class="no-players-msg" style="background: rgba(255,0,0,0.2); padding: 15px; margin: 15px 0; border-radius: 8px; color: white; text-align: center;">
@@ -84,16 +125,32 @@
       </div>
 
       <!-- RANKED -->
-      <div v-else-if="gameModeLabel === 'ranked'">
+      <div v-else-if="gameModeLabel === 'ranked'" key="ranked" class="ranked-section">
 
         <!-- Show initial state when not in queue -->
         <div v-if="rankedQueueState === 'idle'" class="ranked-info">
-          <p class="waiting-msg">🏆 Ranked Matchmaking</p>
-          <p class="waiting-msg" style="font-size: 0.9rem; margin-top: 8px;">
-            Compete against other players in ranked matches and climb the leaderboard!
+          <h3 class="ranked-title">RANKED MATCHMAKING</h3>
+          <p class="ranked-subtitle">
+            <em>Compete against other players in ranked matches and climb the leaderboard!</em>
           </p>
-          <button class="play-button" @click="initiateRankedWebSocketConnection" style="margin-top: 16px;">
-            🎯 Join Ranked Queue
+          <div class="game-settings">
+            <div class="settings-grid">
+              <div class="setting-item">
+                <span class="setting-label">Timer</span>
+                <span class="setting-value">20 seconds</span>
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Rounds</span>
+                <span class="setting-value">5</span>
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Your Elo</span>
+                <span class="setting-value">{{ $store.getters['user/getCurrentUser']?.elo ?? 1200 }}</span>
+              </div>
+            </div>
+          </div>
+          <button class="play-button" @click="initiateRankedWebSocketConnection">
+            Join Ranked Queue
           </button>
         </div>
 
@@ -108,8 +165,11 @@
           @game-start="startRankedGame"
           :key="'matchmaking-' + rankedQueueState"
         />
+        </div>
+        </transition>
       </div>
-    </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -325,7 +385,7 @@ export default {
       this.$router.push({ name: "home" });
     },
     initiateRankedWebSocketConnection() {
-      console.log('🎯 Starting ranked matchmaking...');
+      console.log('Starting ranked matchmaking...');
       this.rankedQueueState = 'searching';
       this.rankedErrorMessage = '';
       // Connect to matchmaking WebSocket with callbacks
@@ -353,7 +413,7 @@ export default {
             opponentName: opponent?.username || 'Anonymous Player',
             opponentRating: opponent?.elo || 1200,
             roundCount: 5, // Default for ranked games
-            timeLimit: 60, // Default for ranked games
+            timeLimit: 20, // Default for ranked games
             gameId: matchInfo.gameId
           };
 
@@ -370,7 +430,7 @@ export default {
       });
       // Join the queue after a delay to ensure connection is established
       setTimeout(() => {
-        console.log('📤 Sending join queue message...');
+        console.log(' Sending join queue message...');
         joinRankedQueue(this.myId);
       }, 1500);
     },
@@ -490,130 +550,299 @@ export default {
 </script>
 
 <style scoped>
-.lobby-container {
-  min-height: 100vh;
+.lobby-background {
+  position: fixed;
+  inset: 0;
   background: var(--dark-grey);
+  z-index: -1;
+}
+
+.lobby-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/ProfilePage.png') center top / cover no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.lobby-page {
+  min-height: calc(100vh - 80px);
+  position: relative;
+  padding: 80px 20px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 40px;
-}
-
-.logo-icon {
-  color: var(--accent-color);
-  font-size: 24px;
-}
-
-.logo-text {
-  color: var(--white);
-  text-decoration: none;
-  font-size: 24px;
-  font-weight: bold;
+  justify-content: center;
 }
 
 .lobby-card {
-  background: var(--card-bg);
-  border-radius: 16px;
+  background: rgba(42, 42, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
   padding: 32px;
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
-  border: 2px solid var(--border-color);
+}
+
+/* Transitions */
+.card-fade-enter-from,
+.card-fade-leave-to { opacity: 0; transform: translateY(8px); }
+.card-fade-enter-active,
+.card-fade-leave-active { transition: opacity 300ms ease, transform 300ms ease; }
+
+.fade-slide-enter-from,
+.fade-slide-leave-to { opacity: 0; transform: translateY(10px); }
+.fade-slide-enter-active,
+.fade-slide-leave-active { transition: opacity 250ms ease, transform 250ms ease; }
+
+.list-fade-enter-from { opacity: 0; transform: translateY(6px); }
+.list-fade-enter-active { transition: all 220ms ease; }
+.list-fade-leave-active { transition: all 180ms ease; opacity: 0; transform: translateY(-6px); }
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.lobby-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px 24px 24px;
 }
 
 .lobby-title {
+  font-size: 1.8rem;
+  font-weight: 900;
   color: var(--white);
-  margin-bottom: 8px;
-  font-size: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
 
-.lobby-subtitle {
-  color: var(--text-secondary);
-  margin-bottom: 32px;
-  font-size: 1.1rem;
-}
-
-.lobby-info {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.05);
+.game-mode-tag {
+  display: inline-block;
+  padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  color: var(--white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
-.lobby-info h3 {
+.game-mode-tag.singleplayer {
+  background: linear-gradient(135deg, rgba(255, 227, 127, 0.2), rgba(255, 127, 127, 0.2));
+  border: 1px solid rgba(255, 227, 127, 0.4);
+  box-shadow: 0 0 20px rgba(255, 227, 127, 0.1);
+  color: rgba(255, 227, 127, 1);
+}
+
+.game-mode-tag.multiplayer {
+  background: linear-gradient(135deg, rgba(127, 185, 255, 0.2), rgba(170, 127, 255, 0.2));
+  border: 1px solid rgba(127, 185, 255, 0.4);
+  box-shadow: 0 0 20px rgba(127, 185, 255, 0.1);
+  color: rgba(127, 185, 255, 1);
+}
+
+.game-mode-tag.ranked {
+  background: linear-gradient(135deg, rgba(255, 200, 100, 0.2), rgba(255, 150, 100, 0.2));
+  border: 1px solid rgba(255, 180, 100, 0.4);
+  box-shadow: 0 0 20px rgba(255, 180, 100, 0.1);
+  color: rgba(255, 180, 100, 1);
+}
+
+
+
+/* Section styling */
+.singleplayer-section,
+.multiplayer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Typography hierarchy */
+h3 {
+  color: var(--white);
+  margin: 0 0 16px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+h4 {
   color: var(--white);
   margin: 0 0 12px 0;
-  font-size: 1.3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
 }
 
-.lobby-code {
-  color: var(--text-secondary);
-  margin: 8px 0;
+/* Game settings grid */
+.game-settings { margin-bottom: 0; }
+image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
+
+/* Make Game Settings header style match Lobby Status */
+.multiplayer-section .stat-group h4 {
+  margin-top: 8px;
+}
+
+/* Add more top padding before section headers */
+.multiplayer-section h4 {
+  padding-top: 0;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.setting-label {
+  font-size: 0.75rem;
+  color: var(--light-grey);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.setting-value {
   font-size: 0.9rem;
+  color: var(--white);
+  font-weight: 700;
+}
+
+/* Multiplayer specific styles */
+.lobby-details {
+  margin-bottom: 0;
+}
+
+
+
+.lobby-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-group { margin-top: 14px; }
+
+.ready-indicator-text {
+  color: var(--yellow);
+}
+
+/* Add spacing below game settings grid in ranked pane */
+.ranked-section .game-settings { margin-bottom: 24px; }
+
+.lobby-code {
+  text-align: center;
+  margin: 0 0 12px 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.code-label {
+  color: var(--light-grey);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 8px;
 }
 
 .lobby-code .code {
-  background: var(--accent-color);
-  color: var(--white);
+  background: var(--yellow);
+  color: var(--dark-grey);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-family: monospace;
   font-weight: bold;
   letter-spacing: 1px;
 }
 
-.lobby-settings {
-  color: var(--text-secondary);
-  margin: 8px 0 0 0;
-  font-size: 0.9rem;
-}
 
-.lobby-players {
-  color: var(--text-secondary);
-  margin: 8px 0 0 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.ready-count {
-  color: var(--accent-color);
-  margin: 8px 0 0 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
 
 .ranked-info {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: rgba(33, 150, 243, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(33, 150, 243, 0.3);
+  margin-bottom: 0;
+  padding: 20px;
+  background: none;
+  border-radius: 14px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+}
+
+.ranked-title {
+  color: var(--white);
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.ranked-subtitle {
+  color: var(--light-grey);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+  font-family: "Red Hat Text", sans-serif;
+}
+
+.ranked-info .waiting-msg:last-of-type,
+.ranked-info .play-button {
+  margin-top: auto;
 }
 
 .players-list {
   list-style: none;
   padding: 0;
-  margin: 16px 0;
+  margin: 8px 0;
   color: white;
 }
 
 .player-item {
-  margin: 8px 0;
-  padding: 12px 16px;
+  margin: 6px 0;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.player-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .player-info {
@@ -627,10 +856,10 @@ export default {
 }
 
 .you-badge {
-  background: var(--accent-color);
-  color: var(--white);
+  background: var(--yellow);
+  color: var(--dark-grey);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.7rem;
   font-weight: bold;
 }
@@ -641,72 +870,144 @@ export default {
 }
 
 .ready-button {
-  background: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--white);
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .ready-button:hover {
-  background: var(--accent-color);
+  background: var(--yellow);
+  color: var(--dark-grey);
+  border-color: var(--yellow);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .ready-button.ready {
-  background: var(--accent-color);
+  background: var(--yellow);
+  color: var(--dark-grey);
+  border-color: var(--yellow);
 }
 
 .ready-indicator {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  background: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
   color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .ready-indicator.ready {
-  background: var(--accent-color);
-  color: var(--white);
+  background: var(--yellow);
+  color: var(--dark-grey);
 }
 
 .waiting-msg {
-  color: white;
-  opacity: 0.8;
+  color: var(--light-grey);
   margin: 10px 0;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .play-button {
-  background: var(--accent-color);
-  color: var(--white);
+  padding: 12px 16px;
   border: none;
-  padding: 16px 32px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  color: white;
   margin-top: 16px;
 }
 
-.play-button:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.play-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.play-button:hover::before {
+  left: 100%;
+}
+
+.play-button:active {
+  transform: translateY(-1px);
+}
+
+/* Singleplayer button styling */
+.singleplayer-section .play-button {
+  background: linear-gradient(to right, #FFE37F, #FF7F7F);
+  border: 1px solid #FFE37F;
+  box-shadow: 0 4px 15px rgba(255, 227, 127, 0.3);
+}
+
+.singleplayer-section .play-button:hover {
+  background: linear-gradient(to right, #FFD96B, #FF6B6B);
+  border-color: #FFD96B;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 227, 127, 0.4);
+}
+
+/* Multiplayer button styling */
+.multiplayer-section .play-button {
+  background: linear-gradient(to right, #7FB9FF, #AA7FFF);
+  border: 1px solid #7FB9FF;
+  box-shadow: 0 4px 15px rgba(127, 185, 255, 0.3);
+}
+
+.multiplayer-section .play-button:hover {
+  background: linear-gradient(to right, #6BA8FF, #9966FF);
+  border-color: #6BA8FF;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(127, 185, 255, 0.4);
+}
+
+/* Ranked button styling */
+.ranked-section .play-button {
+  background: linear-gradient(to right, #FFB366, #FF8B6B);
+  border: 1px solid #FFB366;
+  box-shadow: 0 4px 15px rgba(255, 179, 102, 0.3);
+}
+
+.ranked-section .play-button:hover {
+  background: linear-gradient(to right, #FFA652, #FF7555);
+  border-color: #FFA652;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 179, 102, 0.4);
 }
 
 .start-game-button {
-  background: #4CAF50;
+  background: #4CAF50 !important;
+  color: var(--white) !important;
   animation: pulse 2s infinite;
 }
 
 .start-game-button:hover {
-  background: #45a049;
+  background: #45a049 !important;
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
 }
 
 @keyframes pulse {
@@ -722,9 +1023,18 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .lobby-page {
+    padding: 60px 20px 20px;
+  }
+
   .lobby-card {
-    padding: 24px;
-    margin: 0 16px;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 95vw;
+  }
+
+  .lobby-content {
+    padding: 20px;
   }
 
   .lobby-title {
@@ -739,6 +1049,33 @@ export default {
     flex-direction: column;
     gap: 8px;
     text-align: center;
+    padding: 16px;
+  }
+
+  .play-button {
+    padding: 10px 16px;
+    font-size: 1rem;
+  }
+
+  .singleplayer-section .play-button:hover,
+  .multiplayer-section .play-button:hover,
+  .ranked-section .play-button:hover {
+    transform: translateY(-2px);
+  }
+
+
+
+  .ranked-info {
+    padding: 16px;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .lobby-stats {
+    gap: 16px;
   }
 }
 </style>
