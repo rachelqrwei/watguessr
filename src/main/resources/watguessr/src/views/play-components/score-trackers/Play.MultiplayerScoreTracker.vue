@@ -16,7 +16,10 @@
       <div class="player-score-bar-container">
         <div
           class="player-score-bar"
-          :style="{ width: getScorePercentage(player.score) + '%' }"
+          :style="{ 
+            width: getScorePercentage(player.score) + '%',
+            background: isCurrentUser(id) ? 'var(--player-1-gradient)' : 'var(--player-2-gradient)'
+          }"
           :class="{ 'completed': player.status === 'ended' }"
         />
       </div>
@@ -31,7 +34,8 @@ export default {
   name: "MultiplayerScoreTracker",
   computed: {
     ...mapGetters("user", [
-      "getUsers"
+      "getUsers",
+      "getCurrentUser"
     ]),
     ...mapGetters("multiplayerGame", [
       "multiplayerGame_getPlayers"
@@ -48,6 +52,9 @@ export default {
     },
     getScorePercentage(score) {
       return Math.floor((score * 100) / this.maxScore);
+    },
+    isCurrentUser(playerId) {
+      return this.getCurrentUser?.id === playerId;
     }
   }
 };
@@ -58,6 +65,7 @@ export default {
   position: fixed;
   z-index: 999;
   bottom: 9%;
+  left: 2vw;
   width: 20vw;
   color: white;
   display: flex;
@@ -94,7 +102,7 @@ export default {
 }
 
 .player-status.completed {
-  color: #4CAF50; /* Green checkmark */
+  color: #B6FF7F; /* Green checkmark */
 }
 
 .player-status.playing {
@@ -132,11 +140,10 @@ export default {
 
 .player-score-bar {
   height: 100%;
-  background: linear-gradient(to right, #FFCB3B, #FF9F1C);
   transition: width 0.3s ease;
 }
 
 .player-score-bar.completed {
-  background: linear-gradient(to right, #4CAF50, #45a049);
+  background: linear-gradient(to right, #B6FF7F, #9AFF5C);
 }
 </style>

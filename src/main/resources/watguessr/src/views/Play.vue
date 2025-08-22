@@ -190,7 +190,7 @@ export default {
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           return 'FINISH GAME';
         }
-        return 'READY FOR NEXT ROUND';
+        return 'READY';
       }
       else if (this.getGameMode === 'ranked') {
         if (this.rankedGame_getShouldEnd) {
@@ -200,7 +200,7 @@ export default {
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           return 'FINISH GAME';
         }
-        return 'READY FOR NEXT ROUND';
+        return 'READY';
       }
       return 'NEXT ROUND';
     },
