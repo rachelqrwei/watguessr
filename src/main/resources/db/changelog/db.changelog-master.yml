@@ -27,3 +27,9 @@ databaseChangeLog:
       file: db/changelog/0012-add-google-oauth-fields.yml
   - include:
       file: db/changelog/0013-add-matchmaking-table.yml
+  - include:
+      file: db/changelog/0014-update-username-in-user-table.yml
+  - include:
+      file: db/changelog/0015-drop-displayname-in-user-table.yml
+  - include:
+      file: db/changelog/0016-add-username_changed_at-in-user.yml

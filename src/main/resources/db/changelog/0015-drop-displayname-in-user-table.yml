@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 15-1
+      author: KENNY
+      preConditions:
+        - columnExists:
+            tableName: user
+            columnName: display_name
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE "user" DROP COLUMN display_name;
