@@ -1,5 +1,17 @@
 package com.gooners.watguessr.service;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
@@ -9,17 +21,6 @@ import com.gooners.watguessr.repository.EmailVerificationRepository;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.UserRepository;
 import com.gooners.watguessr.utils.CustomException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -236,7 +237,7 @@ public class UserService {
 
     public void changePassword(String emailAddress, String newPassword) {
         User user = userRepository.findByEmailAddress(emailAddress);
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
@@ -247,8 +248,12 @@ public class UserService {
 
     public void changeUsername(String emailAddress, String newUsername) {
         User user = userRepository.findByEmailAddress(emailAddress);
-        user.setUsername(newUsername);
-        userRepository.save(user);
+        if (user.getUsernameChangedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC).minusDays(7))){
+            user.setUsername(newUsername);
+            user.setUsernameChangedAt(OffsetDateTime.now(ZoneOffset.UTC));
+            userRepository.save(user);
+        } else {
+            throw new CustomException("You can only change your username once every 7 days. Last changed at " + user.getUsernameChangedAt());
+        }
     }
-
 }

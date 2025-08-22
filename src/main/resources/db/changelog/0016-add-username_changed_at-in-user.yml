@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 16-1
+      author: KENNY
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: "user"
+                columnName: username_changed_at
+      changes:
+        - addColumn:
+            tableName: "user"
+            columns:
+              - column:
+                  name: username_changed_at
+                  type: timestamp

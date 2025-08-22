@@ -43,6 +43,9 @@ public class User {
     @Column(name = "verified")
     private Boolean verified;
 
+    @Column(name = "username_changed_at")
+    private OffsetDateTime usernameChangedAt;
+
     public User() {}
 
     public User(String email, String username, String hashedPassword) {
@@ -135,4 +138,7 @@ public class User {
         this.verified = verified;
     }
 
+    public OffsetDateTime getUsernameChangedAt() { return usernameChangedAt; }
+
+    public void setUsernameChangedAt(OffsetDateTime usernameChangedAt) { this.usernameChangedAt = usernameChangedAt; }
 }
