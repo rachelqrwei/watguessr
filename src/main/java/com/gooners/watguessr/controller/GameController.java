@@ -20,17 +20,8 @@ public class GameController {
 
     @GetMapping(value = "/create/singleplayer")
     public UUID createSingleplayerGame() {
+        // TODO: should not be able to create if already in a game or another queue.
         return gameService.createSingleplayerGame();
-    }
-
-    @GetMapping(value = "/create/multiplayer")
-    public UUID createMultiplayerGame(@RequestParam Integer roundCount, @RequestParam Integer timer) {
-        return gameService.createMultiplayerGame(roundCount, timer);
-    }
-
-    @GetMapping(value = "/create/ranked")
-    public UUID createRankedGame(@RequestParam Integer averageElo) {
-        return gameService.createRankedGame(averageElo);
     }
 
     @PostMapping(value = "/lobby/create")

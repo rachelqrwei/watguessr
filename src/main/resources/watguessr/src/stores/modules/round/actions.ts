@@ -25,8 +25,13 @@ export const actions: ActionTree<RoundState, RootState> = {
     }
 
     const token = rootGetters['user/getToken'];
+    const currentUser = rootGetters['user/getCurrentUser'];
 
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/create?gameId=${gameId}`, {
+    if (!currentUser || !currentUser.id) {
+      throw new Error('User ID not found');
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/create?gameId=${gameId}&userId=${currentUser.id}`, {
       credentials: "include"
     });
 
@@ -61,8 +66,12 @@ export const actions: ActionTree<RoundState, RootState> = {
       return;
     }
 
+    // Get current user ID
+    const currentUser = rootGetters['user/getCurrentUser'];
+    const userId = currentUser?.id;
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/${roundId}/scene`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/round/${roundId}/scene${userId ? `?userId=${userId}` : ''}`, {
         credentials: "include"
       });
 
