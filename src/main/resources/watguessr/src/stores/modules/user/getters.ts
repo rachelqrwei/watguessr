@@ -8,5 +8,8 @@ export const getters = {
   getToken: (state: UserState) => state.token,
   isAuthenticated: (state: UserState) => state.isAuthenticated,
   getUserById: (state: UserState) => (id: string) =>
-    state.users.find(user => user.id === id)
+    state.users.find(user => user.id === id),
+  showLogin: (state: UserState) => state.showLogin,
+  showSignUp: (state: UserState) => state.showSignUp,
+  logoutReason: (state: UserState) => state.logoutReason
 };

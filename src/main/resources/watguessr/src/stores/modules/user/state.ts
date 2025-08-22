@@ -15,6 +15,9 @@ export interface UserState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  showLogin: boolean;
+  showSignUp: boolean;
+  logoutReason: string | null;
 }
 
 export const state = (): UserState => ({
@@ -23,5 +26,8 @@ export const state = (): UserState => ({
   token: null,
   isAuthenticated: false,
   loading: false,
-  error: null
+  error: null,
+  showLogin: false,
+  showSignUp: false,
+  logoutReason: null
 });

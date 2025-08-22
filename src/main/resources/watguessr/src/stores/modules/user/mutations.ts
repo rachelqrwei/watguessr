@@ -19,9 +19,11 @@ export const mutations = {
     state.currentUser = null;
     state.token = null;
     state.isAuthenticated = false;
+    state.logoutReason = null;
 
     // Remove token from localStorage
     localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_data');
 
     // Call backend logout to clear HTTP-only cookie
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
@@ -56,6 +58,24 @@ export const mutations = {
         }
       }
     }
+  },
+
+  OPEN_LOGIN(state: UserState, reason?: string) {
+    state.showLogin = true;
+    state.showSignUp = false;
+    state.logoutReason = reason || null;
+  },
+  CLOSE_LOGIN(state: UserState) {
+    state.showLogin = false;
+    state.logoutReason = null;
+  },
+  OPEN_SIGNUP(state: UserState) {
+    state.showSignUp = true;
+    state.showLogin = false;
+    state.logoutReason = null;
+  },
+  CLOSE_SIGNUP(state: UserState) {
+    state.showSignUp = false;
   }
 };
 
