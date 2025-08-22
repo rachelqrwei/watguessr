@@ -22,7 +22,8 @@ public class RankedGameStateController {
 
 	@MessageMapping("/ranked-game/update-progress")
 	public void updatePlayerProgress(@Payload UpdatePlayerProgressRequest updatePlayerProgressRequest) {
-		UUID gameId = UUID.fromString(updatePlayerProgressRequest.getGameId());
+        // TODO: should not be able to update your own.
+        UUID gameId = UUID.fromString(updatePlayerProgressRequest.getGameId());
 		String userId = updatePlayerProgressRequest.getUserId();
 		Integer score = updatePlayerProgressRequest.getScore();
 		String status = updatePlayerProgressRequest.getStatus();
@@ -39,6 +40,7 @@ public class RankedGameStateController {
 
 	@MessageMapping("/ranked-game/completed")
 	public void setPlayerCompleted(@Payload PlayerStatusUpdateRequest request) {
+        // TODO: should not be able to update your own.
 		UUID gameId = UUID.fromString(request.getGameId());
 		String userId = request.getUserId();
 		rankedGameStateService.setPlayerCompleted(gameId, userId, true);
@@ -46,6 +48,7 @@ public class RankedGameStateController {
 
 	@MessageMapping("/ranked-game/start-round")
 	public void startRound(@Payload StartRoundRequest request) {
+        // TODO: should not be able to start yourself..
 		UUID gameId = UUID.fromString(request.getGameId());
 		UUID sceneId = UUID.fromString(request.getSceneId());
 		rankedGameStateService.startRound(gameId, sceneId);

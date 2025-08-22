@@ -26,7 +26,8 @@ public class MultiplayerGameStateController {
 
 	@MessageMapping("/multiplayer-game/update-progress")
 	public void updatePlayerProgress(@Payload UpdatePlayerProgressRequest updatePlayerProgressRequest) {
-		UUID gameId = UUID.fromString(updatePlayerProgressRequest.getGameId());
+        // TODO: should not be able to update your own.
+        UUID gameId = UUID.fromString(updatePlayerProgressRequest.getGameId());
 		String userId = updatePlayerProgressRequest.getUserId();
 		Integer score = updatePlayerProgressRequest.getScore();
 		String status = updatePlayerProgressRequest.getStatus();
@@ -43,6 +44,7 @@ public class MultiplayerGameStateController {
 
 	@MessageMapping("/multiplayer-game/completed")
 	public void setPlayerCompleted(@Payload PlayerStatusUpdateRequest request) {
+        // TODO: should not be able to update your own.
 		UUID gameId = UUID.fromString(request.getGameId());
 		String userId = request.getUserId();
 		multiplayerGameStateService.setPlayerCompleted(gameId, userId, true);
@@ -50,6 +52,7 @@ public class MultiplayerGameStateController {
 
 	@MessageMapping("/multiplayer-game/start-round")
 	public void startRound(@Payload StartRoundRequest request) {
+        // TODO: should not be able to start round yourself.
 		UUID gameId = UUID.fromString(request.getGameId());
 		UUID sceneId = UUID.fromString(request.getSceneId());
 		multiplayerGameStateService.startRound(gameId, sceneId);

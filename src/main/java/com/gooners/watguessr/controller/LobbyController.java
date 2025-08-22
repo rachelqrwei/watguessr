@@ -30,6 +30,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/join")
 	public void joinLobby(@Payload JoinLobbyRequest request) {
+        // TODO: cant join lobby already started.
 		lobbyService.joinLobby(UUID.fromString(request.getLobbyId()), request.getUser());
 	}
 
@@ -54,6 +55,7 @@ public class LobbyController {
 	 */
 	@MessageMapping("/lobby/start")
 	public UUID startGame(@Payload StartGameRequest request) {
+        // TODO: cant start game already started.
 		return lobbyService.tryStartGame(UUID.fromString(request.getLobbyId()), request.getGameMode(), request.getRoundCount(), request.getTimer());
 	}
 

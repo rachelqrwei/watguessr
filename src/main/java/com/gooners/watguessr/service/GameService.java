@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -35,8 +36,8 @@ public class GameService {
     private final MultiplayerGameStateService multiplayerGameStateService;
 
     public GameService(GameRepository gameRepository,
-                       UserService userService, RoundService roundService, RoundRepository roundRepository,
-                       LobbyService lobbyService, UserMapper userMapper, MultiplayerGameStateService multiplayerGameStateService) {
+            UserService userService, RoundService roundService, RoundRepository roundRepository,
+            LobbyService lobbyService, UserMapper userMapper, MultiplayerGameStateService multiplayerGameStateService) {
         this.gameRepository = gameRepository;
         this.userService = userService;
         this.roundService = roundService;
@@ -113,7 +114,7 @@ public class GameService {
 
     public List<LobbyDto> getPublicLobbies() {
         List<Game> publicGames = gameRepository.findByIsPrivateFalseAndGameMode("Multiplayer");
-        
+
         // Filter out games that don't have active lobbies in LobbyService
         return publicGames.stream()
                 .filter(game -> {
@@ -183,8 +184,8 @@ public class GameService {
         Game game = findById(gameId);
         HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
         UUID winnerId = findWinner(userPoints);
-        
-        User winner =  userService.findById(winnerId);
+
+        User winner = userService.findById(winnerId);
         game.setWinner(winner);
         update(game);
 
@@ -193,7 +194,7 @@ public class GameService {
 
     public RankedGameResultDto resolveRankedGame(UUID gameId) {
         Game game = findById(gameId);
-        
+
         // Check if game has already been resolved (has a winner)
         if (game.getWinner() != null) {
             System.out.println("🎯 Game " + gameId + " has already been resolved, returning existing result");
@@ -204,7 +205,7 @@ public class GameService {
             rankedGameResultDto.setUserPoints(userPoints);
             return rankedGameResultDto;
         }
-        
+
         HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
         UUID winnerId = findWinner(userPoints);
         Integer averageElo = game.getRankedAverageElo();
@@ -224,7 +225,8 @@ public class GameService {
     /**
      * Returns a paginated match history for the given user.
      * For Singleplayer games, roundsSurvived is set (and won is null).
-     * For Multiplayer/Ranked games, won is set based on the game's winner (and roundsSurvived is null).
+     * For Multiplayer/Ranked games, won is set based on the game's winner (and
+     * roundsSurvived is null).
      */
     public List<MatchHistoryItem> getUserMatchHistory(UUID userId, Integer limit, Integer offset) {
         int actualLimit = limit != null ? limit : 20;
@@ -259,6 +261,7 @@ public class GameService {
 
     /**
      * Updates ELO ratings for all players in a ranked game
+     * 
      * @param userPoints HashMap containing user IDs and their scores
      * @param averageElo The average ELO of all players in the match
      */
@@ -266,18 +269,18 @@ public class GameService {
         UUID winnerId = findWinner(userPoints);
         Integer winnerScore = userPoints.get(winnerId);
         HashMap<UUID, Integer> userEloChanges = new HashMap<>();
-        
+
         for (HashMap.Entry<UUID, Integer> entry : userPoints.entrySet()) {
             UUID userId = entry.getKey();
             Integer userScore = entry.getValue();
             User user = userService.findById(userId);
-            
+
             // Determine if user won
             boolean won = userId.equals(winnerId);
-            
+
             // Calculate score difference from winner's score
             Integer scoreDifference = Math.abs(userScore - winnerScore);
-            
+
             // Calculate ELO change using utility
             Integer eloChange = EloCalculator.calculateEloChange(averageElo, user.getElo(), won, scoreDifference);
 
@@ -338,15 +341,39 @@ public class GameService {
         return new SingleplayerGameState(gameId, currentScore, roundsCompleted, shouldEnd, isGameEnded);
     }
 
-
     public void update(Game game) {
         gameRepository.save(game);
     }
 
-
     public Game findById(UUID id) {
         return gameRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
+    }
+
+    /**
+     * Gets all player IDs for a specific game
+     * 
+     * @param gameId The ID of the game
+     * @return List of player UUIDs
+     */
+    public List<UUID> getPlayerIdsForGame(UUID gameId) {
+        String gameMode = findById(gameId).getGameMode();
+
+        if ("singleplayer".equalsIgnoreCase(gameMode)) {
+            // For singleplayer, we only have one player who made guesses
+            List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
+            return userPointsData.stream()
+                    .map(row -> (UUID) row[0])
+                    .collect(Collectors.toList());
+        } else if ("multiplayer".equalsIgnoreCase(gameMode) || "ranked".equalsIgnoreCase(gameMode)) {
+            // For multiplayer/ranked, get all players from the lobby service or user points
+            List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
+            return userPointsData.stream()
+                    .map(row -> (UUID) row[0])
+                    .collect(Collectors.toList());
+        }
+
+        return new ArrayList<UUID>();
     }
 
     public int cleanupExpiredGames() {
