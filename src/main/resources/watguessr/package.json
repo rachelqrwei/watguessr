@@ -27,6 +27,7 @@
     "@turf/turf": "^7.2.0",
     "clean": "^4.0.2",
     "express": "^5.1.0",
+    "idb": "^8.0.3",
     "mapbox-gl": "^3.13.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
