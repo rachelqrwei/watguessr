@@ -16,7 +16,7 @@
       <div class="player-score-bar-container">
         <div
           class="player-score-bar"
-          :style="{ 
+          :style="{
             width: getScorePercentage(player.score) + '%',
             background: isCurrentUser(id) ? 'var(--player-1-gradient)' : 'var(--player-2-gradient)'
           }"
@@ -150,20 +150,20 @@ export default {
 /* Responsive styling for multiplayer score tracker */
 @media (max-width: 1200px) {
   .multiplayer-score-tracker {
-    width: 18vw;
+    width: 19vw;
     bottom: 8.5%;
   }
-  
+
   .player-score-row {
     padding: 10px;
     gap: 8px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 13px;
   }
-  
+
   .player-status {
     font-size: 15px;
   }
@@ -171,20 +171,20 @@ export default {
 
 @media (max-width: 1024px) {
   .multiplayer-score-tracker {
-    width: 16vw;
+    width: 20vw;
     bottom: 8%;
   }
-  
+
   .player-score-row {
     padding: 8px;
     gap: 6px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 12px;
   }
-  
+
   .player-status {
     font-size: 14px;
   }
@@ -195,17 +195,17 @@ export default {
     width: 15vw;
     bottom: 7.5%;
   }
-  
+
   .player-score-row {
     padding: 6px;
     gap: 5px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 11px;
   }
-  
+
   .player-status {
     font-size: 13px;
   }
@@ -216,17 +216,17 @@ export default {
     width: 14vw;
     bottom: 7%;
   }
-  
+
   .player-score-row {
     padding: 5px;
     gap: 4px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 10px;
   }
-  
+
   .player-status {
     font-size: 12px;
   }
@@ -237,17 +237,17 @@ export default {
     width: 13vw;
     bottom: 6.5%;
   }
-  
+
   .player-score-row {
     padding: 4px;
     gap: 3px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 9px;
   }
-  
+
   .player-status {
     font-size: 11px;
   }
@@ -258,17 +258,17 @@ export default {
     width: 12vw;
     bottom: 6%;
   }
-  
+
   .player-score-row {
     padding: 3px;
     gap: 2px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 8px;
   }
-  
+
   .player-status {
     font-size: 10px;
   }

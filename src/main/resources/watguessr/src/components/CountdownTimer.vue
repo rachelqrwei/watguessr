@@ -58,7 +58,8 @@ export default {
 
         if (this.getCurrentRound <= 1) {
           this.startCountdown();
-        } else {
+        }
+        else if (this.getCurrentRound > 1) {
           this.startProgressBar();
         }
       } else {
