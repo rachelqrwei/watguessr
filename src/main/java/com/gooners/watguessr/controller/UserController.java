@@ -1,20 +1,29 @@
 package com.gooners.watguessr.controller;
 
-import com.gooners.watguessr.dto.*;
-
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.gooners.watguessr.dto.BugReportRequest;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.MatchHistoryItem;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserDto;
+import com.gooners.watguessr.dto.UserSettingsDto;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.UserMapper;
 import com.gooners.watguessr.service.EmailVerificationService;
@@ -127,8 +136,9 @@ public class UserController {
     }
 
     @PutMapping("/change-username")
-    public void changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername) {
+    public ResponseEntity<String> changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername) {
         userService.changeUsername(emailAddress, newUsername);
+        return ResponseEntity.ok("Username changed successfully");
     }
 
     @DeleteMapping("/delete-user")

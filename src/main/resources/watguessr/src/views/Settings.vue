@@ -39,15 +39,35 @@
                 <label>Username</label>
                 <div class="username-line">
                   <div class="input-with-icon">
-                    <input type="text" :value="settings?.username" disabled />
-                    <button class="edit-inline-btn" title="Edit username">
-                      <font-awesome-icon icon="fa-solid fa-pen" />
-                      <span class="icon-btn-text">EDIT</span>
+                    <input type="text"
+                           v-model="newUsername"
+                           :placeholder="settings?.username || 'Enter new username'"
+                           :disabled="!isEditingUsername"
+                    />
+                    <button class="edit-inline-btn" @click="toggleUsernameEditing" title="Edit username">
+                      <font-awesome-icon :icon="isEditingUsername ? 'fa-solid fa-check' : 'fa-solid fa-pen'" />
+                      <span class="icon-btn-text">{{ isEditingUsername ? 'SAVE' : 'EDIT' }}</span>
                     </button>
                   </div>
-                  <button class="change-password-btn" @click="onChangePassword">Change Password</button>
+                  <button class="change-password-btn" @click="togglePasswordEditing">Change Password</button>
+                  <!-- Username error message -->
+                  <div v-if="showErrorMessage" class="username-error-message">
+                    {{ errorMessage }}
+                  </div>
+
                 </div>
+
               </div>
+            </div>
+          </div>
+
+          <!-- Password change section -->
+          <div v-if="isEditingPassword" class="form-row">
+            <label>New Password</label>
+            <div class="password-input-group">
+              <input type="password" v-model="newPassword" placeholder="Enter new password" />
+              <button class="save-password-btn" @click="onChangePassword">Save Password</button>
+              <button class="cancel-password-btn" @click="cancelPasswordEditing">Cancel</button>
             </div>
           </div>
 
@@ -80,7 +100,11 @@ export default {
     return {
       settings: null,
       isLoading: true,
-      errorMessage: null
+      errorMessage: null,
+      newUsername: '',
+      newPassword: '',
+      isEditingUsername: false,
+      isEditingPassword: false,
     }
   },
   computed: {
@@ -88,32 +112,130 @@ export default {
     avatarColors() {
       const name = this.settings?.username || 'Guest'
       return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 })
+    },
+    showErrorMessage() {
+      return this.errorMessage && this.errorMessage.trim() !== ''
     }
   },
   methods: {
-    ...mapActions('user', ['fetchUserSettings']),
+    ...mapActions('user', ['fetchUserSettings', 'changeUsername', 'deleteUser', 'changePassword']),
+
     async loadSettings() {
       try {
         this.isLoading = true
         this.errorMessage = null
         const res = await this.fetchUserSettings(this.getCurrentUser.id)
         this.settings = res
+        this.newUsername = res.username || ''
       } catch (err) {
         this.errorMessage = err instanceof Error ? err.message : 'Failed to load settings'
       } finally {
         this.isLoading = false
       }
     },
-    onChangePassword() {
-      // TODO: Hook up to change password flow when available
-      alert('Change password is not implemented yet.');
-    },
-    onDeleteUser() {
-      // TODO: Wire to backend delete endpoint with confirmation
-      if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        alert('Delete user is not implemented yet.');
+
+    toggleUsernameEditing() {
+      if (this.isEditingUsername) {
+        this.saveUsername()
+      } else {
+        this.isEditingUsername = true
+        this.errorMessage = null
+        this.newUsername = this.settings?.username || ''
       }
     },
+
+    async saveUsername() {
+      if (!this.newUsername || this.newUsername.trim() === '') {
+        this.errorMessage = 'Username cannot be empty'
+        return
+      }
+
+      try {
+        this.isLoading = true
+        this.errorMessage = null
+
+
+        const res = await this.changeUsername({
+          emailAddress: this.settings.emailAddress,
+          newUsername: this.newUsername.trim()
+        })
+
+        // Update local settings
+        if (res) {
+          this.settings = {...this.settings, username: this.newUsername.trim()}
+          this.isEditingUsername = false
+          this.$toast?.success?.('Username updated successfully') || console.log('Username updated successfully')
+        }
+      } catch (err) {
+        this.errorMessage = err instanceof Error ? err.message : 'Failed to change username'
+        this.newUsername = this.settings.username
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    togglePasswordEditing() {
+      this.isEditingPassword = true
+      this.newPassword = ''
+    },
+
+    cancelPasswordEditing() {
+      this.isEditingPassword = false
+      this.newPassword = ''
+    },
+
+    async onChangePassword() {
+      if (!this.newPassword || this.newPassword.trim() === '') {
+        this.errorMessage = 'Password cannot be empty'
+        return
+      }
+
+      try {
+        this.isLoading = true
+        this.errorMessage = null
+
+        await this.changePassword({
+          emailAddress: this.settings.emailAddress,
+          newPassword: this.newPassword
+        })
+
+        this.isEditingPassword = false
+        this.newPassword = ''
+
+        // Show success message
+        this.$toast?.success?.('Password changed successfully') || console.log('Password changed successfully')
+
+      } catch (err) {
+        this.errorMessage = err instanceof Error ? err.message : 'Failed to change password'
+        this.newPassword =  ''
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async onDeleteUser() {
+      if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        return
+      }
+
+      try {
+        this.isLoading = true
+        this.errorMessage = null
+
+        await this.deleteUser({
+          emailAddress: this.settings.emailAddress
+        })
+
+        // Redirect to home page after successful deletion
+        this.$router.push('/')
+
+      } catch (err) {
+        this.errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     formatDate(iso) {
       if (!iso) return ''
       try {
@@ -199,6 +321,21 @@ export default {
 .empty {
   text-align: center;
   color: var(--light-grey);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 227, 127, 0.3);
+  border-top: 3px solid #FFE37F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .auth-placeholder {
@@ -431,6 +568,57 @@ export default {
   margin: 8px 0;
 }
 
+.password-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.password-input-group input {
+  flex: 1;
+}
+
+.save-password-btn,
+.cancel-password-btn {
+  white-space: nowrap;
+  height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.save-password-btn {
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+}
+
+.save-password-btn:hover {
+  background: rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+  transform: translateY(-1px);
+}
+
+.cancel-password-btn {
+  background: rgba(158, 158, 158, 0.12);
+  border: 1px solid #9E9E9E;
+  color: #9E9E9E;
+}
+
+.cancel-password-btn:hover {
+  background: rgba(158, 158, 158, 0.2);
+  box-shadow: 0 0 0 3px rgba(158, 158, 158, 0.12);
+  transform: translateY(-1px);
+}
+
 label {
   color: var(--light-grey);
   font-size: 14px;
@@ -516,6 +704,30 @@ input[type="email"] {
 .edit-inline-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.35);
+}
+
+.username-error-message {
+  white-space: nowrap;
+  height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 127, 127, 0.12);
+  border: 1px solid #FF7F7F;
+  color: #FF7F7F;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  margin-left: 84px; /* Align with the username input field */
+}
+
+.username-error-message:hover {
+  background: rgba(255, 127, 127, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 127, 127, 0.12);
 }
 
 @media (max-width: 768px) {
