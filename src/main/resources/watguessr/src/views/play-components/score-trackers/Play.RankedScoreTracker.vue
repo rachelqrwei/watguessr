@@ -292,6 +292,130 @@ export default {
   position: relative;
 }
 
+/* Responsive styling for ranked score tracker */
+@media (max-width: 1200px) {
+  .player-score-progress-container {
+    width: 350px;
+    height: 35px;
+    padding: 10px 10px 12px 20px;
+  }
+  
+  .player-score-text-container {
+    padding: 10px 20px 0 20px;
+    gap: 20px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .player-score-progress-container {
+    width: 300px;
+    height: 32px;
+    padding: 8px 8px 10px 18px;
+  }
+  
+  .player-score-text-container {
+    padding: 8px 18px 0 18px;
+    gap: 18px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .player-score-progress-container {
+    width: 280px;
+    height: 30px;
+    padding: 6px 6px 8px 16px;
+  }
+  
+  .player-score-text-container {
+    padding: 6px 16px 0 16px;
+    gap: 16px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-score-tracker-container {
+    bottom: 8%;
+    padding: 0 12px;
+  }
+  
+  .player-score-progress-container {
+    width: 260px;
+    height: 28px;
+    padding: 5px 5px 7px 14px;
+  }
+  
+  .player-score-text-container {
+    padding: 5px 14px 0 14px;
+    gap: 14px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .player-score-tracker-container {
+    bottom: 7%;
+    padding: 0 10px;
+  }
+  
+  .player-score-progress-container {
+    width: 240px;
+    height: 26px;
+    padding: 4px 4px 6px 12px;
+  }
+  
+  .player-score-text-container {
+    padding: 4px 12px 0 12px;
+    gap: 12px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-score-tracker-container {
+    bottom: 6%;
+    padding: 0 8px;
+  }
+  
+  .player-score-progress-container {
+    width: 220px;
+    height: 24px;
+    padding: 3px 3px 5px 10px;
+  }
+  
+  .player-score-text-container {
+    padding: 3px 10px 0 10px;
+    gap: 10px;
+  }
+  
+  .player-name,
+  .player-elo {
+    font-size: 8px;
+  }
+}
+
 .player-score-tracker-1 .player-score-progress-container {
   border-radius: 0 25px 25px 25px;
 }
