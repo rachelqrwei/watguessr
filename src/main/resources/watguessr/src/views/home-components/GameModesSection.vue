@@ -4,7 +4,7 @@
     <div class="error-modal" @click.stop>
       <div class="error-icon">⚠️</div>
       <h3>Login Required</h3>
-      <p>Log in to enter game</p>
+      <p><em>Log in to enter game</em></p>
       <button class="error-close-btn" @click="hideError">OK</button>
     </div>
   </div>

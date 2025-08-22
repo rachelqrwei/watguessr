@@ -34,6 +34,7 @@ export default {
     ...mapGetters('singleplayerGame', ['singleplayerGame_getTimer']),
     ...mapGetters('multiplayerGame', ['multiplayerGame_getTimer']),
     ...mapGetters('guess', ['getGuessTime']),
+    ...mapGetters('rankedGame', ['rankedGame_getTimer']),
     totalTime() {
       if (this.getGameMode == 'singleplayer') {
         return this.singleplayerGame_getTimer;
@@ -41,7 +42,10 @@ export default {
       if (this.getGameMode == 'multiplayer') {
         return this.multiplayerGame_getTimer;
       }
-      return 60000; // Default 60 seconds in milliseconds
+      if (this.getGameMode == 'ranked') {
+        return this.rankedGame_getTimer;
+      }
+      return 30000; // Fallback for unknown modes
     },
     progressAngle() {
       if (!this.totalTime) return 0;
