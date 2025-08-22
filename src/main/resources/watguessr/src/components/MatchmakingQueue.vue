@@ -2,17 +2,12 @@
   <div class="matchmaking-queue">
     <!-- Queue Status -->
     <div v-if="queueState === 'searching'" class="queue-status searching">
-      <h3>🎯 Searching for opponents...</h3>
+      <h3 class="queue-title">Searching for opponents <span class="dots-animation header-dots"><span>.</span><span>.</span><span>.</span></span></h3>
       <div class="queue-timer">
         <span class="timer-text">Time in queue:</span>
         <span class="timer-value">{{ formatTime(queueTime) }}</span>
       </div>
-      <div class="queue-details">
-        <p>Finding players of similar elo rating</p>
-        <div class="dots-animation">
-          <span>.</span><span>.</span><span>.</span>
-        </div>
-      </div>
+      
       <button class="cancel-queue-btn" @click="cancelQueue">
         Cancel Search
       </button>
@@ -33,8 +28,8 @@
           </div>
         </div>
         <div class="game-details">
-          <p>📍 {{ matchInfo.roundCount }} rounds</p>
-          <p>⏱️ {{ matchInfo.timeLimit }}s per round</p>
+          <p>{{ matchInfo.roundCount }} rounds</p>
+          <p>⏱{{ matchInfo.timeLimit }}s per round</p>
         </div>
       </div>
       <div class="starting-timer">
@@ -192,21 +187,11 @@ export default {
   transition: all 0.3s ease;
 }
 
-.queue-status.searching {
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(33, 150, 243, 0.05));
-  border: 1px solid rgba(33, 150, 243, 0.3);
-}
+.queue-status.searching { background: none; border: none; backdrop-filter: none; }
 
-.queue-status.match-found {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  animation: pulse-green 2s infinite;
-}
+.queue-status.match-found { background: none; border: none; }
 
-.queue-status.error {
-  background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(244, 67, 54, 0.05));
-  border: 1px solid rgba(244, 67, 54, 0.3);
-}
+.queue-status.error { background: none; border: none; }
 
 .queue-animation {
   margin-bottom: 16px;
@@ -246,15 +231,19 @@ export default {
 }
 
 .queue-status h3 {
-  margin: 0 0 16px 0;
-  font-size: 1.3rem;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--white);
 }
 
 .queue-timer {
   margin: 16px 0;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -262,20 +251,22 @@ export default {
 }
 
 .timer-text {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--light-grey);
+  font-size: 0.85rem;
+  text-transform: none;
 }
 
 .timer-value {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #2196F3;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #FFB366; /* ranked accent */
   font-family: monospace;
 }
 
 .queue-details {
-  margin: 16px 0;
-  color: var(--text-secondary);
+  margin: 8px 0 12px 0;
+  color: var(--light-grey);
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .dots-animation {
@@ -285,8 +276,10 @@ export default {
 .dots-animation span {
   animation: dots 1.4s infinite ease-in-out both;
   font-size: 1.5rem;
-  color: #2196F3;
+  color: var(--white);
 }
+
+.header-dots { display: inline-flex; gap: 2px; margin-left: 4px; }
 
 .dots-animation span:nth-child(1) { animation-delay: -0.32s; }
 .dots-animation span:nth-child(2) { animation-delay: -0.16s; }
@@ -313,13 +306,14 @@ export default {
 }
 
 .opponent-name {
-  font-weight: bold;
+  font-weight: 800;
+  letter-spacing: 0.3px;
   color: var(--white);
 }
 
 .opponent-rating {
-  color: var(--accent-color);
-  font-weight: 600;
+  color: var(--light-grey);
+  font-weight: 700;
 }
 
 .game-details {
@@ -348,29 +342,39 @@ export default {
 }
 
 .cancel-queue-btn, .retry-btn {
-  background: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--white);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   margin-top: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.cancel-queue-btn:hover, .retry-btn:hover {
-  background: var(--accent-color);
-  transform: translateY(-1px);
+/* CANCEL: white shine + translate only */
+.cancel-queue-btn { position: relative; overflow: hidden; }
+.cancel-queue-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transition: left 0.5s ease;
 }
+.cancel-queue-btn:hover { transform: translateY(-1px); }
+.cancel-queue-btn:hover::before { left: 100%; }
 
-.retry-btn {
-  background: #4CAF50;
-}
-
+/* RETRY: keep ranked accent hover */
 .retry-btn:hover {
-  background: #45a049;
+  background: #FFB366; /* ranked accent */
+  color: var(--dark-grey);
+  border-color: #FFB366;
+  transform: translateY(-1px);
 }
 
 /* Animations */
@@ -446,4 +450,14 @@ export default {
     font-size: 2rem;
   }
 }
+
+/* Typography refinements */
+.queue-status p {
+  color: var(--light-grey);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-family: "Red Hat Text", sans-serif;
+}
+
+.timer-value { letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
 </style>

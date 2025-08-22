@@ -118,10 +118,10 @@ const isPlayPage = computed(() => route.path === '/play')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
 
-// Show top-left logo only on Play, Leaderboard, and Profile pages
+// Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
 const showPageLogo = computed(() => {
   const p = route.path
-  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings')
+  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings') || p.startsWith('/lobby')
 })
 
 const navLinks = [
