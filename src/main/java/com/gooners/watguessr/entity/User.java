@@ -37,9 +37,6 @@ public class User {
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
 
-    @Column(name = "display_name")
-    private String displayName;
-
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
@@ -55,7 +52,6 @@ public class User {
         this.elo = 150;
         this.streak = 0;
         this.lastLoginAt = OffsetDateTime.now(ZoneId.of("America/Toronto"));
-        this.displayName = username;
         this.verified = false;
     }
 
@@ -121,14 +117,6 @@ public class User {
 
     public void setLastLoginAt(OffsetDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
     }
 
     public String getProfilePictureUrl() {

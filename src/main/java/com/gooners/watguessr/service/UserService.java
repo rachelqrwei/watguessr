@@ -219,7 +219,7 @@ public class UserService {
         User user = new User();
         user.setEmailAddress(email);
         user.setUsername(username);
-        user.setDisplayName(name);
+        user.setUsername(name);
         user.setProfilePictureUrl(picture);
         user.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
