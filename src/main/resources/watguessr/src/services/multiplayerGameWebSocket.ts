@@ -66,6 +66,7 @@ export function connectToMultiplayerGame(gameId: string) {
 export function disconnectFromMultiplayerGame() {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect(() => {
+      store.commit('guess/RESET_GUESS', null);
     });
     stompClient = null;
   }
@@ -271,6 +272,8 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
   if (completionData.shouldEnd) {
     store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
   }
+
+  store.commit('guess/RESET_GUESS', null);
 
   // Update players with final scores
   if (completionData.players) {

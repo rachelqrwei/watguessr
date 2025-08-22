@@ -73,6 +73,7 @@ export function connectToRankedGame(gameId: string) {
 export function disconnectFromRankedGame() {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect(() => {
+      store.commit('guess/RESET_GUESS', null);
     });
     stompClient = null;
   }
@@ -321,7 +322,7 @@ function handleGameComplete(completionData: RankedGameStateDto) {
   const gameId = completionData.gameId;
   if (gameId) {
     console.log('🎯 Calling backend endpoint to resolve game and set database winner:', gameId);
-    
+
     // Call the backend endpoint to finish the game
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${gameId}`, {
       method: 'POST',
@@ -337,7 +338,7 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     .then(gameResult => {
       console.log('🎯 Game resolved successfully via backend, winner set in database');
       console.log('🎯 ELO changes received:', gameResult.eloChanges);
-      
+
       // Store the game result with ELO changes
       store.commit('rankedGame/RG_SET_RESULT', gameResult);
     })
@@ -360,15 +361,16 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     });
   } else {
     console.error('❌ No game ID in completion data, cannot resolve game');
-    
+
     // Handle cleanup even if we can't resolve the game
     const currentUser = store.getters['user/getCurrentUser'];
     if (currentUser?.id) {
       store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
     }
-    
+
     store.commit('gameInfo/RESET_GAME', null, {root: true});
     store.commit('round/RESET_ROUND', null, {root: true});
+    store.commit('guess/RESET_GUESS', null);
     disconnectFromRankedGame();
   }
 }
