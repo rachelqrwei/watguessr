@@ -238,7 +238,7 @@ export default {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  padding: 8px 16px;
+  padding: 5px 16px;
   border-radius: 12px;
   transition: all 0.2s ease;
 }

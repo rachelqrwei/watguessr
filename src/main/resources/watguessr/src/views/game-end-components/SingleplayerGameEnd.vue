@@ -165,4 +165,113 @@ export default {
 .home-btn {
   background-color: #ffe066;
 }
+
+/* Responsive styling for different laptop/desktop sizes */
+@media (max-width: 1400px) {
+  .game-end-panel {
+    max-width: 680px;
+    padding: 24px 20px 20px;
+    gap: 14px;
+  }
+  
+  .game-label {
+    font-size: 38px;
+  }
+  
+  .final-points-value {
+    font-size: 32px;
+  }
+  
+  .final-points-label {
+    font-size: 15px;
+  }
+  
+  .btn {
+    padding: 9px 18px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .game-end-panel {
+    max-width: 600px;
+    padding: 22px 18px 18px;
+    gap: 12px;
+  }
+  
+  .game-label {
+    font-size: 34px;
+  }
+  
+  .final-points-value {
+    font-size: 28px;
+  }
+  
+  .final-points-label {
+    font-size: 14px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .game-end-panel {
+    max-width: 540px;
+    padding: 20px 16px 16px;
+    gap: 10px;
+  }
+  
+  .game-label {
+    font-size: 30px;
+  }
+  
+  .final-points-value {
+    font-size: 24px;
+  }
+  
+  .final-points-label {
+    font-size: 13px;
+  }
+  
+  .btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+  
+  .button-section {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-end-panel {
+    max-width: 480px;
+    padding: 18px 14px 14px;
+    gap: 8px;
+  }
+  
+  .game-label {
+    font-size: 26px;
+  }
+  
+  .final-points-value {
+    font-size: 20px;
+  }
+  
+  .final-points-label {
+    font-size: 12px;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .button-section {
+    gap: 10px;
+  }
+}
 </style>
