@@ -751,7 +751,7 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 .stat-group { margin-top: 14px; }
 
 .ready-indicator-text {
-  color: var(--yellow);
+  color: #7FB9FF;
 }
 
 /* Add spacing below game settings grid in ranked pane */
@@ -776,8 +776,8 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 }
 
 .lobby-code .code {
-  background: var(--yellow);
-  color: var(--dark-grey);
+  background: var(--player-2-gradient);
+  color: var(--white);
   padding: 4px 8px;
   border-radius: 6px;
   font-family: monospace;
@@ -856,8 +856,8 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 }
 
 .you-badge {
-  background: var(--yellow);
-  color: var(--dark-grey);
+  background: linear-gradient(to right, rgba(127, 185, 255, 0.22), rgba(170, 127, 255, 0.22));
+  color: var(--white);
   padding: 2px 6px;
   border-radius: 6px;
   font-size: 0.7rem;
@@ -870,47 +870,50 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 }
 
 .ready-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: var(--white);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .ready-button:hover {
-  background: var(--yellow);
-  color: var(--dark-grey);
-  border-color: var(--yellow);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .ready-button.ready {
-  background: var(--yellow);
-  color: var(--dark-grey);
-  border-color: var(--yellow);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .ready-indicator {
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: var(--white);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ready-indicator.ready {
-  background: var(--yellow);
-  color: var(--dark-grey);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .waiting-msg {
@@ -1000,14 +1003,18 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 }
 
 .start-game-button {
-  background: #4CAF50 !important;
-  color: var(--white) !important;
-  animation: pulse 2s infinite;
+  background: linear-gradient(to right, #7FB9FF, #AA7FFF) !important;
+  color: white !important;
+  border: 1px solid #7FB9FF !important;
+  box-shadow: 0 4px 15px rgba(127, 185, 255, 0.3);
+  animation: none;
 }
 
 .start-game-button:hover {
-  background: #45a049 !important;
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(to right, #6BA8FF, #9966FF) !important;
+  border-color: #6BA8FF !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(127, 185, 255, 0.4);
 }
 
 @keyframes pulse {
