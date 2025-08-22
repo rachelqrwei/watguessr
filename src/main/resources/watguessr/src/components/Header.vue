@@ -22,7 +22,6 @@
             <li @click="handleLogout">Log Out</li>
           </template>
           <template v-else>
-            <li @click="handleSettings">Settings</li>
             <li @click="handleLogin">Log in</li>
             <li @click="handleSignUp">Sign up</li>
           </template>

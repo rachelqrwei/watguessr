@@ -3,7 +3,13 @@
   <div class="profile-background" aria-hidden="true"></div>
   <div class="profile-view">
 
-    <div v-if="isLoading" class="loading">
+    <div v-if="!isAuthenticated" class="auth-placeholder">
+      <div class="auth-placeholder-content">
+        <p>You need to be signed in to access your account settings.</p>
+      </div>
+    </div>
+
+    <div v-else-if="isLoading" class="loading">
       <div class="loading-spinner"></div>
       <p>Loading settings...</p>
     </div>
@@ -11,7 +17,7 @@
     <div v-else-if="errorMessage" class="error">{{ errorMessage }}</div>
 
     <transition name="fade-slide" mode="out-in">
-      <div v-if="!isLoading && !errorMessage" key="settings-card" class="profile">
+      <div v-if="isAuthenticated && !isLoading && !errorMessage" key="settings-card" class="profile">
         <div class="profile-content single-column">
           <div class="hero">
             <div class="hero-info">
@@ -78,7 +84,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('user', ['getCurrentUser']),
+    ...mapGetters('user', ['getCurrentUser', 'isAuthenticated']),
     avatarColors() {
       const name = this.settings?.username || 'Guest'
       return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 })
@@ -119,8 +125,10 @@ export default {
     }
   },
   mounted() {
-    if (this.getCurrentUser) {
+    if (this.isAuthenticated && this.getCurrentUser) {
       this.loadSettings()
+    } else if (!this.isAuthenticated) {
+      this.isLoading = false
     }
   }
 }
@@ -191,6 +199,43 @@ export default {
 .empty {
   text-align: center;
   color: var(--light-grey);
+}
+
+.auth-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.auth-placeholder-content {
+  text-align: center;
+  background: rgba(42, 42, 44, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 40px 30px;
+  backdrop-filter: blur(8px);
+  max-width: 400px;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+
+.auth-placeholder-content h2 {
+  color: var(--white);
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.auth-placeholder-content p {
+  color: var(--light-grey);
+  margin: 0;
+  line-height: 1.5;
+  font-style: italic;
 }
 
 .profile {

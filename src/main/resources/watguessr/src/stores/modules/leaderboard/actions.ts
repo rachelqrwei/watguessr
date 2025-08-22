@@ -18,7 +18,8 @@ export const actions = {
       if (mergedQuery.limit !== undefined) params.append('limit', mergedQuery.limit.toString());
       if (mergedQuery.offset !== undefined) params.append('offset', mergedQuery.offset.toString());
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?sortBy=elo&limit=20&offset=0`);
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?${params.toString()}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -48,21 +49,21 @@ export const actions = {
   },
 
   nextPage({ state, commit, dispatch }: { state: LeaderboardState; commit: Function; dispatch: Function }) {
-    const limit = state.currentQuery.limit || 20;
+    const limit = state.currentQuery.limit || 50;
     const newOffset = (state.currentQuery.offset || 0) + limit;
     commit('SET_CURRENT_QUERY', { offset: newOffset });
     dispatch('fetchLeaderboard', { offset: newOffset });
   },
 
   previousPage({ state, commit, dispatch }: { state: LeaderboardState; commit: Function; dispatch: Function }) {
-    const limit = state.currentQuery.limit || 20;
+    const limit = state.currentQuery.limit || 50;
     const newOffset = Math.max(0, (state.currentQuery.offset || 0) - limit);
     commit('SET_CURRENT_QUERY', { offset: newOffset });
     dispatch('fetchLeaderboard', { offset: newOffset });
   },
 
   goToPage({ commit, dispatch, state }: { commit: Function; dispatch: Function; state: LeaderboardState }, page: number) {
-    const limit = state.currentQuery.limit || 20;
+    const limit = state.currentQuery.limit || 50;
     const newOffset = (page - 1) * limit;
     commit('SET_CURRENT_QUERY', { offset: newOffset });
     dispatch('fetchLeaderboard', { offset: newOffset });

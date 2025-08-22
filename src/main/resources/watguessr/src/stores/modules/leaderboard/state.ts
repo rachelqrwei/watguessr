@@ -8,7 +8,7 @@ export const state = (): LeaderboardState => ({
   currentQuery: {
     searchTerm: '',
     sortBy: 'elo',
-    limit: 20,
+    limit: 50,
     offset: 0,
   },
 });
