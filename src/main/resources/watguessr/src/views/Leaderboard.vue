@@ -153,7 +153,7 @@
         </div>
       </div>
 
-      
+
     </div>
   </div>
 </template>
@@ -485,9 +485,10 @@ export default {
   background: rgba(42, 42, 44, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
-  overflow: hidden;
+  overflow-x: auto;
   backdrop-filter: blur(8px);
   padding: 16px;
+  width: 100%;
 }
 
 .table-header {
@@ -503,6 +504,7 @@ export default {
   margin-bottom: 8px;
   align-items: center;
   font-weight: 900;
+  width: 100%;
 }
 
 .table-row {
@@ -515,6 +517,7 @@ export default {
   border-radius: 10px;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
   margin: 8px 0;
+  width: 100%;
 }
 
 .table-row:hover {
@@ -530,6 +533,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 80px;
 }
 
 .table-header .rank-col {
@@ -592,6 +596,7 @@ export default {
 .player-col {
   display: flex;
   align-items: center;
+  min-width: 150px;
 }
 
 .player-name {
@@ -611,6 +616,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 100px;
 }
 
 .elo-value {
@@ -623,6 +629,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 140px;
 }
 
 .streak-value {
@@ -653,6 +660,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  min-width: 140px;
 }
 
 .games-stats {
@@ -685,6 +693,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 120px;
 }
 
 .winrate-value {
@@ -700,6 +709,113 @@ export default {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   overflow: hidden;
+}
+
+/* Desktop/Laptop screens - restore original styling */
+@media (min-width: 1024px) {
+  .leaderboard-page {
+    padding: 40px 20px;
+    margin-top: 0;
+  }
+  
+  .leaderboard-header h1 {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+  
+  .leaderboard-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .search-section {
+    max-width: 400px;
+  }
+  
+  .sort-section {
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .sort-section label {
+    font-size: 1rem;
+  }
+  
+  .sort-select {
+    padding: 12px 40px 12px 15px;
+    font-size: 1rem;
+  }
+  
+  .table-header {
+    gap: 12px;
+    padding: 16px 12px 20px 12px;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+  
+  .table-row {
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .rank-badge {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+    margin-left: 8px;
+  }
+  
+  .player-name {
+    font-size: 1rem;
+  }
+  
+  .elo-value {
+    font-size: 1.1rem;
+  }
+  
+  .streak-value {
+    font-size: 1rem;
+  }
+  
+  .streak-icon {
+    height: 16px;
+    width: 14px;
+  }
+  
+  .games-record {
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .winrate-value {
+    font-size: 1rem;
+  }
+  
+  .winrate-bar {
+    width: 100%;
+    height: 4px;
+  }
+  
+  .pagination {
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 12px;
+  }
+  
+  .pagination-button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    min-width: auto;
+    height: auto;
+  }
+  
+  .page-info {
+    font-size: 1rem;
+    order: 0;
+    margin-bottom: 0;
+  }
 }
 
 .winrate-fill {
@@ -774,6 +890,547 @@ export default {
 
   .games-played {
     display: none;
+  }
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+  .leaderboard-page {
+    padding: 30px 16px;
+    margin-top: 80px;
+  }
+
+  .leaderboard-header {
+    margin-bottom: 30px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.6rem;
+    letter-spacing: 0.8px;
+  }
+
+  .leaderboard-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .search-section {
+    max-width: none;
+  }
+
+  .sort-section {
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sort-section label {
+    font-size: 0.9rem;
+  }
+
+  .sort-select {
+    padding: 10px 35px 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .table-header,
+  .table-row {
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+    .table-header {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 12px 8px 16px 8px;
+    width: fit-content;
+  }
+  
+  .table-row {
+    width: fit-content;
+  }
+  
+  .rank-badge {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    margin-left: 4px;
+  }
+
+  .player-name {
+    font-size: 0.9rem;
+  }
+
+  .elo-value {
+    font-size: 1rem;
+  }
+
+  .streak-value {
+    font-size: 0.9rem;
+  }
+
+  .streak-icon {
+    height: 14px;
+    width: 12px;
+  }
+
+  .games-record {
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+
+    .winrate-value {
+    font-size: 0.9rem;
+  }
+  
+  .winrate-bar {
+    width: 60%;
+    height: 3px;
+  }
+  
+  .pagination {
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .pagination-button {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .page-info {
+    font-size: 0.9rem;
+  }
+
+  /* Pagination responsive adjustments */
+  .pagination-button {
+    min-width: 100px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .leaderboard-page {
+    padding: 24px 12px;
+    margin-top: 80px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.4rem;
+    letter-spacing: 0.6px;
+  }
+
+  .leaderboard-controls {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .search-input {
+    padding: 10px 15px 10px 40px;
+    font-size: 0.9rem;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 0.9rem;
+  }
+
+  .sort-select {
+    padding: 8px 30px 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .table-header,
+  .table-row {
+    gap: 6px;
+    padding: 8px 6px;
+  }
+
+    .table-header {
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+    padding: 10px 6px 12px 6px;
+    width: fit-content;
+  }
+  
+  .table-row {
+    width: fit-content;
+  }
+  
+  .rank-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+    margin-left: 2px;
+  }
+
+  .player-name {
+    font-size: 0.85rem;
+  }
+
+  .elo-value {
+    font-size: 0.9rem;
+  }
+
+  .streak-value {
+    font-size: 0.85rem;
+  }
+
+  .streak-icon {
+    height: 12px;
+    width: 10px;
+  }
+
+  .games-record {
+    gap: 4px;
+    font-size: 0.75rem;
+  }
+
+    .winrate-value {
+    font-size: 0.85rem;
+  }
+  
+  .winrate-bar {
+    width: 60%;
+    height: 3px;
+  }
+  
+  .pagination {
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .pagination-button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    min-width: 90px;
+  }
+
+  .page-info {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-page {
+    padding: 20px 8px;
+    margin-top: 80px;
+  }
+
+  .leaderboard-header {
+    margin-bottom: 24px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+  }
+
+  .leaderboard-controls {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    padding: 8px 12px 8px 35px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  .search-icon {
+    left: 10px;
+    font-size: 0.85rem;
+  }
+
+  .sort-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .sort-section label {
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .sort-select {
+    padding: 8px 25px 8px 8px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .table-header,
+  .table-row {
+    gap: 4px;
+    padding: 6px 4px;
+  }
+
+    .table-header {
+    font-size: 0.65rem;
+    letter-spacing: 0.2px;
+    padding: 8px 4px 10px 4px;
+    width: fit-content;
+  }
+  
+  .table-row {
+    width: fit-content;
+  }
+  
+  .rank-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    margin-left: 0;
+  }
+
+  .player-name {
+    font-size: 0.8rem;
+  }
+
+  .elo-value {
+    font-size: 0.85rem;
+  }
+
+  .streak-value {
+    font-size: 0.8rem;
+  }
+
+  .streak-icon {
+    height: 10px;
+    width: 8px;
+  }
+
+  .games-record {
+    gap: 3px;
+    font-size: 0.7rem;
+  }
+
+    .winrate-value {
+    font-size: 0.8rem;
+  }
+  
+  .winrate-bar {
+    width: 60%;
+    height: 2px;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .pagination-button {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    justify-content: center;
+    min-width: 120px;
+    height: 44px;
+  }
+
+  .page-info {
+    font-size: 0.8rem;
+    order: -1;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .leaderboard-page {
+    padding: 16px 6px;
+    margin-top: 80px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.4px;
+  }
+
+  .search-input {
+    padding: 6px 10px 6px 30px;
+    font-size: 0.8rem;
+  }
+
+  .search-icon {
+    left: 8px;
+    font-size: 0.8rem;
+  }
+
+  .sort-select {
+    padding: 6px 20px 6px 6px;
+    font-size: 0.75rem;
+  }
+
+  .table-header,
+  .table-row {
+    gap: 3px;
+    padding: 5px 3px;
+  }
+
+    .table-header {
+    font-size: 0.6rem;
+    padding: 6px 3px 8px 3px;
+    width: fit-content;
+  }
+  
+  .table-row {
+    width: fit-content;
+  }
+  
+  .rank-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+
+  .player-name {
+    font-size: 0.75rem;
+  }
+
+  .elo-value {
+    font-size: 0.8rem;
+  }
+
+  .streak-value {
+    font-size: 0.75rem;
+  }
+
+  .streak-icon {
+    height: 8px;
+    width: 7px;
+  }
+
+  .games-record {
+    font-size: 0.65rem;
+  }
+
+    .winrate-value {
+    font-size: 0.75rem;
+  }
+  
+  .winrate-bar {
+    width: 60%;
+    height: 2px;
+  }
+  
+  .pagination-button {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    min-width: 100px;
+    height: 40px;
+  }
+
+  .page-info {
+    font-size: 0.75rem;
+  }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .leaderboard-page {
+    padding: 16px 20px;
+  }
+
+  .leaderboard-header {
+    margin-bottom: 20px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+  }
+
+  .leaderboard-controls {
+    margin-bottom: 16px;
+  }
+
+  .table-header,
+  .table-row {
+    padding: 8px 6px;
+  }
+
+  .pagination {
+    margin-top: 8px;
+    gap: 16px;
+  }
+
+  .pagination-button {
+    min-width: 90px;
+    height: 40px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .search-icon,
+  .streak-icon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark mode support for systems that prefer it */
+@media (prefers-color-scheme: dark) {
+  /* Keep original colors and design */
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .table-row,
+  .search-input,
+  .sort-select,
+  .pagination-button,
+  .winrate-fill {
+    transition: none;
+  }
+
+  .table-row:hover {
+    transform: none;
+  }
+
+  .loading-spinner {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .leaderboard-background,
+  .leaderboard-controls,
+  .pagination {
+    display: none;
+  }
+
+  .leaderboard-page {
+    padding: 0;
+    min-height: auto;
+  }
+
+  .leaderboard-table {
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+
+  .table-header,
+  .table-row {
+    color: black;
+    border: 1px solid #ddd;
+  }
+
+  .rank-badge {
+    background: #f0f0f0;
+    color: black;
+  }
+
+  .elo-value {
+    color: #333;
+  }
+
+  .streak-value {
+    color: #333;
+    -webkit-text-fill-color: #333;
   }
 }
 </style>
