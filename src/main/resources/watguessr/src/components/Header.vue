@@ -1,5 +1,7 @@
 <template>
   <div class="header-container">
+
+
     <div class="streak-container flex-container">
       <div class="streak-glow">
         <img src="../assets/images/Header/streak-icon.png" alt="Streak" />
@@ -28,6 +30,31 @@
         </ul>
       </div>
 
+    <!-- Side Menu for Mobile/Tablet -->
+    <div v-if="sideMenuOpen" class="side-menu-overlay" @click="closeSideMenu"></div>
+    <div class="side-menu" :class="{ 'side-menu-open': sideMenuOpen }">
+      <div class="side-menu-header">
+        <h3>Menu</h3>
+        <button class="close-menu-btn" @click="closeSideMenu">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+      <nav class="side-menu-nav">
+        <ul>
+          <li @click="navigateTo('home')">Home</li>
+          <li @click="navigateTo('leaderboard')">Leaderboard</li>
+          <template v-if="loggedIn">
+            <li @click="navigateTo('profile')">Profile</li>
+            <li @click="handleLogout">Log Out</li>
+          </template>
+          <template v-else>
+            <li @click="handleLogin">Log in</li>
+            <li @click="handleSignUp">Sign up</li>
+          </template>
+        </ul>
+      </nav>
+    </div>
+
     <AuthModalManager
       :showLogin="showLogin"
       :showSignUp="showSignUp"
@@ -53,6 +80,7 @@ export default {
       showLogin: false,
       showSignUp: false,
       showProfile: false,
+      sideMenuOpen: false,
     };
   },
 
@@ -118,6 +146,20 @@ export default {
 
 
 
+    closeSideMenu() {
+      this.sideMenuOpen = false;
+    },
+
+    navigateTo(routeName) {
+      this.closeSideMenu();
+      this.$router.push({ name: routeName });
+    },
+
+    openSideMenuFromLogo() {
+      this.sideMenuOpen = true;
+    },
+
+
     onClickOutside(event) {
       const dropdown = this.$el.querySelector('.dropdown-menu');
       const profile = this.$el.querySelector('.profile-container');
@@ -149,10 +191,14 @@ export default {
   mounted() {
     this.fetchUserById();
     document.addEventListener('click', this.onClickOutside);
+
+    // Listen for logo click events from App.vue
+    window.addEventListener('openSideMenu', this.openSideMenuFromLogo);
   },
 
   beforeUnmount() {
     document.removeEventListener('click', this.onClickOutside);
+    window.removeEventListener('openSideMenu', this.openSideMenuFromLogo);
   }
 };
 </script>
@@ -316,43 +362,43 @@ export default {
     gap: 20px;
     padding: 16px;
   }
-  
+
   .streak-container img {
     height: 24px;
     width: 20px;
   }
-  
+
   .streak-container p {
     font-size: 12px;
   }
-  
+
   .profile-container {
     gap: 8px;
     padding: 6px 12px;
   }
-  
+
   .profile-icon {
     height: 20px;
     width: 20px;
     padding: 6px;
   }
-  
+
   .profile-container p {
     font-size: 12px;
     letter-spacing: 0.3px;
   }
-  
+
   .dropdown-icon {
     height: 14px;
     width: 14px;
   }
-  
+
   .dropdown-menu {
     top: 60px;
     right: 12px;
     min-width: 140px;
   }
-  
+
   .dropdown-menu li {
     padding: 10px 14px;
     font-size: 13px;
@@ -364,48 +410,48 @@ export default {
     gap: 16px;
     padding: 12px;
   }
-  
+
   .streak-container {
     gap: 6px;
   }
-  
+
   .streak-container img {
     height: 20px;
     width: 18px;
   }
-  
+
   .streak-container p {
     font-size: 11px;
   }
-  
+
   .profile-container {
     gap: 6px;
     padding: 4px 8px;
   }
-  
+
   .profile-icon {
     height: 18px;
     width: 18px;
     padding: 5px;
   }
-  
+
   .profile-container p {
     font-size: 11px;
     letter-spacing: 0.2px;
   }
-  
+
   .dropdown-icon {
     height: 12px;
     width: 12px;
   }
-  
+
   .dropdown-menu {
     top: 55px;
     right: 8px;
     min-width: 120px;
     padding: 6px;
   }
-  
+
   .dropdown-menu li {
     padding: 8px 12px;
     font-size: 12px;
@@ -415,39 +461,39 @@ export default {
 @media (max-width: 360px) {
   .header-container {
     gap: 12px;
-    padding: 8px;
+    padding: 10px;
   }
-  
+
   .streak-container img {
     height: 18px;
     width: 16px;
   }
-  
+
   .streak-container p {
     font-size: 10px;
   }
-  
+
   .profile-container {
     gap: 4px;
     padding: 3px 6px;
   }
-  
+
   .profile-icon {
     height: 16px;
     width: 16px;
     padding: 4px;
   }
-  
+
   .profile-container p {
     font-size: 10px;
   }
-  
+
   .dropdown-menu {
     top: 50px;
     right: 6px;
     min-width: 100px;
   }
-  
+
   .dropdown-menu li {
     padding: 6px 10px;
     font-size: 11px;
@@ -459,7 +505,7 @@ export default {
   .header-container {
     padding: 12px 24px;
   }
-  
+
   .dropdown-menu {
     top: 50px;
   }
@@ -481,7 +527,7 @@ export default {
     background: rgba(20, 20, 22, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.15);
   }
-  
+
   .dropdown-menu li:hover {
     background: rgba(255, 255, 255, 0.15);
   }
@@ -495,9 +541,155 @@ export default {
   .streak-glow {
     transition: none;
   }
-  
+
   .profile-container:hover .dropdown-icon {
     transform: none;
+  }
+}
+
+
+
+/* Side Menu Styles */
+.side-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100vh;
+  background: rgba(42, 42, 44, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+}
+
+.side-menu.side-menu-open {
+  left: 0;
+}
+
+.side-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-menu-header h3 {
+  color: var(--white);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.close-menu-btn {
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.close-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.side-menu-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.side-menu-nav li {
+  padding: 16px 20px;
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 500;
+}
+
+.side-menu-nav li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.side-menu-nav li:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .side-menu {
+    width: 280px;
+    left: -280px;
+  }
+
+  .side-menu-header {
+    padding: 16px;
+  }
+
+  .side-menu-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .side-menu-nav li {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .side-menu {
+    width: 260px;
+    left: -260px;
+  }
+
+  .side-menu-header {
+    padding: 14px;
+  }
+
+  .side-menu-header h3 {
+    font-size: 1rem;
+  }
+
+  .side-menu-nav li {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .side-menu {
+    width: 240px;
+    left: -240px;
+  }
+
+  .side-menu-header {
+    padding: 12px;
+  }
+
+  .side-menu-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .side-menu-nav li {
+    padding: 10px 12px;
+    font-size: 0.85rem;
   }
 }
 </style>

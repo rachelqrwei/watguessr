@@ -2,9 +2,9 @@
   <Header />
 
   <!-- global page logo for Play, Leaderboard, and Profile pages -->
-  <div v-if="showPageLogo" class="page-logo">
+  <div v-if="showPageLogo" class="page-logo" @click="handleLogoClick">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
-    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+    <span class="logo-text">WATGUESSR.IO</span>
   </div>
 
   <div class="layout" :class="{ 'layout-with-sidebar': showHeader }">
@@ -129,6 +129,19 @@ const navLinks = [
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
 
+// Handle logo click - open side menu on mobile/tablet, navigate home on desktop
+const handleLogoClick = () => {
+  // Check if we're on mobile/tablet (you can adjust this breakpoint)
+  if (window.innerWidth <= 768) {
+    // On mobile/tablet, emit event to open side menu
+    // We'll need to communicate with the Header component
+    window.dispatchEvent(new CustomEvent('openSideMenu'));
+  } else {
+    // On desktop, navigate to home
+    window.location.href = '/';
+  }
+}
+
 const store = useStore()
 
 onMounted(() => {
@@ -149,9 +162,93 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.layout {
+.page-logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+  color: var(--white);
+}
+
+  .logo-text {
+    color: var(--white);
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+
+  /* Responsive Logo Sizing */
+  @media (max-width: 768px) {
+    .page-logo {
+      top: 3%;
+      left: 7%;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      font-size: 1.3rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .page-logo {
+      top: 2.5%;
+      left: 6%;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-size: 1.1rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-logo {
+      top: 2%;
+      left: 5%;
+      gap: 6px;
+    }
+
+    .logo-icon {
+      font-size: 1rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .page-logo {
+      top: 1.5%;
+      left: 4%;
+      gap: 5px;
+    }
+
+    .logo-icon {
+      font-size: 0.9rem;
+    }
+
+    .logo-text {
+      display: none;
+    }
+  }
+
+  .layout {
   display: flex;
   min-height: 100vh;
   position: relative;
