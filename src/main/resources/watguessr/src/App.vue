@@ -118,9 +118,12 @@ const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) &
 const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
 
 // Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
+const windowWidth = ref(window.innerWidth)
+
 const showPageLogo = computed(() => {
   const p = route.path
-  return p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings') || p.startsWith('/lobby')
+  const isTabletOrMobile = windowWidth.value <= 768
+  return (isTabletOrMobile)|| (p.startsWith('/play') || p.startsWith('/leaderboard') || p.startsWith('/profile') || p.startsWith('/settings') || p.startsWith('/lobby'))
 })
 
 const navLinks = [
@@ -149,6 +152,18 @@ onMounted(() => {
     await fetchAndCacheOSMBuildings();
     store.dispatch("user/initializeAuth");
   })();
+
+  // Add window resize listener
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth
+  }
+
+  window.addEventListener('resize', handleResize)
+
+  // Clean up on unmount
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+  })
 });
 
 </script>
@@ -189,6 +204,11 @@ onMounted(() => {
       top: 3%;
       left: 7%;
       gap: 10px;
+      border: none;
+      padding: 5px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 2px 2px 5px #ffffff;
     }
 
     .logo-icon {

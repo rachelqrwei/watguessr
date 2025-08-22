@@ -426,7 +426,7 @@ export default {
 
   .profile-container {
     gap: 6px;
-    padding: 4px 8px;
+    padding: 6px 8px;
   }
 
   .profile-icon {
@@ -475,7 +475,7 @@ export default {
 
   .profile-container {
     gap: 4px;
-    padding: 3px 6px;
+    padding: 10px 6px;
   }
 
   .profile-icon {
