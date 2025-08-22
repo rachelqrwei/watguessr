@@ -50,7 +50,7 @@
         <div class="report-bug-sidebar">
           <h4>REPORT A BUG</h4>
           <p v-if="!getCurrentUser">To leave feedback, please
-            <span class="link" @click="showLogin = true">LOG IN</span>
+            <span class="link" @click="openLogin">LOG IN</span>
           </p>
           <p v-else>
             <span class="link" @click="showReportBug = true">CLICK HERE</span> to report a bug
@@ -75,12 +75,12 @@
     </main>
 
     <AuthModalManager
-      :showLogin="showLogin"
-      :showSignUp="showSignUp"
-      @closeLogin="showLogin = false"
-      @closeSignUp="showSignUp = false"
-      @openLogin="() => { showLogin = true; showSignUp = false }"
-      @openSignUp="() => { showSignUp = true; showLogin = false }"
+      :showLogin="uiShowLogin"
+      :showSignUp="uiShowSignUp"
+      @closeLogin="closeLogin"
+      @closeSignUp="closeSignUp"
+      @openLogin="openLogin"
+      @openSignUp="openSignUp"
     />
 
     <ReportBugModal
@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import store from './stores'
 import {fetchAndCacheOSMBuildings} from './services/osmBuilding.ts';
 
 import Header from './components/Header.vue'
@@ -108,14 +108,18 @@ import ReportBugModal from "@/components/ReportBugModal.vue";
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
-const showLogin = ref(false) //  reactive state for login modal
-const showSignUp = ref(false);
 const showReportBug = ref(false);
 
 const isHomePage = computed(() => route.path === '/')
 const isPlayPage = computed(() => route.path === '/play')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
+const uiShowLogin = computed(() => store.getters['user/showLogin'])
+const uiShowSignUp = computed(() => store.getters['user/showSignUp'])
+const openLogin = () => store.commit('user/OPEN_LOGIN')
+const closeLogin = () => store.commit('user/CLOSE_LOGIN')
+const openSignUp = () => store.commit('user/OPEN_SIGNUP')
+const closeSignUp = () => store.commit('user/CLOSE_SIGNUP')
 
 // Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
 const showPageLogo = computed(() => {
@@ -129,7 +133,6 @@ const navLinks = [
   { path: '/settings', label: 'SETTINGS', icon: 'cog' }
 ]
 
-const store = useStore()
 
 onMounted(() => {
   (async () => {

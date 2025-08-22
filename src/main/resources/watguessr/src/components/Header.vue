@@ -28,30 +28,19 @@
         </ul>
       </div>
 
-    <AuthModalManager
-      :showLogin="showLogin"
-      :showSignUp="showSignUp"
-      @closeLogin="showLogin = false"
-      @closeSignUp="showSignUp = false"
-      @openLogin="() => { showLogin = true; showSignUp = false }"
-      @openSignUp="() => { showSignUp = true; showLogin = false }"
-    />
 
   </div>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import AuthModalManager from '@/views/auth/AuthModalManager.vue';
 import { colorPairFromName } from '@/utils/color';
 
 export default {
-  components: { AuthModalManager },
+  components: {},
 
   data() {
     return {
       dropdownOpen: false,
-      showLogin: false,
-      showSignUp: false,
       showProfile: false,
     };
   },
@@ -80,14 +69,14 @@ export default {
   },
 
   methods: {
-    ...mapActions('user', ['fetchUserById', 'logout']),
+    ...mapActions('user', ['logout']),
 
     handleSettings() {
       this.dropdownOpen = false;
       if (this.loggedIn) {
         this.$router.push({ name: 'settings' });
       } else {
-        this.showLogin = true;
+        this.$store.commit('user/OPEN_LOGIN');
       }
     },
 
@@ -107,12 +96,12 @@ export default {
     },
 
     handleLogin() {
-      this.showLogin = true;
+      this.$store.commit('user/OPEN_LOGIN');
       this.dropdownOpen = false;
     },
 
     handleSignUp() {
-      this.showSignUp = true;
+      this.$store.commit('user/OPEN_SIGNUP');
       this.dropdownOpen = false;
     },
 
@@ -147,7 +136,6 @@ export default {
   },
 
   mounted() {
-    this.fetchUserById();
     document.addEventListener('click', this.onClickOutside);
   },
 

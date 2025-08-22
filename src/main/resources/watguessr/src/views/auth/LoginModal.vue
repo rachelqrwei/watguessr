@@ -14,6 +14,7 @@
           <label for="password">PASSWORD</label>
         </div>
 
+        <p v-if="logoutReason" class="info-message">{{ logoutReason }}</p>
         <p v-if="error" class="error-message">{{ error }}</p>
 
         <div class="checkbox-wrapper">
@@ -49,6 +50,7 @@ export default {
       password: '',
       error: '',
       rememberMe: false,
+      logoutReason: ''
     };
   },
 
@@ -73,6 +75,9 @@ export default {
         this.username = '';
         this.password = '';
         this.rememberMe = false;
+        // Pull reason from store when opening
+        const reason = this.$store.getters['user/logoutReason'];
+        this.logoutReason = reason || '';
       }
     },
   },
@@ -80,6 +85,14 @@ export default {
 </script>
 
 <style scoped>
+.info-message {
+  color: #d6e4ff;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
 .error-message {
   color: #FF7F7F;
   font-size: 0.85rem;
