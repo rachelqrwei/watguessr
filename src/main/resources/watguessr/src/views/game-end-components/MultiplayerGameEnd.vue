@@ -1,72 +1,79 @@
 <template>
+  <div class="game-end-background" aria-hidden="true"></div>
+  
+  <!-- Home Button -->
+  <div class="page-logo">
+    <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
+    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+  </div>
+  
   <div class="game-end-container">
-    <div class="game-header">
-      <span class="game-label">GAME OVER</span>
-      <div v-if="finalLeaderboard.length > 0" class="winner-announcement">
-        🏆 {{ winnerName }} Wins!
+    <div class="game-end-panel">
+      <div class="game-header">
+        <h1>GAME OVER</h1>
       </div>
-    </div>
 
-    <div class="leaderboard-section">
-      <h3 class="leaderboard-title">FINAL LEADERBOARD</h3>
-      <table class="leaderboard-table">
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Player</th>
-          <th>Total Points</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-          v-for="(player, index) in finalLeaderboard"
-          :key="player.id"
-          :class="{
-            highlight: player.id === myPlayerId,
-            winner: index === 0,
-            'top-three': index < 3
-          }"
-        >
-          <td>
-            <span class="rank">
-              <span v-if="index === 0" class="trophy">🥇</span>
-              <span v-else-if="index === 1" class="trophy">🥈</span>
-              <span v-else-if="index === 2" class="trophy">🥉</span>
-              <span v-else>{{ index + 1 }}</span>
-            </span>
-          </td>
-          <td>
-            {{ player.name }}
-            <span v-if="player.id === myPlayerId" class="you-tag">(YOU)</span>
-          </td>
-          <td>{{ player.totalPoints }} PTS</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="leaderboard-section">
+        <h3 class="leaderboard-title">FINAL LEADERBOARD</h3>
+        <div class="leaderboard-table">
+          <div class="table-header">
+            <div class="rank-col">Rank</div>
+            <div class="player-col">Player</div>
+            <div class="points-col">Points</div>
+          </div>
+          <div class="table-body">
+            <div
+              v-for="(player, index) in finalLeaderboard"
+              :key="player.id"
+              class="table-row"
+              :class="{
+                highlight: player.id === myPlayerId,
+                winner: index === 0,
+                'top-three': index < 3
+              }"
+            >
+              <div class="rank-col">
+                <div class="rank-badge" :class="getRankClass(index + 1)">
+                  {{ index + 1 }}
+                </div>
+              </div>
+              <div class="player-col">
+                <div class="player-info">
+                  <div class="player-name">{{ player.name }}</div>
+                  <span v-if="player.id === myPlayerId" class="you-tag">(YOU)</span>
+                </div>
+              </div>
+              <div class="points-col">
+                <div class="points-value">{{ player.totalPoints }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="stats-section">
-      <div class="stat-item">
-        <span class="stat-label">ROUNDS PLAYED</span>
-        <span class="stat-value">{{ totalRounds }}</span>
+      <div class="stats-section">
+        <div class="stat-item">
+          <span class="stat-label">ROUNDS PLAYED</span>
+          <span class="stat-value">{{ totalRounds }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">YOUR SCORE</span>
+          <span class="stat-value">{{ bestRoundPoints }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">PLAYERS</span>
+          <span class="stat-value">{{ finalLeaderboard.length }}</span>
+        </div>
       </div>
-      <div class="stat-item">
-        <span class="stat-label">YOUR SCORE</span>
-        <span class="stat-value">{{ bestRoundPoints }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">PLAYERS</span>
-        <span class="stat-value">{{ finalLeaderboard.length }}</span>
-      </div>
-    </div>
 
-    <div class="button-section">
-      <button class="btn home-btn" @click="goLeaderboard">
-        🏆 Leaderboard
-      </button>
-      <button class="btn home-btn" @click="goHome">
-        🏠 Home
-      </button>
+      <div class="button-section">
+        <button class="btn home-btn" @click="goLeaderboard">
+          LEADERBOARD
+        </button>
+        <button class="btn home-btn" @click="goHome">
+          HOME
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -146,116 +153,246 @@ export default {
     goHome() {
       this.multiplayerGame_disconnect();
       this.$router.push("/");
+    },
+    getRankClass(rank) {
+      if (rank === 1) return 'rank-1'
+      if (rank === 2) return 'rank-2'
+      if (rank === 3) return 'rank-3'
+      return ''
     }
   }
 };
 </script>
 
 <style scoped>
-.game-end-container {
+.page-logo {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 4%;
+  left: 3%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--yellow);
+}
+
+.logo-text {
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--white);
+  outline: none;
+}
+
+.logo-text:hover {
+  color: var(--yellow);
+  transition: color 0.3s ease;
+}
+
+.game-end-background {
+  position: fixed;
+  inset: 0;
+  background: var(--dark-grey);
+  z-index: -1;
+}
+
+.game-end-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/ProfilePage.png') center top / cover no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.game-end-container {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.game-end-panel {
   width: 100%;
-  height: 100%;
-  background: #1a1a1c;
-  color: #fff;
+  max-width: 800px;
+  background: rgba(42, 42, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 20px;
+  gap: 32px;
 }
 
 .game-header {
   text-align: center;
+  margin-bottom: 5px;
 }
 
-.game-label {
-  font-size: 42px;
+.game-header h1 {
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--yellow);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--white);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
 
-.winner-announcement {
-  font-size: 24px;
-  font-weight: 700;
-  color: #4CAF50;
-  margin-top: 12px;
-  text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
-}
+
 
 .leaderboard-section {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 .leaderboard-title {
   text-align: center;
-  font-size: 20px;
+  font-size: 1.1rem;
   font-weight: 800;
-  margin-bottom: 10px;
-  color: var(--yellow);
+  margin-bottom: 20px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 16px;
 }
 
-.leaderboard-table th,
-.leaderboard-table td {
-  padding: 8px;
-  text-align: left;
+.table-header {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px;
+  gap: 12px;
+  padding: 16px 12px 20px 12px;
+  color: var(--white);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+  align-items: center;
+  font-weight: 900;
 }
 
-.leaderboard-table th {
-  background-color: #333;
-  font-weight: 700;
+.table-body {
+  display: flex;
+  flex-direction: column;
 }
 
-.leaderboard-table tr:nth-child(even) {
-  background-color: #2a2a2a;
+.table-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  margin: 8px 0;
 }
 
-.highlight {
-  background-color: rgba(255, 204, 0, 0.2);
-  border: 2px solid var(--yellow);
+.table-row:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.07);
 }
 
-.winner {
-  background-color: rgba(76, 175, 80, 0.2);
-  border: 2px solid #4CAF50;
+.table-row.highlight {
+  background: rgba(255, 203, 59, 0.2);
+  border-color: var(--yellow);
 }
 
-.top-three {
-  font-weight: 700;
+.table-row.winner {
+  background: rgba(255, 203, 59, 0.1);
 }
 
-.trophy {
-  font-size: 18px;
-}
-
-.rank {
+.rank-col {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
+}
+
+.rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.rank-badge.rank-1 {
+  background: #FFD700;
+  color: var(--dark-grey);
+}
+
+.rank-badge.rank-2 {
+  background: #C0C0C0;
+  color: var(--dark-grey);
+}
+
+.rank-badge.rank-3 {
+  background: #CD7F32;
+  color: var(--white);
+}
+
+.player-col {
+  display: flex;
+  align-items: center;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
 }
 
 .you-tag {
-  font-size: 12px;
+  font-size: 0.8rem;
   color: var(--yellow);
   font-weight: 700;
-  margin-left: 8px;
+}
+
+.points-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.points-value {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--yellow);
 }
 
 .stats-section {
   display: flex;
   gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .stat-item {
@@ -263,6 +400,7 @@ export default {
 }
 
 .stat-label {
+  display: block;
   font-family: "Red Hat Text", sans-serif;
   font-style: normal;
   font-weight: 400;
@@ -271,41 +409,90 @@ export default {
   color: var(--light-grey);
   line-height: 1.6;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
 .stat-value {
+  display: block;
   font-size: 20px;
   font-weight: 900;
-  color: var(--yellow);
+  color: var(--white);
 }
 
 .button-section {
   display: flex;
-  gap: 15px;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .btn {
-  background: var(--yellow);
-  color: #1a1a1c;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 800;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: var(--white);
+  font-weight: 600;
+  font-size: 0.81rem;
   cursor: pointer;
-  border: none;
-  transition: transform 0.1s ease;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
 }
 
 .btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.restart-btn {
-  background-color: #ffcb3b;
+.btn:hover::before {
+  left: 100%;
 }
 
-.home-btn {
-  background-color: #ffe066;
+@media (max-width: 768px) {
+  .game-end-panel {
+    padding: 30px 20px;
+    gap: 24px;
+  }
+
+  .game-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1fr 80px;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .stats-section {
+    gap: 20px;
+  }
+
+  .button-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* Responsive styling for different laptop/desktop sizes */

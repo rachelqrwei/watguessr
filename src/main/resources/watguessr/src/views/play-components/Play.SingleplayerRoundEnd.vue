@@ -2,13 +2,7 @@
   <div class="round-end-container">
     <div class="round-end-panel">
       <div class="round-header">
-        <span class="round-label">ROUND</span>
-        <span class="round-number">#{{ singleplayerGame_getCurrentRound }}</span>
-      </div>
-
-      <div class="points-section">
-        <span class="points-label">POINTS</span>
-        <span class="points-value">{{ displayPoints }}</span>
+        <span class="round-label">ROUND #{{ singleplayerGame_getCurrentRound }}</span>
       </div>
 
       <div class="stats-section">
@@ -17,12 +11,16 @@
           <span class="stat-value">{{ displayTimeTaken }}</span>
         </div>
         <div class="stat-item">
+          <span class="stat-label">POINTS</span>
+          <span class="stat-value">{{ displayPoints }}</span>
+        </div>
+        <div class="stat-item">
           <span class="stat-label">DISTANCE</span>
           <span class="stat-value">{{ displayDistance }}</span>
         </div>
       </div>
 
-      <div class="flex-container justify-between columns-12">
+      <div class="cards-container">
         <!-- Correct Answer Section -->
         <div class="answer-section" v-if="correctAnswer">
           <div class="answer-header">
@@ -136,7 +134,7 @@ export default {
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
     displayDistance() {
-      return this.distance;
+      return `${this.distance.toFixed(2)}m`;
     },
     displayPoints() {
       return this.points;
@@ -158,14 +156,14 @@ export default {
         zoom: 17,
       });
 
-      this.guessMarker = new mapboxgl.Marker({ color: 'blue' })
+      this.guessMarker = new mapboxgl.Marker({ color: '#FF7F7F' })
         .setLngLat(guessCoordinates)
         .setPopup(new mapboxgl.Popup({ offset: 25, color: 'black' })
           .setHTML('<span style="color: black; font-weight: bold;">Guess</span>')
         ) // Label
         .addTo(map);
 
-      this.answerMarker = new mapboxgl.Marker({ color: 'red' })
+      this.answerMarker = new mapboxgl.Marker({ color: '#B6FF7F' })
         .setLngLat(answerCoordinates)
         .setPopup(new mapboxgl.Popup({ offset: 25 })
           .setHTML('<span style="color: black; font-weight: bold;">Answer</span>')) // Label
@@ -237,8 +235,8 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 24px 20px;
+  gap: 8px;
+  padding: 12px 12px 10px;
   border-radius: 16px;
   background: var(--dark-grey);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -246,62 +244,41 @@ export default {
 
 .round-header {
   text-align: center;
+  padding-top: 16px;
 }
 
 .round-label {
   display: block;
-  font-size: 16px;
-  color: var(--yellow);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 1.6rem;
+  color: var(--white);
+  font-weight: 900;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: 0px;
 }
 
-.round-number {
-  display: block;
-  font-size: 42px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
 
-.points-section {
-  text-align: center;
-  padding: 5px 28px;
-}
-
-.points-label {
-  display: block;
-  font-size: 13px;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 0px;
-}
-
-.points-value {
-  display: block;
-  font-size: 28px;
-  font-weight: 900;
-  color: #fff;
-}
 
 .stats-section {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
   text-align: center;
-  padding: 5px 10px;
-  min-width: 80px;
 }
 
 .stat-label {
   display: block;
-  font-family: "Red Hat Text", sans-serif;
+  font-family: "Istok Web", sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: 12px;
@@ -315,7 +292,7 @@ export default {
 
 .stat-value {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
   color: var(--yellow);
 }
@@ -327,12 +304,21 @@ export default {
   padding: 12px;
 }
 
+.cards-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 .answer-section {
-  width: 50%;
+  width: 45%;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 12px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .answer-header {
@@ -342,16 +328,21 @@ export default {
 
 .answer-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .answer-label {
   display: block;
-  font-size: 13px;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: "Istok Web", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   text-transform: uppercase;
   margin-bottom: 0px;
 }
@@ -363,28 +354,29 @@ export default {
 }
 
 .answer-detail-label {
-  display: block;
-  font-size: 12px;
+  display: inline;
+  font-size: 10px;
   color: #bbb;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-right: 10px;
+  white-space: nowrap;
 }
 
 .answer-detail-value {
-  display: block;
-  font-size: 14px;
+  display: inline;
+  font-size: 12px;
   font-weight: 900;
   color: #fff;
+  text-align: left;
 }
 
 .guess-section {
-  width: 50%;
+  width: 45%;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 12px;
-  margin-top: 12px;
+  margin-top: 0px;
 }
 
 .guess-header {
@@ -394,10 +386,14 @@ export default {
 
 .guess-label {
   display: block;
-  font-size: 13px;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: "Istok Web", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   text-transform: uppercase;
   margin-bottom: 0px;
 }
@@ -410,29 +406,33 @@ export default {
 
 .guess-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .guess-detail-label {
-  display: block;
-  font-size: 12px;
+  display: inline;
+  font-size: 10px;
   color: #bbb;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-right: 10px;
+  white-space: nowrap;
 }
 
 .guess-detail-value {
-  display: block;
-  font-size: 14px;
+  display: inline;
+  font-size: 12px;
   font-weight: 900;
   color: #fff;
+  text-align: left;
 }
 
 #answer-map {
   width: 100%;
-  height: 300px;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 </style>

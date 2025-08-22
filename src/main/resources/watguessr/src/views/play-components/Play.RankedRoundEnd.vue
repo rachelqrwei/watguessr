@@ -2,13 +2,7 @@
   <div class="round-end-container">
     <div class="round-end-panel">
       <div class="round-header">
-        <span class="round-label">ROUND</span>
-        <span class="round-number">#{{ rankedGame_getCurrentRound }}</span>
-      </div>
-
-      <div class="points-section">
-        <span class="points-label">POINTS</span>
-        <span class="points-value">{{ displayPoints }}</span>
+        <span class="round-label">ROUND #{{ rankedGame_getCurrentRound }}</span>
       </div>
 
       <div class="stats-section">
@@ -17,8 +11,48 @@
           <span class="stat-value">{{ displayTimeTaken }}</span>
         </div>
         <div class="stat-item">
+          <span class="stat-label">POINTS</span>
+          <span class="stat-value">{{ displayPoints }}</span>
+        </div>
+        <div class="stat-item">
           <span class="stat-label">DISTANCE</span>
           <span class="stat-value">{{ displayDistance }}</span>
+        </div>
+      </div>
+
+      <div class="cards-container">
+        <!-- Correct Answer Section -->
+        <div class="answer-section" v-if="correctAnswer">
+          <div class="answer-header">
+            <span class="answer-label">CORRECT ANSWER</span>
+          </div>
+          <div class="answer-details">
+            <div class="answer-item">
+              <span class="answer-detail-label">Building:</span>
+              <span class="answer-detail-value">{{ correctAnswer.buildingName }}</span>
+            </div>
+            <div class="answer-item">
+              <span class="answer-detail-label">Floor:</span>
+              <span class="answer-detail-value">{{ correctAnswer.floor }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player's Guess Section -->
+        <div class="guess-section" v-if="playerGuess">
+          <div class="guess-header">
+            <span class="guess-label">YOUR GUESS</span>
+          </div>
+          <div class="guess-details">
+            <div class="guess-item">
+              <span class="guess-detail-label">Building:</span>
+              <span class="guess-detail-value">{{ playerGuess.building || 'Not selected' }}</span>
+            </div>
+            <div class="guess-item">
+              <span class="guess-detail-label">Floor:</span>
+              <span class="guess-detail-value">{{ playerGuess.floor || 'Not selected' }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -58,7 +92,9 @@
 </template>
 
 <script>
+import 'mapbox-gl/dist/mapbox-gl.css';
 import {mapGetters} from "vuex";
+import mapboxgl from "mapbox-gl";
 
 export default {
   props: {
@@ -102,6 +138,12 @@ export default {
     correctAnswer() {
       return this.getCorrectAnswer;
     },
+    playerGuess() {
+      return {
+        building: this.$store.getters['guess/getGuessBuilding'],
+        floor: this.$store.getters['guess/getGuessFloor']
+      };
+    },
     displayTimeTaken() {
       const ms = Math.floor((this.getGuessTime % 1000) / 10);
       const totalSeconds = Math.floor(this.getGuessTime / 1000);
@@ -111,7 +153,7 @@ export default {
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
     displayDistance() {
-      return this.distance;
+      return `${this.distance.toFixed(2)}m`;
     },
     displayPoints() {
       return this.points;
@@ -160,6 +202,9 @@ export default {
 
         if (currentRound && currentRound.guesses) {
           this.allGuesses = currentRound.guesses;
+          console.log('🎯 Fetched guesses for ranked round:', this.allGuesses);
+        } else {
+          console.log('❌ No guesses found for current round:', currentRound);
         }
       } catch (error) {
         console.error('Error fetching all guesses:', error);
@@ -219,8 +264,8 @@ export default {
     handleLiveGuessUpdate(newGuess) {
       // Add the new guess to our list
       this.allGuesses.push(newGuess);
-      // Add the new marker to the map
-      this.addGuessMarker(newGuess, this.allGuesses.length - 1);
+      // Refresh all markers instead of adding individual one
+      this.addAllMarkers();
 
       // Refit map to show all markers
       this.fitMapToMarkers();
@@ -316,7 +361,7 @@ export default {
       this.markers.forEach(marker => marker.remove());
       this.markers = [];
 
-      // Add correct answer marker (red)
+      // Add correct answer marker (yellow-green)
       if (this.correctAnswer) {
         const answerCoordinates = [
           this.correctAnswer.locationX,
@@ -324,7 +369,7 @@ export default {
         ];
 
         const answerMarker = new mapboxgl.Marker({
-          color: '#ff4444',
+          color: '#B6FF7F',
           scale: 1.2
         })
           .setLngLat(answerCoordinates)
@@ -336,19 +381,20 @@ export default {
       }
 
       // Add all players' guess markers
+      console.log('🗺️ Adding markers for guesses:', this.allGuesses);
       this.allGuesses.forEach((guess, index) => {
         const isCurrentUser = guess.userId === this.currentUser?.id;
         const coordinates = [guess.guessX, guess.guessY];
 
         let markerColor, markerLabel;
         if (isCurrentUser) {
-          markerColor = '#44ff44'; // Green for current user
+          markerColor = '#FF7F7F'; // Current user guess
           markerLabel = 'You';
         } else {
-          // Generate different colors for other players
-          const colors = ['#ff8844', '#8844ff', '#44ffff', '#ff4488', '#88ff44'];
-          markerColor = colors[index % colors.length];
-          markerLabel = this.rankedGame_getPlayers[guess.userId].username;
+          markerColor = '#7F7F7F'; // Other players
+          const playerData = this.rankedGame_getPlayers[guess.userId];
+          markerLabel = playerData ? playerData.username : `Player ${guess.userId}`;
+          console.log('👤 Other player marker:', guess.userId, markerLabel, playerData);
         }
 
         const marker = new mapboxgl.Marker({
@@ -358,7 +404,7 @@ export default {
           .setLngLat(coordinates)
           .setPopup(new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
-              <div style="color: black; font-weight: bold;">
+              <div style="color: black; font-weight: bold; outline: none; border: none;">
                 ${markerLabel}
               </div>
             `))
@@ -413,8 +459,8 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 24px 20px;
+  gap: 8px;
+  padding: 12px 12px 10px;
   border-radius: 16px;
   background: var(--dark-grey);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -422,62 +468,39 @@ export default {
 
 .round-header {
   text-align: center;
+  padding-top: 16px;
 }
 
 .round-label {
   display: block;
-  font-size: 16px;
-  color: var(--yellow);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 0px;
-}
-
-.round-number {
-  display: block;
-  font-size: 42px;
+  font-size: 1.6rem;
+  color: var(--white);
   font-weight: 900;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.points-section {
-  text-align: center;
-  padding: 5px 28px;
-}
-
-.points-label {
-  display: block;
-  font-size: 13px;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: 0px;
-}
-
-.points-value {
-  display: block;
-  font-size: 28px;
-  font-weight: 900;
-  color: #fff;
 }
 
 .stats-section {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
   text-align: center;
-  padding: 5px 10px;
-  min-width: 80px;
 }
 
 .stat-label {
   display: block;
-  font-family: "Red Hat Text", sans-serif;
+  font-family: "Istok Web", sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: 12px;
@@ -491,22 +514,156 @@ export default {
 
 .stat-value {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
   color: var(--yellow);
 }
 
+.map-section {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+}
+
 #answer-map {
   width: 100%;
-  height: 300px;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cards-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.answer-section {
+  width: 45%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.answer-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.answer-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.answer-label {
+  display: block;
+  font-family: "Istok Web", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.answer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.answer-detail-label {
+  display: inline;
+  font-size: 10px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.answer-detail-value {
+  display: inline;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  text-align: left;
+}
+
+.guess-section {
+  width: 45%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 0px;
+}
+
+.guess-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.guess-label {
+  display: block;
+  font-family: "Istok Web", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  margin-bottom: 0px;
+}
+
+.guess-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.guess-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.guess-detail-label {
+  display: inline;
+  font-size: 10px;
+  color: #bbb;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.guess-detail-value {
+  display: inline;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  text-align: left;
 }
 
 .map-legend {
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin-top: 15px;
-  padding: 10px;
+  margin-top: 8px;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -517,8 +674,8 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
-  padding: 8px 16px;
+  margin-top: 6px;
+  padding: 6px 12px;
   background: rgba(255, 215, 0, 0.1);
   border: 1px solid rgba(255, 215, 0, 0.3);
   border-radius: 6px;
@@ -533,12 +690,12 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
-  padding: 8px 16px;
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid rgba(0, 255, 0, 0.3);
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: rgba(182, 255, 127, 0.1);
+  border: 1px solid rgba(182, 255, 127, 0.3);
   border-radius: 6px;
-  color: #00ff00;
+  color: #B6FF7F;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -559,8 +716,8 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: rgba(0, 255, 0, 0.9);
-  border: 1px solid rgba(0, 255, 0, 0.5);
+  background: rgba(182, 255, 127, 0.9);
+  border: 1px solid rgba(182, 255, 127, 0.5);
   border-radius: 8px;
   color: white;
   font-size: 14px;
@@ -601,14 +758,43 @@ export default {
 }
 
 .answer-marker {
-  background-color: #ff4444;
+  background-color: #B6FF7F;
 }
 
 .your-guess-marker {
-  background-color: #44ff44;
+  background-color: #FF7F7F;
 }
 
 .other-guess-marker {
-  background-color: #4444ff;
+  background-color: #7F7F7F;
+}
+
+/* Remove orange outline from Mapbox popups */
+:deep(.mapboxgl-popup) {
+  outline: none !important;
+}
+
+:deep(.mapboxgl-popup-content) {
+  outline: none !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+:deep(.mapboxgl-popup-content div) {
+  outline: none !important;
+  border: none !important;
+}
+
+:deep(.mapboxgl-popup-content *) {
+  outline: none !important;
+  border: none !important;
+}
+
+:deep(.mapboxgl-popup-content:focus) {
+  outline: none !important;
+}
+
+:deep(.mapboxgl-popup-content div:focus) {
+  outline: none !important;
 }
 </style>

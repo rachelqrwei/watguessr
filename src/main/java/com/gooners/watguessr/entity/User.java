@@ -37,14 +37,14 @@ public class User {
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
 
-    @Column(name = "display_name")
-    private String displayName;
-
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
     @Column(name = "verified")
     private Boolean verified;
+
+    @Column(name = "username_changed_at")
+    private OffsetDateTime usernameChangedAt;
 
     public User() {}
 
@@ -55,7 +55,6 @@ public class User {
         this.elo = 150;
         this.streak = 0;
         this.lastLoginAt = OffsetDateTime.now(ZoneId.of("America/Toronto"));
-        this.displayName = username;
         this.verified = false;
     }
 
@@ -123,14 +122,6 @@ public class User {
         this.lastLoginAt = lastLoginAt;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
     public String getProfilePictureUrl() {
         return profilePictureUrl;
     }
@@ -147,4 +138,7 @@ public class User {
         this.verified = verified;
     }
 
+    public OffsetDateTime getUsernameChangedAt() { return usernameChangedAt; }
+
+    public void setUsernameChangedAt(OffsetDateTime usernameChangedAt) { this.usernameChangedAt = usernameChangedAt; }
 }

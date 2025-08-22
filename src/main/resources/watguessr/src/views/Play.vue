@@ -190,7 +190,7 @@ export default {
         if (this.multiplayerGame_getCurrentRound >= this.multiplayerGame_getMaxRounds) {
           return 'FINISH GAME';
         }
-        return 'READY FOR NEXT ROUND';
+        return 'READY';
       }
       else if (this.getGameMode === 'ranked') {
         if (this.rankedGame_getShouldEnd) {
@@ -200,7 +200,7 @@ export default {
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           return 'FINISH GAME';
         }
-        return 'READY FOR NEXT ROUND';
+        return 'READY';
       }
       return 'NEXT ROUND';
     },
@@ -282,19 +282,19 @@ export default {
       deep: true,
       immediate: true
     },
-    
+
     // Watch for when ranked game should end
     'rankedGame_getShouldEnd': {
       handler(newShouldEnd, oldShouldEnd) {
         console.log('🎯 rankedGame_getShouldEnd watcher triggered:', { newShouldEnd, oldShouldEnd, gameMode: this.getGameMode });
         console.log('🎯 Current route:', this.$route.path);
-        
+
         // Don't trigger navigation if we're already on a game end route
         if (this.$route.path.includes('-game-end')) {
           console.log('🎯 Already on game end route, ignoring watcher');
           return;
         }
-        
+
         if (this.getGameMode === 'ranked' && newShouldEnd && !oldShouldEnd) {
           console.log('🎯 Ranked game should end, navigating to ranked-game-end after delay');
           // Add small delay to ensure game state is fully updated
@@ -357,6 +357,7 @@ export default {
       'SG_INCREMENT_ROUND'
     ]),
     ...mapMutations('guess', [
+      'SET_BUILDING',
       'SET_FLOOR'
     ]),
 
@@ -394,13 +395,11 @@ export default {
     },
 
     async handleSubmit() {
-      if (!this.getGuessBuilding) {
-        this.errorMessage = "Please select a building.";
-        return;
-      }
-
       // Check if the building exists in our database
       const buildingExists = this.getBuildingsMap && this.getBuildingsMap[this.getGuessBuilding];
+      if (!buildingExists) {
+        this.SET_BUILDING('-----');
+      }
 
       if (buildingExists && !this.selectedFloor) {
         this.errorMessage = "Please select a floor.";
@@ -410,7 +409,7 @@ export default {
       this.errorMessage = "";
 
       // If building exists in database, use selected floor; otherwise use fallback
-      const floorToSubmit = buildingExists ? this.selectedFloor : 'floor';
+      const floorToSubmit = buildingExists ? this.selectedFloor : 'Ground';
       this.SET_FLOOR(floorToSubmit);
 
       // For multiplayer, update status to indicate player is submitting
@@ -620,7 +619,7 @@ export default {
         console.error('Failed to start singleplayer round:', error);
       }
     },
-    
+
 
   },
   mounted() {

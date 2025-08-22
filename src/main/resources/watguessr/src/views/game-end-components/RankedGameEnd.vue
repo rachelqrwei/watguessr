@@ -1,4 +1,12 @@
 <template>
+  <div class="game-end-background" aria-hidden="true"></div>
+  
+  <!-- Home Button -->
+  <div class="page-logo">
+    <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
+    <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
+  </div>
+  
   <div class="game-end-container">
     <!-- Loading state -->
     <div v-if="!hasCompleteData" class="loading-container">
@@ -40,10 +48,7 @@
     <!-- Game end content -->
     <div v-else-if="hasCompleteData" class="game-end-panel">
       <div class="game-header">
-        <span class="game-label">RANKED GAME COMPLETE</span>
-        <div v-if="winner" class="winner-announcement">
-          🏆 {{ winner === 'player1' ? 'YOU WIN!' : 'OPPONENT WINS!' }}
-        </div>
+        <h1>RANKED GAME COMPLETE</h1>
       </div>
 
       <!-- Final Results Section -->
@@ -101,7 +106,7 @@
       <!-- Button Section -->
       <div class="button-section">
         <button class="btn home-btn" @click="goHome">
-          Home
+          HOME
         </button>
       </div>
     </div>
@@ -395,6 +400,52 @@ export default {
 </script>
 
 <style scoped>
+.page-logo {
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--yellow);
+}
+
+.logo-text {
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--white);
+  outline: none;
+}
+
+.logo-text:hover {
+  color: var(--yellow);
+  transition: color 0.3s ease;
+}
+
+.game-end-background {
+  position: fixed;
+  inset: 0;
+  background: var(--dark-grey);
+  z-index: -1;
+}
+
+.game-end-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/ProfilePage.png') center top / cover no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 .loading-container {
   text-align: center;
   color: white;
@@ -413,8 +464,8 @@ export default {
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top: 5px solid white;
+  border: 3px solid rgba(255, 203, 59, 0.3);
+  border-top: 3px solid var(--yellow);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -426,52 +477,44 @@ export default {
 }
 
 .game-end-container {
-  position: absolute;
-  inset: 0;
+  min-height: 100vh;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  z-index: 1;
+  padding: 40px 20px;
 }
 
 .game-end-panel {
-  width: 95%;
-  max-width: 800px;
-  color: #fff;
+  width: 100%;
+  max-width: 600px;
+  background: rgba(42, 42, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 32px 24px 28px;
-  border-radius: 16px;
-  background: var(--dark-grey);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  gap: 32px;
 }
 
 .game-header {
   text-align: center;
+  margin-bottom: 5px;
 }
 
-.game-label {
-  display: block;
-  font-size: 36px;
+.game-header h1 {
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--yellow);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  color: var(--white);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
 
-.winner-announcement {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--white);
-  margin-top: 8px;
-}
+
 
 /* Results Section */
 .results-section {
@@ -488,6 +531,7 @@ export default {
   align-items: center;
   gap: 12px;
   min-width: 200px;
+  padding: 24px;
 }
 
 .player-header {
@@ -498,28 +542,30 @@ export default {
 }
 
 .player-name {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--white);
-  text-transform: uppercase;
-}
-
-.player-elo {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--light-grey);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.player-elo {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--light-grey);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: "Red Hat Text", sans-serif;
+}
+
 .player-score {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 900;
   color: var(--yellow);
 }
 
 .elo-change {
-  font-size: 16px;
+  font-size: 0.9rem;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 20px;
@@ -528,69 +574,29 @@ export default {
 }
 
 .elo-change.positive {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(182, 255, 127, 0.2);
+  color: #B6FF7F;
+  border: 1px solid rgba(182, 255, 127, 0.3);
 }
 
 .elo-change.negative {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(255, 127, 127, 0.2);
+  color: #FF7F7F;
+  border: 1px solid rgba(255, 127, 127, 0.3);
 }
 
 .vs-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--dark-grey);
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 2px solid var(--light-grey);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .vs-text {
-  font-size: 20px;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--white);
   text-transform: uppercase;
   letter-spacing: 2px;
-}
-
-/* Stats Section */
-.stats-section {
-  display: flex;
-  gap: 32px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-align: center;
-}
-
-.stat-label {
-  font-family: "Red Hat Text", sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  letter-spacing: 0.8px;
-  color: var(--light-grey);
-  line-height: 1.6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  text-transform: uppercase;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--white);
 }
 
 /* ELO Summary */
@@ -609,7 +615,7 @@ export default {
 }
 
 .elo-summary-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--white);
   text-transform: uppercase;
@@ -641,74 +647,76 @@ export default {
 }
 
 .elo-summary-label {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--light-grey);
   font-weight: 500;
+  font-family: "Red Hat Text", sans-serif;
 }
 
 .elo-summary-value {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--white);
 }
 
 .elo-summary-value.positive {
-  color: #22c55e;
+  color: #B6FF7F;
 }
 
 .elo-summary-value.negative {
-  color: #ef4444;
+  color: #FF7F7F;
 }
 
 /* Button Section */
 .button-section {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.rematch-btn {
-  background: var(--yellow);
-  color: var(--dark-grey);
-}
-
-.rematch-btn:hover {
-  background: #e6b800;
-  transform: translateY(-2px);
-}
-
-.ranked-btn {
-  background: rebeccapurple;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   color: var(--white);
+  font-weight: 600;
+  font-size: 0.81rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.ranked-btn:hover {
-  background: #2563eb;
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.home-btn {
-  background: var(--light-grey);
-  color: var(--dark-grey);
+.btn:hover::before {
+  left: 100%;
 }
 
-.home-btn:hover {
-  background: #9ca3af;
-  transform: translateY(-2px);
-}
+
 
 /* Responsive styling for different laptop/desktop sizes */
 @media (max-width: 1400px) {
@@ -901,9 +909,24 @@ export default {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .game-end-panel {
+    padding: 30px 20px;
+    gap: 24px;
+  }
+
+  .game-header h1 {
+    font-size: 1.5rem;
+  }
+
   .results-section {
     flex-direction: column;
     gap: 24px;
+  }
+
+  .player-result {
+    min-width: auto;
+    width: 100%;
+    max-width: 300px;
   }
 
   .vs-divider {
@@ -912,20 +935,12 @@ export default {
   }
 
   .vs-text {
-    font-size: 16px;
-  }
-
-  .stats-section {
-    gap: 20px;
+    font-size: 1rem;
   }
 
   .button-section {
     flex-direction: column;
-    width: 100%;
-  }
-
-  .btn {
-    width: 100%;
+    align-items: stretch;
   }
 }
 </style>

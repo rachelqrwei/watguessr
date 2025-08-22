@@ -16,7 +16,7 @@
               <div v-for="g in guessesByRound[round.id] || []" :key="g.id" class="guess-row" :class="userClass(g.userId)">
                 <button type="button" class="guess-user" :class="{ disabled: isCurrentUser(g.userId) }" :disabled="isCurrentUser(g.userId)" @click="goToUser(g.userId)">{{ usernameFor(g.userId) }}</button>
                 <div class="guess-metrics">
-                  <span class="pill" :class="{ positive: (g.points ?? 0) > 0, negative: (g.points ?? 0) < 0 }">{{ g.points ?? 0 }} pts</span>
+                  <span class="pill" :class="getPointsClass(g.points, round.id)">{{ g.points ?? 0 }} pts</span>
                   <span class="pill">{{ timeDisplay(g.time) }}</span>
                 </div>
               </div>
@@ -155,6 +155,21 @@ export default {
     userClass(userId) {
       const idx = this.userIndex && typeof this.userIndex[userId] === 'number' ? this.userIndex[userId] : 0
       return idx % 2 === 0 ? 'user-a' : 'user-b'
+    },
+    getPointsClass(points, roundId) {
+      const roundGuesses = this.guessesByRound[roundId] || []
+      const pointsValue = points ?? 0
+      
+      // Find the highest points in this round
+      const highestPoints = Math.max(...roundGuesses.map(g => g.points ?? 0))
+      
+      // If this guess has the highest points, show as positive (green)
+      // Otherwise show as negative (red)
+      if (pointsValue === highestPoints && pointsValue > 0) {
+        return { positive: true }
+      } else {
+        return { negative: true }
+      }
     }
   }
 }
