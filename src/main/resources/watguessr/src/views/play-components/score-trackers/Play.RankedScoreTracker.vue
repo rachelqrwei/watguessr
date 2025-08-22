@@ -2,13 +2,13 @@
   <div class="player-score-tracker-container">
     <!-- Player 1 (YOU) -->
     <div class="player-score-tracker-1">
-      <div class="player-score-text-container" :class="{ 'status-ready': player1Status === 'ready', 'status-ended': player1Status === 'ended', 'status-playing': player1Status === 'playing' }">
-        <div class="player-info">
-          <span class="player-name">{{ player1Name }}</span>
-          <span class="player-elo">{{ player1Elo }} ELO</span>
-          <span class="player-status" v-if="player1Status !== 'playing'">{{ getStatusText(player1Status) }}</span>
-        </div>
+      <div class="player-score-text-container">
+        <span class="player-name">{{ player1Name }}</span>
         <span class="player-points">{{ player1Score }} PTS</span>
+        <span v-if="player1Status === 'ended'" class="player-status completed">✓</span>
+        <span v-else-if="player1Status === 'playing'" class="player-status playing">●</span>
+        <span v-else-if="player1Status === 'ready'" class="player-status ready">⏳</span>
+        <span v-else-if="player1Status === 'disconnected'" class="player-status disconnected">❌</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -23,13 +23,13 @@
 
     <!-- Player 2 (OPPONENT) -->
     <div class="player-score-tracker-2">
-      <div class="player-score-text-container" :class="{ 'status-ready': player2Status === 'ready', 'status-ended': player2Status === 'ended', 'status-playing': player2Status === 'playing' }">
-        <div class="player-info">
-          <span class="player-name">{{ player2Name }}</span>
-          <span class="player-elo">{{ player2Elo }} ELO</span>
-          <span class="player-status" v-if="player2Status !== 'playing'">{{ getStatusText(player2Status) }}</span>
-        </div>
+      <div class="player-score-text-container">
+        <span class="player-name">{{ player2Name }}</span>
         <span class="player-points">{{ player2Score }} PTS</span>
+        <span v-if="player2Status === 'ended'" class="player-status completed">✓</span>
+        <span v-else-if="player2Status === 'playing'" class="player-status playing">●</span>
+        <span v-else-if="player2Status === 'ready'" class="player-status ready">⏳</span>
+        <span v-else-if="player2Status === 'disconnected'" class="player-status disconnected">❌</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -42,10 +42,7 @@
       </div>
     </div>
 
-    <!-- Round indicator -->
-    <div class="round-indicator">
-      <span class="round-text">ROUND {{ currentRound }}/{{ maxRounds }}</span>
-    </div>
+
   </div>
 </template>
 
@@ -59,9 +56,7 @@ export default {
       'getGameMode'
     ]),
     ...mapGetters('rankedGame', [
-      'rankedGame_getPlayers',
-      'rankedGame_getCurrentRound',
-      'rankedGame_getMaxRounds'
+      'rankedGame_getPlayers'
     ]),
     ...mapGetters('user', [
       'getCurrentUser'
@@ -79,14 +74,7 @@ export default {
       return players;
     },
 
-    // Get current round and max rounds
-    currentRound() {
-      return this.rankedGame_getCurrentRound || 1;
-    },
 
-    maxRounds() {
-      return this.rankedGame_getMaxRounds || 5;
-    },
 
     // Get current user's player data
     currentPlayer() {
@@ -119,24 +107,7 @@ export default {
       return this.currentPlayer?.status || 'loading';
     },
 
-    player1Elo() {
-      // Get pre-game ELO from store if available
-      if (this.currentUser?.username) {
-        const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-        if (preGameElos && preGameElos[this.currentUser.username]) {
-          console.log('🎯 ScoreTracker: Using pre-game ELO from store for current user:', this.currentUser.username, preGameElos[this.currentUser.username]);
-          return preGameElos[this.currentUser.username];
-        }
-      }
 
-      // Fallback to current user's ELO if pre-game not available
-      if (this.currentUser?.elo) {
-        return this.currentUser.elo;
-      }
-
-      // Final fallback
-      return 1200;
-    },
 
     // Player 2 (opponent) data
     player2Name() {
@@ -151,10 +122,7 @@ export default {
       return this.opponentPlayer?.status || 'loading';
     },
 
-    player2Elo() {
-      const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-      return preGameElos[this.opponentPlayer?.username];
-    },
+
 
     // Score percentages for progress bars
     player1ScorePercentage() {
@@ -179,37 +147,10 @@ export default {
       if (newScore !== oldScore && oldScore !== undefined) {
         this.animateScoreChange('player2');
       }
-    },
-    // Watch for status changes to log them
-    player1Status(newStatus, oldStatus) {
-      if (newStatus !== oldStatus) {
-        console.log('🎯 Player 1 status changed:', oldStatus, '→', newStatus);
-      }
-    },
-    player2Status(newStatus, oldStatus) {
-      if (newStatus !== oldStatus) {
-        console.log('🎯 Player 2 status changed:', oldStatus, '→', newStatus);
-      }
     }
   },
 
   methods: {
-    // Convert status to display text
-    getStatusText(status) {
-      switch (status) {
-        case 'ready':
-          return 'READY';
-        case 'ended':
-          return 'FINISHED';
-        case 'loading':
-          return 'LOADING';
-        case 'completed':
-          return 'COMPLETED';
-        default:
-          return status?.toUpperCase() || '';
-      }
-    },
-
     // Animate score change
     animateScoreChange(player) {
       const scoreElement = player === 'player1' ?
@@ -230,8 +171,6 @@ export default {
     console.log('🎯 RankedScoreTracker mounted');
     console.log('🎯 Current user:', this.currentUser);
     console.log('🎯 Players from store:', this.players);
-    console.log('🎯 Current round:', this.currentRound);
-    console.log('🎯 Max rounds:', this.maxRounds);
   }
 };
 </script>
@@ -264,14 +203,6 @@ export default {
   gap: 28px;
   align-items: center;
   width: fit-content;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .player-score-tracker-1 .player-score-text-container {
@@ -326,18 +257,6 @@ export default {
   color: var(--white);
 }
 
-.player-elo {
-  font-family: "Red Hat Text", sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  letter-spacing: 0.8px;
-  color: var(--light-grey);
-  line-height: 1.6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  text-transform: uppercase;
-}
-
 .player-points {
   font-size: 14px;
   font-weight: 600;
@@ -352,58 +271,40 @@ export default {
 }
 
 .player-status {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--yellow);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 8px;
 }
 
-/* Status-based styling */
-.status-ready .player-status {
-  color: #4CAF50;
+.player-status.completed {
+  color: #B6FF7F; /* Green checkmark */
 }
 
-.status-ready {
-  border-color: #4CAF50;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+.player-status.playing {
+  color: #FF9F1C; /* Orange dot for playing */
+  animation: pulse 2s infinite;
 }
 
-.status-ended .player-status {
-  color: #FF9800;
+.player-status.ready {
+  color: #2196F3; /* Blue hourglass for ready */
 }
 
-.status-ended {
-  border-color: #FF9800;
-  box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+.player-status.disconnected {
+  color: #f44336; /* Red X for disconnected */
+  animation: fadeOut 2s infinite;
 }
 
-.status-playing .player-status {
-  color: var(--yellow);
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
-.status-playing {
-  border-color: var(--yellow);
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
 }
 
-.round-indicator {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--dark-grey);
-  padding: 8px 20px;
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
 
-.round-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--white);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
 </style>
