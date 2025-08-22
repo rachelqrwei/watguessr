@@ -309,4 +309,195 @@ export default {
   border-radius: 0;
   transition: none;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-container {
+    gap: 20px;
+    padding: 16px;
+  }
+  
+  .streak-container img {
+    height: 24px;
+    width: 20px;
+  }
+  
+  .streak-container p {
+    font-size: 12px;
+  }
+  
+  .profile-container {
+    gap: 8px;
+    padding: 6px 12px;
+  }
+  
+  .profile-icon {
+    height: 20px;
+    width: 20px;
+    padding: 6px;
+  }
+  
+  .profile-container p {
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+  
+  .dropdown-icon {
+    height: 14px;
+    width: 14px;
+  }
+  
+  .dropdown-menu {
+    top: 60px;
+    right: 12px;
+    min-width: 140px;
+  }
+  
+  .dropdown-menu li {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    gap: 16px;
+    padding: 12px;
+  }
+  
+  .streak-container {
+    gap: 6px;
+  }
+  
+  .streak-container img {
+    height: 20px;
+    width: 18px;
+  }
+  
+  .streak-container p {
+    font-size: 11px;
+  }
+  
+  .profile-container {
+    gap: 6px;
+    padding: 4px 8px;
+  }
+  
+  .profile-icon {
+    height: 18px;
+    width: 18px;
+    padding: 5px;
+  }
+  
+  .profile-container p {
+    font-size: 11px;
+    letter-spacing: 0.2px;
+  }
+  
+  .dropdown-icon {
+    height: 12px;
+    width: 12px;
+  }
+  
+  .dropdown-menu {
+    top: 55px;
+    right: 8px;
+    min-width: 120px;
+    padding: 6px;
+  }
+  
+  .dropdown-menu li {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-container {
+    gap: 12px;
+    padding: 8px;
+  }
+  
+  .streak-container img {
+    height: 18px;
+    width: 16px;
+  }
+  
+  .streak-container p {
+    font-size: 10px;
+  }
+  
+  .profile-container {
+    gap: 4px;
+    padding: 3px 6px;
+  }
+  
+  .profile-icon {
+    height: 16px;
+    width: 16px;
+    padding: 4px;
+  }
+  
+  .profile-container p {
+    font-size: 10px;
+  }
+  
+  .dropdown-menu {
+    top: 50px;
+    right: 6px;
+    min-width: 100px;
+  }
+  
+  .dropdown-menu li {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header-container {
+    padding: 12px 24px;
+  }
+  
+  .dropdown-menu {
+    top: 50px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .streak-container img,
+  .profile-icon,
+  .dropdown-icon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark mode support for systems that prefer it */
+@media (prefers-color-scheme: dark) {
+  .dropdown-menu {
+    background: rgba(20, 20, 22, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  .dropdown-menu li:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .profile-container,
+  .dropdown-icon,
+  .dropdown-menu li,
+  .streak-glow {
+    transition: none;
+  }
+  
+  .profile-container:hover .dropdown-icon {
+    transform: none;
+  }
+}
 </style>
