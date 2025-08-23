@@ -454,7 +454,6 @@ export default {
       else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
-          await this.multiplayerGame_endGame();
           this.$router.push('/multiplayer-game-end');
           return;
         }
@@ -475,15 +474,8 @@ export default {
         this.multiplayerGame_setPlayerReady();
       }
       else if (this.getGameMode === 'ranked') {
-        console.log('🎯 Handling ranked game round end:', {
-          shouldEnd: this.rankedGame_getShouldEnd,
-          currentRound: this.rankedGame_getCurrentRound,
-          maxRounds: this.rankedGame_getMaxRounds
-        });
-
         // Handle ranked game logic
         if (this.rankedGame_getShouldEnd) {
-          await this.rankedGame_endGame();
           return;
         }
 
