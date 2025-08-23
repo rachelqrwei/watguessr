@@ -3,6 +3,8 @@ app:
 
 server:
   port: 8080
+  # Tell Spring Boot to trust proxy headers from DigitalOcean
+  forward-headers-strategy: framework
 
 spring:
   datasource:
@@ -10,6 +12,13 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    # Connection pooling to prevent database connection exhaustion
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
   mail:
     host: ${SPRING_MAIL_HOST}
     port: ${SPRING_MAIL_PORT}
