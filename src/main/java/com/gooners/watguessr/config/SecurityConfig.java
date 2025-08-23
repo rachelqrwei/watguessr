@@ -52,6 +52,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Add CORS configuration
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
@@ -95,28 +96,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        //TODO: add our server deployment link here as well and remove local host links.
-//        configuration.setAllowedOrigins(List.of("http://192.168.0.161:3000", "http://localhost:5173")); // your client server
-//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-//        configuration.setAllowCredentials(true); // crucial for cookies
-//        configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Temporarily allowing all origins, will be restricted in production
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
+        // Only allow your frontend URL and localhost for development
+        configuration.setAllowedOrigins(List.of(
+            "https://your-frontend-url.ondigitalocean.app" // Replace with your actual frontend URL
+//            "http://localhost:5173", // For local development
+//            "http://localhost:3000"  // Alternative local development port
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
         configuration.setAllowCredentials(true); // crucial for cookies
         configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
 
