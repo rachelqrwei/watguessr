@@ -105,6 +105,8 @@ export default {
   transition-delay: 0.2s;
   max-width: 960px;
   margin: 0 auto;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .play-section.loaded {
@@ -120,6 +122,8 @@ export default {
 .game-modes-wrapper {
   width: fit-content;
   margin: 0 auto;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .section-header {
@@ -142,6 +146,8 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 9px;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .trapezoid-pair {
@@ -470,6 +476,179 @@ export default {
   100% {
     opacity: 1;
     transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Responsive styling for smaller laptop screens */
+@media (max-width: 1200px) {
+  .play-section {
+    padding: 18px 24px 36px;
+  }
+
+  .trapezoid-pair {
+    width: 520px;
+    height: 150px;
+  }
+
+  .player-1-trapezoid,
+  .player-2-trapezoid {
+    width: 300px;
+    height: 150px;
+    padding: 24px;
+  }
+
+  .player-2-trapezoid {
+    left: 250px;
+    padding-left: 50px;
+  }
+
+  .ranked-button {
+    width: 200px;
+    height: 150px;
+  }
+
+  .ranked-progress {
+    width: 110px;
+    height: 150px;
+  }
+
+  .ranked-text h3 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .play-section {
+    padding: 18px 20px 36px;
+  }
+
+  .trapezoid-pair {
+    width: 480px;
+    height: 140px;
+  }
+
+  .player-1-trapezoid,
+  .player-2-trapezoid {
+    width: 280px;
+    height: 140px;
+    padding: 20px;
+  }
+
+  .player-2-trapezoid {
+    left: 200px;
+    padding-left: 70px;
+  }
+
+  .ranked-button {
+    width: 180px;
+    height: 140px;
+  }
+
+  .ranked-progress {
+    width: 100px;
+    height: 140px;
+  }
+
+  .ranked-text h3 {
+    font-size: 24px;
+  }
+
+  .play-option-container h3 {
+    font-size: 34px;
+  }
+
+  .play-option-container p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  .play-section {
+    padding: 18px 16px 36px;
+  }
+
+  .trapezoid-pair {
+    width: 440px;
+    height: 130px;
+  }
+
+  .player-1-trapezoid,
+  .player-2-trapezoid {
+    width: 260px;
+    height: 130px;
+    padding: 18px;
+  }
+
+  .player-2-trapezoid {
+    left: 260px;
+    padding-left: 65px;
+  }
+
+  .ranked-button {
+    width: 160px;
+    height: 130px;
+  }
+
+  .ranked-progress {
+    width: 90px;
+    height: 130px;
+  }
+
+  .ranked-text h3 {
+    font-size: 22px;
+  }
+
+  .play-option-container h3 {
+    font-size: 30px;
+  }
+
+  .play-option-container p {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 800px) {
+  .play-section {
+    padding: 18px 12px 36px;
+  }
+
+  .trapezoid-pair {
+    width: 400px;
+    height: 120px;
+  }
+
+  .player-1-trapezoid,
+  .player-2-trapezoid {
+    width: 240px;
+    height: 120px;
+    padding: 16px;
+  }
+
+  .player-2-trapezoid {
+    left: 240px;
+    padding-left: 60px;
+  }
+
+  .ranked-button {
+    width: 140px;
+    height: 120px;
+  }
+
+  .ranked-progress {
+    width: 80px;
+    height: 120px;
+  }
+
+  .ranked-text h3 {
+    font-size: 20px;
+  }
+
+  .play-option-container h3 {
+    font-size: 26px;
+  }
+
+  .play-option-container p {
+    font-size: 9px;
   }
 }
 

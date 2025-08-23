@@ -226,4 +226,154 @@ export default {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   opacity: 0.9;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 24px auto;
+  }
+  
+  .search-bar {
+    padding: 10px 14px;
+  }
+  
+  .search-input {
+    font-size: 0.85rem;
+  }
+  
+  .search-icon {
+    font-size: 0.9rem;
+  }
+  
+  .result-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+    margin-right: 10px;
+  }
+  
+  .result-username {
+    font-size: 0.85rem;
+  }
+  
+  .result-elo {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-container {
+    max-width: 350px;
+    margin: 0 auto 20px auto;
+  }
+  
+  .search-bar {
+    padding: 8px 12px;
+  }
+  
+  .search-input {
+    font-size: 0.8rem;
+  }
+  
+  .search-icon {
+    font-size: 0.85rem;
+  }
+  
+  .search-result-item {
+    padding: 8px 10px;
+  }
+  
+  .result-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    margin-right: 8px;
+  }
+  
+  .result-username {
+    font-size: 0.8rem;
+  }
+  
+  .result-elo {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-container {
+    max-width: 300px;
+    margin: 0 auto 16px auto;
+  }
+  
+  .search-bar {
+    padding: 6px 10px;
+  }
+  
+  .search-input {
+    font-size: 0.75rem;
+  }
+  
+  .search-icon {
+    font-size: 0.8rem;
+  }
+  
+  .search-dropdown {
+    max-height: 150px;
+  }
+  
+  .search-result-item {
+    padding: 6px 8px;
+  }
+  
+  .result-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    margin-right: 6px;
+  }
+  
+  .result-username {
+    font-size: 0.75rem;
+  }
+  
+  .result-elo {
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .search-container {
+    max-width: 280px;
+    margin: 0 auto 12px auto;
+  }
+  
+  .search-bar {
+    padding: 5px 8px;
+  }
+  
+  .search-input {
+    font-size: 0.7rem;
+  }
+  
+  .search-icon {
+    font-size: 0.75rem;
+  }
+  
+  .result-avatar {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+    margin-right: 5px;
+  }
+  
+  .result-username {
+    font-size: 0.7rem;
+  }
+  
+  .result-elo {
+    font-size: 0.5rem;
+  }
+}
 </style>

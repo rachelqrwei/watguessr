@@ -25,6 +25,7 @@ public class SceneController {
 
     @GetMapping(value = "/image")
     public ResponseEntity<byte[]> getImage(@RequestParam UUID roundId) {
+        // TODO: ??????.
         try (ResponseInputStream<GetObjectResponse> objectStream = sceneService.getImageByRoundId(roundId)) {
             String contentType = objectStream.response().contentType() != null
                     ? objectStream.response().contentType()

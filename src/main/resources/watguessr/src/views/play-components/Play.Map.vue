@@ -103,7 +103,6 @@ export default {
       return Math.sqrt(dx * dx + dy * dy);
     },
     renderMap() {
-      console.log(this.getGuessX, this.getGuessY);
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
       const defaultCenter = [-80.54478250141877, 43.47247223467783];

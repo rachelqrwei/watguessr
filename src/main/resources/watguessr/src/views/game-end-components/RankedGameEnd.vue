@@ -718,6 +718,195 @@ export default {
 
 
 
+/* Responsive styling for different laptop/desktop sizes */
+@media (max-width: 1400px) {
+  .game-end-panel {
+    max-width: 720px;
+    padding: 28px 20px 24px;
+    gap: 20px;
+  }
+  
+  .game-label {
+    font-size: 32px;
+  }
+  
+  .winner-announcement {
+    font-size: 22px;
+  }
+  
+  .results-section {
+    gap: 28px;
+  }
+  
+  .player-result {
+    min-width: 180px;
+  }
+  
+  .player-score {
+    font-size: 28px;
+  }
+  
+  .vs-divider {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .vs-text {
+    font-size: 18px;
+  }
+  
+  .elo-summary {
+    max-width: 360px;
+    padding: 18px;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .game-end-panel {
+    max-width: 640px;
+    padding: 24px 18px 20px;
+    gap: 18px;
+  }
+  
+  .game-label {
+    font-size: 28px;
+  }
+  
+  .winner-announcement {
+    font-size: 20px;
+  }
+  
+  .results-section {
+    gap: 24px;
+  }
+  
+  .player-result {
+    min-width: 160px;
+  }
+  
+  .player-score {
+    font-size: 24px;
+  }
+  
+  .vs-divider {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .vs-text {
+    font-size: 17px;
+  }
+  
+  .elo-summary {
+    max-width: 320px;
+    padding: 16px;
+  }
+  
+  .btn {
+    padding: 9px 18px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .game-end-panel {
+    max-width: 580px;
+    padding: 20px 16px 18px;
+    gap: 16px;
+  }
+  
+  .game-label {
+    font-size: 24px;
+  }
+  
+  .winner-announcement {
+    font-size: 18px;
+  }
+  
+  .results-section {
+    gap: 20px;
+  }
+  
+  .player-result {
+    min-width: 140px;
+  }
+  
+  .player-score {
+    font-size: 20px;
+  }
+  
+  .vs-divider {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .vs-text {
+    font-size: 16px;
+  }
+  
+  .elo-summary {
+    max-width: 300px;
+    padding: 14px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-end-panel {
+    max-width: 520px;
+    padding: 18px 14px 16px;
+    gap: 14px;
+  }
+  
+  .game-label {
+    font-size: 20px;
+  }
+  
+  .winner-announcement {
+    font-size: 16px;
+  }
+  
+  .results-section {
+    gap: 18px;
+  }
+  
+  .player-result {
+    min-width: 120px;
+  }
+  
+  .player-score {
+    font-size: 18px;
+  }
+  
+  .vs-divider {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .vs-text {
+    font-size: 15px;
+  }
+  
+  .elo-summary {
+    max-width: 280px;
+    padding: 12px;
+  }
+  
+  .btn {
+    padding: 7px 14px;
+    font-size: 10px;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .game-end-panel {

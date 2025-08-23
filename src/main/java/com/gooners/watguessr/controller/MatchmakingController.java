@@ -21,6 +21,7 @@ public class MatchmakingController {
 
 	@MessageMapping("/matchmaking/join")
 	public void handleJoinRankedQueue(Map<String, Object> userInfo) {
+        // TODO: Can't join ranked queue if already in a game or another queue.
 		String userIdString = (String) userInfo.get("userId");
 
 		if (userIdString == null || userIdString.trim().isEmpty()) {

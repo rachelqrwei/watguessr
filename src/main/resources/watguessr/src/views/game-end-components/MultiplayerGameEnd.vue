@@ -1,12 +1,12 @@
 <template>
   <div class="game-end-background" aria-hidden="true"></div>
-  
+
   <!-- Home Button -->
   <div class="page-logo">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
-  
+
   <div class="game-end-container">
     <div class="game-end-panel">
       <div class="game-header">
@@ -492,6 +492,163 @@ export default {
   .button-section {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* Responsive styling for different laptop/desktop sizes */
+@media (max-width: 1400px) {
+  .game-end-container {
+    gap: 20px;
+    padding: 18px;
+  }
+
+  .game-label {
+    font-size: 38px;
+  }
+
+  .winner-announcement {
+    font-size: 22px;
+    margin-top: 10px;
+  }
+
+  .leaderboard-section {
+    max-width: 450px;
+  }
+
+  .leaderboard-title {
+    font-size: 18px;
+  }
+
+  .stats-section {
+    gap: 32px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .game-end-container {
+    gap: 18px;
+    padding: 16px;
+  }
+
+  .game-label {
+    font-size: 34px;
+  }
+
+  .winner-announcement {
+    font-size: 20px;
+    margin-top: 8px;
+  }
+
+  .leaderboard-section {
+    max-width: 600px;
+  }
+
+  .leaderboard-title {
+    font-size: 17px;
+  }
+
+  .stats-section {
+    gap: 28px;
+  }
+
+  .stat-value {
+    font-size: 17px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .game-end-container {
+    gap: 16px;
+    padding: 14px;
+  }
+
+  .game-label {
+    font-size: 30px;
+  }
+
+  .winner-announcement {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+
+  .leaderboard-section {
+    max-width: 500px;
+  }
+
+  .leaderboard-title {
+    font-size: 16px;
+  }
+
+  .stats-section {
+    gap: 24px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  .button-section {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-end-container {
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .game-label {
+    font-size: 26px;
+  }
+
+  .winner-announcement {
+    font-size: 16px;
+    margin-top: 4px;
+  }
+
+  .leaderboard-section {
+    max-width: 320px;
+  }
+
+  .leaderboard-title {
+    font-size: 15px;
+  }
+
+  .stats-section {
+    gap: 20px;
+  }
+
+  .stat-value {
+    font-size: 15px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .button-section {
+    gap: 10px;
   }
 }
 </style>

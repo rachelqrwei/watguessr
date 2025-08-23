@@ -264,11 +264,23 @@ export const actions = {
         credentials: "include" // send HttpOnly cookie
       });
 
-      if (res.ok) {
-        const userData = await res.json();
-        commit('SET_CURRENT_USER', userData);
-        commit('SET_AUTHENTICATED', true);
+      if (res.status === 204) {
+        // No content means not authenticated
+        commit('SET_AUTHENTICATED', false);
+        commit('SET_CURRENT_USER', null);
+      } else if (res.ok) {
+        // Safely parse JSON if present
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const userData = await res.json();
+          commit('SET_CURRENT_USER', userData);
+          commit('SET_AUTHENTICATED', true);
+        } else {
+          commit('SET_AUTHENTICATED', false);
+          commit('SET_CURRENT_USER', null);
+        }
       } else {
+        // Non-OK response
         commit('SET_AUTHENTICATED', false);
         commit('SET_CURRENT_USER', null);
       }

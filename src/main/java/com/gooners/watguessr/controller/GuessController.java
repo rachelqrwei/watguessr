@@ -41,6 +41,7 @@ public class GuessController {
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto
     ) {
+        // TODO: Make sure only one guess per round per user is allowed.
         // Fetch managed entities from database
         Round round = roundService.findById(createDto.getRoundId());
         User user = userService.findById(createDto.getUserId());
@@ -66,6 +67,7 @@ public class GuessController {
     @MessageMapping("/guess") //client sends to /app/guess
     @SendTo("/topic/guesses")
     public Guess processGuessInMultiplayerGame(Guess guess) {
+        // TODO: Make sure only one guess per round per user is allowed.
         System.out.println(guess);
         return guess;
     }
