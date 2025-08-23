@@ -4,7 +4,7 @@
       <div class="modal-content" @click.stop>
 
       <button class="close-btn" @click="$emit('close')">×</button>
-      
+
       <!-- Google Sign In Button -->
       <div class="google-signin-section">
         <button @click="handleGoogleSignIn" class="google-signin-btn" :disabled="loading">
@@ -18,7 +18,7 @@
             <span class="google-btn-text">Continue with Google</span>
           </div>
         </button>
-        
+
         <div class="divider">
           <span>or</span>
         </div>
@@ -35,7 +35,7 @@
           <input type="text" id="username" v-model="username" placeholder="" required/>
           <label for="username">USERNAME</label>
         </div>
-        <p v-if="username.length < 8" class="input-error">Username has to be more than 8 characters</p>
+        <p v-if="username.length < 3" class="input-error">Username has to be more than 3 characters</p>
 
         <div class="form-group floating-label password-wrapper">
           <input

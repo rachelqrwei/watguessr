@@ -32,4 +32,9 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
             """)
     Optional<EmailVerification> findFirstVerifiedByEmail(@Param("email") String email);
 
+    @Query("""
+              select e from EmailVerification e
+              where e.user.emailAddress = :email 
+            """)
+    EmailVerificationRepository findByEmail(@Param("email") String email);
 }

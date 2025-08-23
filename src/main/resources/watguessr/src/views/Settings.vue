@@ -26,8 +26,6 @@
           </div>
 
           <div class="card">
-          <!-- <div class="card-label">Account</div> -->
-
           <div class="profile-username-row">
             <div class="avatar-wrap">
               <div class="avatar" :style="{ background: avatarColors.bg, color: avatarColors.fg }" aria-hidden="true">
@@ -38,38 +36,127 @@
               <div class="form-row compact username-field">
                 <label>Username</label>
                 <div class="username-line">
-                  <div class="input-with-icon">
-                    <input type="text"
-                           v-model="newUsername"
-                           :placeholder="settings?.username || 'Enter new username'"
-                           :disabled="!isEditingUsername"
-                    />
-                    <button class="edit-inline-btn" @click="toggleUsernameEditing" title="Edit username">
-                      <font-awesome-icon :icon="isEditingUsername ? 'fa-solid fa-check' : 'fa-solid fa-pen'" />
-                      <span class="icon-btn-text">{{ isEditingUsername ? 'SAVE' : 'EDIT' }}</span>
-                    </button>
+                  <div class="form-row">
+                    <input type="email" :value="settings?.emailAddress" disabled />
                   </div>
+                  <button class="change-password-btn" @click="toggleUsernameEditing">Change Username</button>
                   <button class="change-password-btn" @click="togglePasswordEditing">Change Password</button>
-                  <!-- Username error message -->
-                  <div v-if="showErrorMessage" class="username-error-message">
-                    {{ errorMessage }}
-                  </div>
-
                 </div>
-
               </div>
             </div>
           </div>
 
-          <!-- Password change section -->
-          <div v-if="isEditingPassword" class="form-row">
-            <label>New Password</label>
-            <div class="password-input-group">
-              <input type="password" v-model="newPassword" placeholder="Enter new password" />
-              <button class="save-password-btn" @click="onChangePassword">Save Password</button>
-              <button class="cancel-password-btn" @click="cancelPasswordEditing">Cancel</button>
+          <!-- Username change section -->
+<!--          <div v-if="isEditingUsername" class="form-row">-->
+<!--            <div class="password-input-group">-->
+
+<!--              <div class="input-with-icon">-->
+<!--                <input type="text"-->
+<!--                       v-model="newUsername"-->
+<!--                       :placeholder="settings?.username || 'Enter new username'"-->
+<!--                       :disabled="!isEditingUsername"-->
+<!--                />-->
+<!--                <button class="edit-inline-btn" @click="saveUsername" title="Edit username" :disabled="loading || !usernameChecks.allValid">-->
+<!--                  <font-awesome-icon :icon="'fa-solid fa-check'" />-->
+<!--                  <span class="icon-btn-text">{{ 'SAVE' }}</span>-->
+<!--                </button>-->
+<!--              </div>-->
+
+<!--              <button class="cancel-password-btn" @click="cancelUsernameEditing">Cancel</button>-->
+
+<!--              <ul v-if="isEditingUsername" class="password-checklist">-->
+<!--                <li :class="{ valid: usernameChecks.validLengths }">-->
+<!--                  {{ usernameChecks.validLengths ? "✓" : "✗" }} Between 3 to 24 in lengths-->
+<!--                </li>-->
+<!--                <li :class="{ valid: usernameChecks.validCombination }">-->
+<!--                  {{ usernameChecks.validCombination ? "✓" : "✗" }} Does not include space-->
+<!--                </li>-->
+
+<!--              </ul>-->
+<!--            </div>-->
+<!--          </div>-->
+
+
+
+            <!-- Username change section -->
+            <div v-if="isEditingUsername" class="form-row">
+              <div class="password-input-group">
+                <div class="form-group floating-label password-wrapper">
+                  <input
+                    type="text"
+                    id="newUsername"
+                    v-model="newUsername"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="newUsername">NEW USERNAME</label>
+
+                  <button class="edit-inline-btn" @click="saveUsername" title="Save username" :disabled="isLoading || !usernameChecks.allValid">
+                    <font-awesome-icon :icon="'fa-solid fa-check'" />
+                    <span class="icon-btn-text">SAVE</span>
+                  </button>
+                </div>
+
+                <button class="cancel-password-btn" @click="cancelUsernameEditing">Cancel</button>
+
+                <ul class="password-checklist">
+                  <li :class="{ valid: usernameChecks.validLengths }">
+                    {{ usernameChecks.validLengths ? "✓" : "✗" }} Between 3 to 24 in lengths
+                  </li>
+                  <li :class="{ valid: usernameChecks.validCombination }">
+                    {{ usernameChecks.validCombination ? "✓" : "✗" }} Does not include space
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Username 7-day note -->
+<!--              <div class="username-note">-->
+<!--                Username can be changed only once in 7 days-->
+<!--              </div>-->
+
             </div>
-          </div>
+
+          <!-- Password change section -->
+            <!-- Password change section -->
+            <div v-if="isEditingPassword" class="form-row">
+              <div class="password-input-group">
+                <div class="form-group floating-label password-wrapper">
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    id="newPassword"
+                    v-model="newPassword"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="newPassword">NEW PASSWORD</label>
+
+                  <span class="toggle-eye" @click="showPassword = !showPassword">
+                    <font-awesome-icon :icon="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" />
+                  </span>
+
+                  <button class="edit-inline-btn" @click="onChangePassword" title="Edit username" :disabled="loading || !passwordChecks.allValid">
+                    <font-awesome-icon :icon="'fa-solid fa-check'" />
+                    <span class="icon-btn-text">{{ 'SAVE' }}</span>
+                  </button>
+
+                </div>
+
+
+                <button class="cancel-password-btn" @click="cancelPasswordEditing">Cancel</button>
+
+                <ul class="password-checklist">
+                  <li :class="{ valid: passwordChecks.lengthValid }">
+                    {{ passwordChecks.lengthValid ? "✓" : "✗" }} At least 8 characters
+                  </li>
+                  <li :class="{ valid: passwordChecks.casingValid }">
+                    {{ passwordChecks.casingValid ? "✓" : "✗" }} Includes uppercase and lowercase
+                  </li>
+                  <li :class="{ valid: passwordChecks.specialCharValid }">
+                    {{ passwordChecks.specialCharValid ? "✓" : "✗" }} Includes special character (!@#$%^&*)
+                  </li>
+                </ul>
+              </div>
+            </div>
 
           <div class="form-row">
             <label>Email</label>
@@ -105,6 +192,7 @@ export default {
       newPassword: '',
       isEditingUsername: false,
       isEditingPassword: false,
+      showPassword: false,
     }
   },
   computed: {
@@ -115,7 +203,27 @@ export default {
     },
     showErrorMessage() {
       return this.errorMessage && this.errorMessage.trim() !== ''
-    }
+    },
+    usernameChecks() {
+      const validLengths = !(this.newUsername.length < 3 && this.newUsername.length > 24);
+      const validCombination = !(this.newUsername.includes(""));
+      return {
+        validLengths,
+        validCombination,
+        alllValid: validLengths && validCombination
+      };
+    },
+    passwordChecks() {
+      const lengthValid = this.newPassword.length >= 8;
+      const casingValid = /(?=.*[a-z])(?=.*[A-Z])/.test(this.newPassword);
+      const specialCharValid = /(?=.*[!@#$%^&*])/.test(this.newPassword);
+      return {
+        lengthValid,
+        casingValid,
+        specialCharValid,
+        allValid: lengthValid && casingValid && specialCharValid,
+      };
+    },
   },
   methods: {
     ...mapActions('user', ['fetchUserSettings', 'changeUsername', 'deleteUser', 'changePassword']),
@@ -144,6 +252,17 @@ export default {
       }
     },
 
+    // editUsernmae() {
+    //   this.saveUsername()
+    // },
+    //
+    // saveUsername() {
+    //   this.isEditingUsername = true
+    //   this.errorMessage = null
+    //   this.newUsername = this.settings?.username || ''
+    // },
+
+
     async saveUsername() {
       if (!this.newUsername || this.newUsername.trim() === '') {
         this.errorMessage = 'Username cannot be empty'
@@ -154,7 +273,6 @@ export default {
         this.isLoading = true
         this.errorMessage = null
 
-
         const res = await this.changeUsername({
           emailAddress: this.settings.emailAddress,
           newUsername: this.newUsername.trim()
@@ -164,7 +282,14 @@ export default {
         if (res) {
           this.settings = {...this.settings, username: this.newUsername.trim()}
           this.isEditingUsername = false
+
+          // Show success message
           this.$toast?.success?.('Username updated successfully') || console.log('Username updated successfully')
+
+          // Reload the page to reflect changes
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000) // Wait 1 second for user to see success message
         }
       } catch (err) {
         this.errorMessage = err instanceof Error ? err.message : 'Failed to change username'
@@ -182,6 +307,11 @@ export default {
     cancelPasswordEditing() {
       this.isEditingPassword = false
       this.newPassword = ''
+    },
+
+    cancelUsernameEditing() {
+      this.isEditingUsername = false
+      this.newUsername = ''
     },
 
     async onChangePassword() {
@@ -225,9 +355,8 @@ export default {
         await this.deleteUser({
           emailAddress: this.settings.emailAddress
         })
-
-        // Redirect to home page after successful deletion
         this.$router.push('/')
+        window.location.reload()
 
       } catch (err) {
         this.errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
@@ -473,6 +602,7 @@ export default {
   gap: 16px;
   align-items: center;
   margin-bottom: 8px;
+  width: 200px
 }
 
 .username-actions {
@@ -507,6 +637,8 @@ export default {
   width: 100%;
   padding-right: 88px;
   height: 40px;
+  min-width: 250px;  /* Add minimum width */
+  font-size: 14px;   /* Increase font size */
 }
 
 .edit-inline-btn {
@@ -529,11 +661,31 @@ export default {
 .icon-btn-text { font-weight: 700; font-size: 12px; letter-spacing: 0.4px; }
 
 .username-line {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  width: 300px;
   gap: 10px;
   align-items: center;
 }
+
+.username-display {
+  white-space: nowrap;
+  height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 203, 59, 0.12);
+  border: 1px solid var(--grey);
+  color: var(--grey);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
 
 .change-password-btn {
   white-space: nowrap;
@@ -560,6 +712,7 @@ export default {
   box-shadow: 0 0 0 3px rgba(255, 203, 59, 0.12);
   transform: translateY(-1px);
 }
+
 
 .form-row {
   display: flex;
@@ -730,6 +883,30 @@ input[type="email"] {
   box-shadow: 0 0 0 3px rgba(255, 127, 127, 0.12);
 }
 
+.username-caution-message {
+  white-space: nowrap;
+  height: 20px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 203, 59, 0.12);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  border-radius: 6px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  font-size: 9px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  margin-left: 0; /* Align with the username input field */
+}
+
+.username-caution-message:hover {
+  background: rgba(255, 203, 59, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 203, 59, 0.12);
+}
+
 @media (max-width: 768px) {
   .profile-content {
     grid-template-columns: 1fr;
@@ -740,6 +917,129 @@ input[type="email"] {
   .hero { grid-template-columns: 1fr; gap: 0; }
 
 }
+
+.password-checklist {
+  margin-top: 1.2rem;
+  margin-bottom: 1rem;
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.85rem;
+  color: #ccc;
+  width: 500px;
+}
+
+.password-checklist li {
+  margin-bottom: 0.25rem;
+}
+
+.password-checklist li.valid {
+  color: #B6FF7F;
+}
+
+.toggle-eye {
+  position: absolute;
+  right: 10px;
+  top: 17%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #ccc;
+  font-size: 1rem;
+  user-select: none;
+  z-index: 3;
+  margin-right: 60px;
+}
+
+/* Wrap the password input for eye toggle */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 2.5rem; /* reserve space for the eye */
+  background: rgba(255, 255, 255, 0.08); /* Match username input background */
+  border: 1px solid rgba(255, 255, 255, 0.12); /* Match username input border */
+  color: var(--white); /* Match username input text color */
+  border-radius: 8px; /* Match username input border radius */
+  padding: 10px 12px; /* Match username input padding */
+  font-size: 14px; /* Match username input font size */
+  height: 40px; /* Match username input height */
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.password-wrapper input:focus {
+  outline: none;
+  border-color: var(--yellow); /* Use yellow focus color to match theme */
+  background: rgba(255, 255, 255, 0.12); /* Slightly lighter on focus */
+}
+
+/* Eye toggle button */
+.toggle-eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #ccc;
+  font-size: 1rem;
+  user-select: none;
+  z-index: 3;
+}
+
+/* Floating label styling (optional, if you want labels inside input) */
+.floating-label {
+  position: relative;
+}
+
+.floating-label input {
+  padding: 1.1rem 0.6rem 0.4rem;
+  height: 3rem;
+  background: #3a3a3a;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #aaa;
+  font-size: 1rem;
+}
+
+.floating-label label {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.75rem;
+  color: #cccccc;
+  font-size: 1rem;
+  pointer-events: none;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  padding: 0 0.25rem;
+}
+
+/* Label shrinks when input is filled or focused */
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label input:valid + label {
+  top: -0.2rem;
+  left: 0.2rem;
+  font-size: 0.6rem;
+  color: var(--light-grey, #ccc);
+  padding: 0.3rem 0.4rem;
+  z-index: 2;
+}
+
+.username-note {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 8px 12px;
+  background: rgba(255, 203, 59, 0.12);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  max-width: 500px;
+}
+
 </style>
 
 
