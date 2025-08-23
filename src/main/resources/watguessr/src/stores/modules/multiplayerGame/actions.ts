@@ -30,7 +30,7 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
   async multiplayerGame_restartGame({ state, commit, dispatch }) {
     await dispatch('multiplayerGame_createMultiplayerGame');
   },
-  multiplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
+  async multiplayerGame_endCurrentRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     const currentUser = rootGetters['user/getCurrentUser'];
     const userId = currentUser?.id;
 
@@ -44,6 +44,10 @@ export const actions: ActionTree<MultiplayerGameState, RootState> = {
     }
 
     commit('MG_IMPLEMENT_ROUND_RESULT', { playerId: userId, roundResult: payload.roundResult });
+
+    // fetch correct answer immediately after user submits guess
+    // this ensures the RoundEnd view has the correct answer for proper map bounds
+    await dispatch('round/fetchCorrectAnswer', null, { root: true });
 
     // Send progress update via WebSocket
     const currentScore = state.multiplayerGame_players[userId]?.score || 0;

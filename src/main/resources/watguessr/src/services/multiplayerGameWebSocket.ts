@@ -199,6 +199,9 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
 function handleRoundStart(roundData: any) {
   // Start a new round in the frontend
   if (roundData.roundId) {
+    // IMPORTANT: Reset round state to clear previous round data (including correct answer)
+    store.commit('round/RESET_ROUND', null);
+    
     // Set the new round ID in the round store
     store.commit('round/SET_ROUND_ID', roundData.roundId);
 
@@ -220,11 +223,8 @@ function handleRoundStart(roundData: any) {
 
   // Don't reset countdown state here - it should be reset after the countdown completes
   // The countdown will be shown when all players are ready, and then reset after completion
-
-  // Force the view change with a small delay to ensure it takes effect
-  setTimeout(() => {
-    store.commit('gameInfo/SET_CURRENT_VIEW', 'Image');
-  }, 100);
+  // Do not force the view change here. The Play view will switch to 'Image'
+  // after the countdown/progress bar completes to keep RoundEnd visible during transition.
 }
 
 // Helper function to fetch scene image
@@ -313,6 +313,30 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
 
     store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
   }
+
+  // Persist winner in the backend for multiplayer
+  const gameId = completionData.gameId;
+  if (gameId) {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/multiplayer?gameId=${gameId}`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        const currentUser = store.getters['user/getCurrentUser'];
+        if (currentUser?.id) {
+          store.commit('multiplayerGame/MG_SET_STATUS', { playerId: currentUser.id, status: 'ended' });
+        }
+      })
+      .catch(error => {
+        console.error('❌ Failed to resolve multiplayer game via backend:', error);
+      });
+  }
 }
 
 function startHeartbeat(gameId: any) {
@@ -321,7 +345,7 @@ function startHeartbeat(gameId: any) {
   heartbeatInterval = window.setInterval(() => {
     if (stompClient && stompClient.connected) {
       stompClient.send(
-        "/app/ranked-game/heartbeat",
+        "/app/multiplayer-game/heartbeat",
         {},
         JSON.stringify({ gameId: gameId })
       );

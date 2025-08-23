@@ -75,12 +75,6 @@ public class RankedGameStateService {
 			player.setScore(score);
 			player.setStatus(status);
 			broadcastGameState(gameId);
-			
-			// Check if all players completed the round
-			if (checkAllPlayersEnded(gameId)) {
-				gameState.setGameStatus("round-complete");
-				broadcastGameState(gameId);
-			}
 		} else {
 			System.err.println("❌ Failed to update player progress: gameState=" + (gameState != null) + ", playerExists=" + (gameState != null && gameState.getPlayers().containsKey(userId)));
 		}
@@ -104,9 +98,18 @@ public class RankedGameStateService {
 
 		setPlayerStatus(gameId, userId, ready ? "ready" : "ended");
 		
-		// Check if all players are ready to advance
-		if (checkAllPlayersReady(gameId)) {
-			advanceToNextRound(gameId);
+		if (ready) {
+			if (checkAllPlayersReady(gameId)) {
+				advanceToNextRound(gameId);
+			}
+		} else {
+			if (checkAllPlayersEnded(gameId)) {
+				RankedGameStateDto gameState = gameStates.get(gameId);
+				if (gameState != null) {
+					gameState.setGameStatus("round-complete");
+					broadcastGameState(gameId);
+				}
+			}
 		}
 	}
 

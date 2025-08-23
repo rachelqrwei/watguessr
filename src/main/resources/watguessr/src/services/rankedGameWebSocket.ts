@@ -208,6 +208,9 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
 function handleRoundStart(roundData: any) {
   // Start a new round in the frontend
   if (roundData.roundId) {
+   //reset round state to clear previous round data (including correct answer)
+    store.commit('round/RESET_ROUND', null);
+
     // Set the new round ID in the round store
     store.commit('round/SET_ROUND_ID', roundData.roundId);
 
@@ -227,10 +230,8 @@ function handleRoundStart(roundData: any) {
   store.commit('guess/SET_BUILDING', '');
   store.commit('guess/SET_FLOOR', '');
 
-  // Force the view change with a small delay to ensure it takes effect
-  setTimeout(() => {
-    store.commit('gameInfo/SET_CURRENT_VIEW', 'Image');
-  }, 100);
+  // Do not force the view change here. The Play view will switch to 'Image'
+  // after the countdown/progress bar completes to keep RoundEnd visible during transition.
 }
 
 // Helper function to fetch scene image

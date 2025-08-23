@@ -34,13 +34,34 @@ public class PointsCalculator {
             floorMatch = normalize(guess.getFloor()).equals(normalize(scene.getFloor()));
         }
 
-        if (game.getGameMode().equals("Singleplayer")) {
-            return calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, roundRepository, guess.getUser());
-        } else if (game.getGameMode().equals("Multiplayer") || game.getGameMode().equals("Ranked")) {
-            return calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
+        int points;
+        String mode = game.getGameMode();
+        if ("Singleplayer".equals(mode)) {
+            points = calculateSingleplayerPoints(distance, buildingMatch, floorMatch, game, roundRepository, guess.getUser()); // negative penalty
+        } else if ("Multiplayer".equals(mode) || "Ranked".equals(mode)) {
+            points = calculateMultiplayerPoints(distance, buildingMatch, floorMatch);
+        } else {
+            points = 0;
         }
 
-        return 0;
+        // Apply time-based modifier based on percentage time left
+        double timeLeftFraction = computeTimeLeftFraction(game, guess); // 0.0 to 1.0
+
+        if ("Singleplayer".equals(mode)) {
+            // Reduce penalty when guessed faster (more time left)
+            int penaltyMagnitude = -points; // points are negative for SP
+            if (penaltyMagnitude < 0) penaltyMagnitude = 0;
+            // Up to 30% reduction when guessed instantly
+            double reductionFactor = 1.0 - (0.40 * timeLeftFraction);
+            int adjustedPenalty = (int) Math.round(penaltyMagnitude * reductionFactor);
+            points = -adjustedPenalty;
+        } else if ("Multiplayer".equals(mode) || "Ranked".equals(mode)) {
+            // Up to 20% boost when guessed instantly
+            double boostFactor = 1.0 + (0.40 * timeLeftFraction);
+            points = (int) Math.round(points * boostFactor);
+        }
+
+        return points;
     }
 
     //calculate euclidean distance
@@ -60,26 +81,53 @@ public class PointsCalculator {
         return Math.sqrt(latDiffMeters * latDiffMeters + lngDiffMeters * lngDiffMeters);
     }
 
+    private static double computeTimeLeftFraction(Game game, Guess guess) {
+        if (game == null) return 0.0;
+        String mode = game.getGameMode();
+
+        // total time in milliseconds per mode
+        long totalMs;
+        if ("Singleplayer".equals(mode)) {
+            totalMs = 30_000L;
+        } else if ("Ranked".equals(mode)) {
+            totalMs = 20_000L;
+        } else if ("Multiplayer".equals(mode)) {
+            Integer configuredSeconds = game.getMultiplayerTimer();
+            if (configuredSeconds == null || configuredSeconds <= 0) {
+                configuredSeconds = 60; // sensible default
+            }
+            totalMs = configuredSeconds.longValue() * 1000L;
+        } else {
+            totalMs = 60_000L;
+        }
+
+        // time taken in milliseconds
+        long timeTakenMs = (guess != null && guess.getTime() != null) ? guess.getTime().longValue() : totalMs;
+        if (timeTakenMs < 0) timeTakenMs = 0;
+
+        double left = (double) (totalMs - Math.min(timeTakenMs, totalMs));
+        double fraction = left / (double) totalMs;
+        if (fraction < 0.0) return 0.0;
+        if (fraction > 1.0) return 1.0;
+        return fraction;
+    }
+
     //calculate for multiplayer/ranked modes
     private static int calculateMultiplayerPoints(double distance, boolean buildingMatch, boolean floorMatch) {
-        int basePoints = 0;
-
-        // Less exponential: polynomial falloff based on normalized distance
-        // points ≈ 500 * (1 - normalizedDistance)^beta
-        double maxDistance = 2000.0; // meters
-        double normalizedDistance = Math.min(distance / maxDistance, 1.0);
-        double beta = 1.1; // 1.0 is linear; >1 curves slightly
-        basePoints = (int) Math.round(500 * Math.pow(1.0 - normalizedDistance, beta));
+        // Smooth exponential falloff: 500 at 0m, approaches ~150 by ~200m, no hard clamp
+        // base = 150 + 350 * exp(-distance / decayMeters)
+        double decayMeters = 60.0; // tune so ~200m yields ~160–170 ("basically 150")
+        int basePoints = (int) Math.round(150.0 + 350.0 * Math.exp(-distance / decayMeters));
 
         // Bonus points for correct building and floor (reduced floor influence)
         if (buildingMatch) {
             basePoints += 100;
             if (floorMatch) {
-                basePoints += 20; // floor matters less than coordinates
+                basePoints += 20;
             }
         }
 
-        return Math.max(basePoints, 25); // Minimum 25 points for any guess
+        return basePoints;
     }
 
     //calculate points for a singleplayer game

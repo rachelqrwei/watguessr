@@ -114,7 +114,10 @@ export default {
       isAggregatedGuesses: false,
       guessUpdateSubscription: null,
       gameStateSubscription: null,
-      refreshInterval: null
+      refreshInterval: null,
+      markerMap: new Map(), // Track markers by unique key to prevent duplicates
+      lastCorrectAnswer: null, // Track last correct answer to detect changes
+      completedRoundId: null // Store the round ID for the completed round
     };
   },
   computed: {
@@ -162,6 +165,16 @@ export default {
   },
   async mounted() {
     this.currentUser = this.getCurrentUser;
+    
+    // Capture the round ID for the completed round BEFORE it gets changed
+    this.completedRoundId = this.$store.getters['round/getRoundId'];
+    
+    // Clear any existing data from previous rounds
+    this.allGuesses = [];
+    this.markers.forEach(marker => marker.remove());
+    this.markers = [];
+    this.markerMap.clear();
+    
     await this.fetchAllGuesses();
     this.renderMap();
 
@@ -175,6 +188,11 @@ export default {
   beforeUnmount() {
     // Clean up subscriptions and intervals
     this.cleanupLiveUpdates();
+    
+    // Clean up markers
+    this.markers.forEach(marker => marker.remove());
+    this.markers = [];
+    this.markerMap.clear();
   },
   methods: {
     async fetchAllGuesses() {
@@ -192,17 +210,29 @@ export default {
 
         const roundsData = await response.json();
 
-        // Find the current round
-        const currentRound = roundsData.find(round =>
-          round.roundId === this.getRoundResult?.roundId ||
-          roundsData.indexOf(round) === this.multiplayerGame_getCurrentRound - 1
-        );
+        // Use the completed round ID instead of current round ID
+        if (!this.completedRoundId) {
+          console.warn('No completed round ID available, clearing guesses');
+          this.allGuesses = [];
+          return;
+        }
 
-        if (currentRound && currentRound.guesses) {
-          this.allGuesses = currentRound.guesses;
+        // Find the completed round by exact round ID match
+        const completedRound = roundsData.find(round => round.roundId === this.completedRoundId);
+
+        if (completedRound && completedRound.guesses) {
+          // Only use guesses from the completed round
+          this.allGuesses = completedRound.guesses;
+          console.log(`Loaded ${this.allGuesses.length} guesses for completed round ${this.completedRoundId}`);
+        } else {
+          // No guesses for completed round yet
+          this.allGuesses = [];
+          console.log(`No guesses found for completed round ${this.completedRoundId}`);
         }
       } catch (error) {
         console.error('Error fetching all guesses:', error);
+        // Clear guesses on error to prevent showing stale data
+        this.allGuesses = [];
       }
     },
 
@@ -227,14 +257,13 @@ export default {
       });
     },
 
-    // Subscribe to guess updates for the current round
+    // Subscribe to guess updates for the completed round
     subscribeToGuessUpdates(gameId) {
       if (window.stompClient && window.stompClient.connected) {
-        // Subscribe to round updates for the current round
-        const roundId = this.getRoundResult?.roundId;
-        if (roundId) {
+        // Subscribe to round updates for the completed round
+        if (this.completedRoundId) {
           this.guessUpdateSubscription = window.stompClient.subscribe(
-            `/topic/round/${roundId}/guesses`,
+            `/topic/round/${this.completedRoundId}/guesses`,
             (message) => {
               this.handleLiveGuessUpdate(JSON.parse(message.body));
             }
@@ -298,8 +327,19 @@ export default {
 
     // Refresh guesses from the backend
     async refreshGuesses() {
+      const previousGuessCount = this.allGuesses.length;
+      const previousCorrectAnswer = this.lastCorrectAnswer;
+      
       await this.fetchAllGuesses();
-      this.updateMapMarkers();
+      
+      // Only update markers if there are new guesses or correct answer changed
+      const hasNewGuesses = this.allGuesses.length > previousGuessCount;
+      const correctAnswerChanged = JSON.stringify(this.correctAnswer) !== JSON.stringify(previousCorrectAnswer);
+      
+      if (hasNewGuesses || correctAnswerChanged) {
+        this.updateMapMarkers();
+        this.lastCorrectAnswer = this.correctAnswer ? { ...this.correctAnswer } : null;
+      }
     },
 
     // Update map markers with current guesses
@@ -403,21 +443,43 @@ export default {
     },
 
     fitMapToMarkers() {
-      if (this.markers.length === 0) return;
+      if (this.markers.length === 0) {
+        // If no markers yet, center on a default location (UW campus)
+        this.map.flyTo({
+          center: [-80.54478250141877, 43.47247223467783],
+          zoom: 17,
+          duration: 1000
+        });
+        return;
+      }
 
       const bounds = new mapboxgl.LngLatBounds();
 
       // Add all marker coordinates to bounds
       this.markers.forEach(marker => {
-        bounds.extend(marker.getLngLat());
+        const lngLat = marker.getLngLat();
+        // Only extend bounds if coordinates are valid
+        if (lngLat.lng && lngLat.lat) {
+          bounds.extend(lngLat);
+        }
       });
 
-      // Fit map to show all markers
-      this.map.fitBounds(bounds, {
-        padding: 80,
-        duration: 1000,
-        easing: (t) => t,
-      });
+      // Only fit bounds if we have valid bounds
+      if (!bounds.isEmpty()) {
+        // Fit map to show all markers
+        this.map.fitBounds(bounds, {
+          padding: 80,
+          duration: 1000,
+          easing: (t) => t,
+        });
+      } else {
+        // Fallback to default center if bounds are empty
+        this.map.flyTo({
+          center: [-80.54478250141877, 43.47247223467783],
+          zoom: 17,
+          duration: 1000
+        });
+      }
     }
   }
 };
@@ -759,3 +821,4 @@ export default {
   background-color: #7F7F7F;
 }
 </style>
+

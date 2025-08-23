@@ -82,18 +82,21 @@ public class RoundController {
                 throw new CustomException("You must make a guess before viewing the correct answer");
             }
         }
-        // For multiplayer and ranked, check if all players have submitted guesses
+        // For multiplayer and ranked, check if the requesting user has made a guess
         else if ("multiplayer".equalsIgnoreCase(gameMode) || "ranked".equalsIgnoreCase(gameMode)) {
-            // Get all players in the game
-            List<UUID> playerIds = gameService.getPlayerIdsForGame(game.getId());
-
-            // Check if all players have made guesses
-            for (UUID playerId : playerIds) {
-                Optional<Guess> guess = roundService.findGuessForUserAndRound(playerId, roundId);
-                if (!guess.isPresent()) {
-                    throw new CustomException("All players must make guesses before viewing the correct answer");
-                }
+            if (userId == null) {
+                throw new CustomException("User ID is required for multiplayer/ranked mode");
             }
+
+            // Check if the requesting user has made a guess for this round
+            Optional<Guess> userGuess = roundService.findGuessForUserAndRound(userId, roundId);
+            if (!userGuess.isPresent()) {
+                throw new CustomException("You must make a guess before viewing the correct answer");
+            }
+            
+            // SECURITY: Only allow the user to see the correct answer after they've submitted their own guess
+            // This prevents users from seeing the correct answer before guessing, while allowing them to see
+            // it immediately after their submission without waiting for other players
         }
 
         return sceneMapper.toDto(round.getScene());
