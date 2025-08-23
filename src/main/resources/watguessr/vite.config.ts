@@ -24,26 +24,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['sockjs-client', 'stompjs']
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080/',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/ws-game': {
-        target: 'http://localhost:8080/',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
-      '/ws-matchmaking': {
-        target: 'http://localhost:8080/',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      }
-    }
   }
 })

@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.env*
+*.log
+coverage
+cypress/videos
+cypress/screenshots
+.DS_Store

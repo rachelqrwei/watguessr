@@ -34,7 +34,7 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
   onQueueTimeout?: (message: string) => void;
   onError?: (error: string) => void;
 } = {}) {
-  const socket = new SockJS('/ws-matchmaking');
+  const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-matchmaking`);
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
