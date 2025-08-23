@@ -101,7 +101,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Only allow your frontend URL and localhost for development
         configuration.setAllowedOrigins(List.of(
-            "https://your-frontend-url.ondigitalocean.app" // Replace with your actual frontend URL
+            "https://watguessr-frontend-x2gln.ondigitalocean.app/" // Replace with your actual frontend URL
 //            "http://localhost:5173", // For local development
 //            "http://localhost:3000"  // Alternative local development port
         ));
