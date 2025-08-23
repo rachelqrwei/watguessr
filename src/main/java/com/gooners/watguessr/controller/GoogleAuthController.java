@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gooners.watguessr.config.RateLimit;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +27,7 @@ import jakarta.servlet.http.HttpSession;
 @RestController
 @RequestMapping("api/auth/google")
 public class GoogleAuthController {
-    
+
     private final String clientId;
     private final String clientSecret;
     private final String redirectUri;
@@ -48,6 +49,7 @@ public class GoogleAuthController {
     }
 
     @GetMapping("/start")
+    @RateLimit(requests = 10, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OAuth start requests.")
     public void start(HttpServletResponse res, HttpSession session) throws IOException {
         var state = randomUrlSafe();
         var nonce = randomUrlSafe();
@@ -70,36 +72,37 @@ public class GoogleAuthController {
     }
 
     @GetMapping("/callback")
+    @RateLimit(requests = 15, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OAuth callback requests.")
     public void callback(
             @RequestParam("code") String code,
             @RequestParam("state") String state,
             @RequestParam(value = "error", required = false) String error,
             HttpSession session,
             HttpServletResponse response) throws IOException {
-        
+
         // Check for OAuth errors
         if (error != null) {
             response.sendRedirect(frontendBaseUrl + "?error=oauth_cancelled");
             return;
         }
-        
+
         // Verify state parameter
         String sessionState = (String) session.getAttribute("oauth_state");
         if (sessionState == null || !sessionState.equals(state)) {
             response.sendRedirect(frontendBaseUrl + "?error=invalid_state");
             return;
         }
-        
+
         try {
             // Exchange authorization code for access token
             String tokenResponse = exchangeCodeForToken(code);
             JsonNode tokenData = objectMapper.readTree(tokenResponse);
             String accessToken = tokenData.get("access_token").asText();
-            
+
             // Get user info from Google
             String userInfoResponse = getUserInfo(accessToken);
             JsonNode userInfo = objectMapper.readTree(userInfoResponse);
-            
+
             // Extract user details
             String email = userInfo.get("email").asText();
             String name = userInfo.get("name").asText();
@@ -107,15 +110,14 @@ public class GoogleAuthController {
 
             // Create user data for frontend
             String userData = String.format(
-                "?google_auth=true&email=%s&name=%s&picture=%s",
-                java.net.URLEncoder.encode(email, "UTF-8"),
-                java.net.URLEncoder.encode(name, "UTF-8"),
-                picture != null ? java.net.URLEncoder.encode(picture, "UTF-8") : ""
-            );
+                    "?google_auth=true&email=%s&name=%s&picture=%s",
+                    java.net.URLEncoder.encode(email, "UTF-8"),
+                    java.net.URLEncoder.encode(name, "UTF-8"),
+                    picture != null ? java.net.URLEncoder.encode(picture, "UTF-8") : "");
 
             // Redirect to frontend with user data
             response.sendRedirect(frontendBaseUrl + userData);
-            
+
         } catch (Exception e) {
             response.sendRedirect(frontendBaseUrl + "?error=auth_failed");
         }
@@ -124,39 +126,37 @@ public class GoogleAuthController {
     private String exchangeCodeForToken(String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        
+
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("code", code);
         body.add("grant_type", "authorization_code");
         body.add("redirect_uri", redirectUri);
-        
+
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        
+
         ResponseEntity<String> response = restTemplate.exchange(
-            "https://oauth2.googleapis.com/token",
-            HttpMethod.POST,
-            request,
-            String.class
-        );
-        
+                "https://oauth2.googleapis.com/token",
+                HttpMethod.POST,
+                request,
+                String.class);
+
         return response.getBody();
     }
 
     private String getUserInfo(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
-        
+
         HttpEntity<String> request = new HttpEntity<>(headers);
-        
+
         ResponseEntity<String> response = restTemplate.exchange(
-            "https://www.googleapis.com/oauth2/v2/userinfo",
-            HttpMethod.GET,
-            request,
-            String.class
-        );
-        
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                HttpMethod.GET,
+                request,
+                String.class);
+
         return response.getBody();
     }
 
@@ -166,4 +166,3 @@ public class GoogleAuthController {
         return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
-

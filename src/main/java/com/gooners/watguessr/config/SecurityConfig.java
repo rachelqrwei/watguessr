@@ -95,13 +95,28 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        //TODO: add our server deployment link here as well and remove local host links.
+//        configuration.setAllowedOrigins(List.of("http://192.168.0.161:3000", "http://localhost:5173")); // your client server
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+//        configuration.setAllowCredentials(true); // crucial for cookies
+//        configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        //TODO: add our server deployment link here as well and remove local host links.
-        configuration.setAllowedOrigins(List.of("http://192.168.0.161:3000", "http://localhost:5173")); // your client server
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        // Temporarily allowing all origins, will be restricted in production
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // crucial for cookies
         configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
 
