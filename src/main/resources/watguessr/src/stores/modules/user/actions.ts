@@ -307,7 +307,7 @@ export const actions = {
 
     try {
       const { emailAddress, newPassword } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}/newPassword=${newPassword} `, {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword} `, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
@@ -325,7 +325,7 @@ export const actions = {
 
     try {
       const { emailAddress, newUsername } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}/newUsername=${newUsername} `, {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername} `, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
