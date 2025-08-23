@@ -181,7 +181,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   const playerIds = Object.keys(players);
   if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
     store.dispatch('rankedGame/rankedGame_endGame', null);
-    console.warn("⚠️ I'm the only one left, leaving game...");
+    alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
   }
 

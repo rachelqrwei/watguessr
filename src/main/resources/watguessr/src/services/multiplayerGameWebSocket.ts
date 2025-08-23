@@ -177,7 +177,7 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   const playerIds = Object.keys(players);
   if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
     store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
-    console.warn("⚠️ I'm the only one left, leaving game...");
+    alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
   }
 
