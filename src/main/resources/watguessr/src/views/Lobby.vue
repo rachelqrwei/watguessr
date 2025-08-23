@@ -763,7 +763,7 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
 }
 
 .lobby-code .code {
-  background: var(--player-2-gradient);
+  background: linear-gradient(to right, rgba(127, 185, 255, 0.22), rgba(170, 127, 255, 0.22));
   color: var(--white);
   padding: 4px 8px;
   border-radius: 6px;

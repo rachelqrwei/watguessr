@@ -37,6 +37,14 @@
         Player 2 New ELO: {{ player2Elo + player2EloChange }}<br>
         Player 2 ELO Change: {{ player2EloChange }}<br>
         <br>
+        <strong>ELO Changes Object:</strong><br>
+        {{ JSON.stringify(rankedGame_getResult?.eloChanges, null, 2) }}<br>
+        <br>
+        <strong>Player IDs:</strong><br>
+        Current User ID: {{ currentUser?.id }}<br>
+        Opponent Player ID: {{ opponentPlayerId }}<br>
+        All Player IDs: {{ Object.keys(players || {}).join(', ') }}<br>
+        <br>
         <strong>Pre-Game ELOs from Store:</strong><br>
         {{ $store.getters['rankedGame/rankedGame_getPreGameElos'] ? JSON.stringify($store.getters['rankedGame/rankedGame_getPreGameElos']) : 'No pre-game ELOs stored' }}<br>
         <br>
@@ -163,6 +171,7 @@ export default {
         return null;
       }
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
+      // Debug logging removed - issue was in backend returning empty ELO changes for resolved games
       return opponentId;
     },
 
@@ -224,10 +233,45 @@ export default {
     },
 
     player2EloChange() {
-      if (!this.rankedGame_getResult?.eloChanges || !this.opponentPlayerId) {
+      if (!this.rankedGame_getResult?.eloChanges) {
         return 0;
       }
-      return this.rankedGame_getResult.eloChanges[this.opponentPlayerId] || 0;
+      
+      const eloChanges = this.rankedGame_getResult.eloChanges;
+      const currentUserId = this.currentUser?.id;
+      
+      // Method 1: Try to get ELO change by opponent player ID (exact match)
+      if (this.opponentPlayerId && eloChanges[this.opponentPlayerId] !== undefined) {
+        return eloChanges[this.opponentPlayerId];
+      }
+      
+      // Method 2: Try to find the opponent's ELO change by excluding current user
+      if (currentUserId) {
+        for (const [playerId, eloChange] of Object.entries(eloChanges)) {
+          if (playerId !== currentUserId) {
+            return eloChange;
+          }
+        }
+      }
+      
+      // Method 3: If there are exactly 2 ELO changes and we have one, the other must be the opponent's
+      if (Object.keys(eloChanges).length === 2 && currentUserId && eloChanges[currentUserId] !== undefined) {
+        for (const [playerId, eloChange] of Object.entries(eloChanges)) {
+          if (playerId !== currentUserId) {
+            return eloChange;
+          }
+        }
+      }
+      
+      // Method 4: If there's only one ELO change and it's not the current user's, it must be the opponent's
+      if (Object.keys(eloChanges).length === 1) {
+        const [playerId, eloChange] = Object.entries(eloChanges)[0];
+        if (playerId !== currentUserId) {
+          return eloChange;
+        }
+      }
+      
+      return 0;
     },
 
     // Game state data
@@ -302,6 +346,8 @@ export default {
       }
     }, 5000);
   },
+
+  // Watch removed - debugging no longer needed
   beforeUnmount() {
     this.$store.dispatch('rankedGame/rankedGame_clearFinalGameData');
     if (this.completionTimeout) {

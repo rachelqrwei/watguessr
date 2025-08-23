@@ -1,5 +1,5 @@
 <template>
-  <div class="countdown-overlay"   v-if="isVisible && getCurrentRound === 1">
+  <div class="countdown-overlay"   v-if="isVisible && isFirstRoundOfGame">
     <div class="countdown-container">
       <div class="countdown-number" :class="{ 'animate': isAnimating }">
         {{ countdownNumber }}
@@ -10,8 +10,8 @@
     </div>
   </div>
 
-  <!-- Progress bar appears when round >= 1 -->
-  <div v-if="isVisible && getCurrentRound > 1" class="progress-overlay">
+  <!-- Progress bar appears for transitions after the first round -->
+  <div v-if="isVisible && !isFirstRoundOfGame" class="progress-overlay">
     <div class="progress-container">
       <div class="progress-bar" :style="{ width: progressWidth + '%' }"></div>
     </div>
@@ -56,10 +56,10 @@ export default {
         this.countdownNumber = 3;
         this.progressWidth = 0;
 
-        if (this.getCurrentRound <= 1) {
+        if (this.isFirstRoundOfGame) {
           this.startCountdown();
         }
-        else if (this.getCurrentRound >= 1) {
+        else {
           this.startProgressBar();
         }
       } else {
@@ -72,7 +72,7 @@ export default {
     ...mapGetters("multiplayerGame", ["multiplayerGame_getCurrentRound"]),
     ...mapGetters("singleplayerGame", ["singleplayerGame_getCurrentRound"]),
     ...mapGetters("rankedGame", ["rankedGame_getCurrentRound"]),
-    ...mapGetters("gameInfo", ["getGameMode"]),
+    ...mapGetters("gameInfo", ["getGameMode", "getCurrentView"]),
     getCurrentRound() {
       if (this.getGameMode === "singleplayer") {
         return this.singleplayerGame_getCurrentRound;
@@ -84,6 +84,20 @@ export default {
         return this.rankedGame_getCurrentRound;
       }
       return 1; // Default fallback
+    },
+    isFirstRoundOfGame() {
+      if (this.getGameMode === "singleplayer") {
+        return this.singleplayerGame_getCurrentRound === 0;
+      }
+      if (this.getGameMode === "multiplayer") {
+        // Between rounds we show the progress bar even if currentRound is still 1
+        return this.multiplayerGame_getCurrentRound === 1 && this.getCurrentView !== 'RoundEnd';
+      }
+      if (this.getGameMode === "ranked") {
+        // Between rounds we show the progress bar even if currentRound is still 1
+        return this.rankedGame_getCurrentRound === 1 && this.getCurrentView !== 'RoundEnd';
+      }
+      return false; // default
     },
   },
   methods: {

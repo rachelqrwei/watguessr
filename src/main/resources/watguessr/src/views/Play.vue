@@ -405,14 +405,18 @@ export default {
       const floorToSubmit = buildingExists ? this.selectedFloor : 'Ground';
       this.SET_FLOOR(floorToSubmit);
 
-      // For multiplayer, update status to indicate player is submitting
-      if (this.getGameMode === 'multiplayer') {
-        this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
+      // submit the guess first
+      const result = await this.submitGuess();
+
+      // Only update status to 'ended' if the guess submission was successful
+      if (result !== null) {
+        if (this.getGameMode === 'multiplayer') {
+          this.multiplayerGame_updatePlayerStatus({ status: 'ended' });
+        }
+        else if (this.getGameMode === 'ranked') {
+          this.rankedGame_updatePlayerStatus({ status: 'ended' });
+        }
       }
-      else if (this.getGameMode === 'ranked') {
-        this.rankedGame_updatePlayerStatus({ status: 'ended' });
-      }
-      await this.submitGuess();
     },
 
     async nextRoundOrEndGame() {
@@ -541,8 +545,15 @@ export default {
         this.SG_INCREMENT_ROUND();
         this.SET_CURRENT_VIEW("Image");
       }
-      // For multiplayer and ranked, the view change is handled by the WebSocket round-start event
-      // The backend will send the round-start event which will set the view to 'Image'
+      // For multiplayer, switch to Image after countdown/progress bar completes
+      // The round ID and image are already prepared by the round-start event
+      else if (this.getGameMode === 'multiplayer') {
+        this.SET_CURRENT_VIEW('Image');
+      }
+      // For ranked, switch to Image after countdown/progress bar completes
+      else if (this.getGameMode === 'ranked') {
+        this.SET_CURRENT_VIEW('Image');
+      }
     },
 
 

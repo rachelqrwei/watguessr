@@ -39,7 +39,7 @@ public class GuessController {
     }
 
     @PostMapping
-    @RateLimit(requests = 1000, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
+    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto) {
         // TODO: Make sure only one guess per round per user is allowed.

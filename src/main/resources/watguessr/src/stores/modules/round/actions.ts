@@ -5,9 +5,9 @@ import type { RoundState } from './state';
 
 export const actions: ActionTree<RoundState, RootState> = {
   async startRound({ state, commit, rootGetters }, { gameId }): Promise<RoundState> {
-    //reset data from prev round (if any)
-    commit('guess/RESET_GUESS', null, {root: true});
+    //reset data from prev round (if any) - IMPORTANT for clearing correct answer marker on mapbox
     commit('RESET_ROUND');
+    commit('guess/RESET_GUESS', null, {root: true});
 
     if (!gameId) throw new Error('Game ID not found');
 
@@ -91,32 +91,35 @@ export const actions: ActionTree<RoundState, RootState> = {
     }
   },
 
-  async endRound({ commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
+  async endRound({ state, commit, dispatch, rootGetters }, payload: { winner: string; roundResult: {points: number, distance: number} }) {
     //set winner of the round
     commit('SET_WINNER', payload.winner);
 
     //set round result from round (round-specific score)
     commit('SET_ROUND_RESULT_FROM_ROUND', payload.roundResult);
 
-    // Fetch correct answer now that the round is over
-    await dispatch('fetchCorrectAnswer');
+    // Get the current game mode to determine behavior
+    const gameMode = rootGetters['gameInfo/getGameMode'];
+
+    // For singleplayer, fetch correct answer immediately (traditional behavior)
+    // For multiplayer/ranked, the correct answer is fetched in their respective endCurrentRound actions
+    if (gameMode === 'singleplayer') {
+      await dispatch('fetchCorrectAnswer');
+    }
 
     // Clear saved map position when round ends - start fresh for next round
     commit('gameInfo/SET_MAP_CENTER', null, {root: true});
     commit('gameInfo/SET_MAP_ZOOM', null, {root: true});
-
-    // Get the current game mode to dispatch to the correct game store
-    const gameMode = rootGetters['gameInfo/getGameMode'];
 
     if (gameMode === 'singleplayer') {
       //end this round in the singleplayer game store
       dispatch('singleplayerGame/singleplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
     } else if (gameMode === 'multiplayer') {
       //end this round in the multiplayer game store
-      dispatch('multiplayerGame/multiplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
+      await dispatch('multiplayerGame/multiplayerGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
     } else if (gameMode === 'ranked') {
       //end this round in the ranked game store
-      dispatch('rankedGame/rankedGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
+      await dispatch('rankedGame/rankedGame_endCurrentRound', { winner: payload.winner, roundResult: payload.roundResult }, { root: true });
     }
   },
 };

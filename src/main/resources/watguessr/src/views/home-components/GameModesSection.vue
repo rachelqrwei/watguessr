@@ -123,7 +123,7 @@ export default {
   width: fit-content;
   margin: 0 auto;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .section-header {

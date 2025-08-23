@@ -37,19 +37,19 @@
           <div class="card wins-losses-card">
             <div class="wins-losses-content">
             <div class="left-legend-section">
-              <div class="card-label">Win/Loss Record</div>
+              <div class="card-label">Ranked Winrate</div>
               <div class="chart-legend">
                 <div class="legend-item">
                   <div class="legend-color wins-color"></div>
                   <div class="legend-text">
-                    <span class="legend-value">{{ leaderboardUser.gamesWon }}</span>
+                    <span class="legend-value">{{ rankedGamesWon }}</span>
                     <span class="legend-label">wins</span>
                   </div>
                 </div>
                 <div class="legend-item">
                   <div class="legend-color losses-color"></div>
                   <div class="legend-text">
-                    <span class="legend-value">{{ leaderboardUser.gamesLost }}</span>
+                    <span class="legend-value">{{ rankedGamesLost }}</span>
                     <span class="legend-label">losses</span>
                   </div>
                 </div>
@@ -59,17 +59,17 @@
               <svg class="donut-chart" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="8" />
                 <circle cx="50" cy="50" r="35" fill="none"
-                  :stroke="winRate > 0 ? '#B6FF7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
-                  :stroke-dasharray="`${winRate * 2.199} ${(100 - winRate) * 2.199}`" stroke-dashoffset="54.975"
+                  :stroke="rankedWinRate > 0 ? '#B6FF7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
+                  :stroke-dasharray="`${rankedWinRate * 2.199} ${(100 - rankedWinRate) * 2.199}`" stroke-dashoffset="54.975"
                   stroke-linecap="round" transform="rotate(-90 50 50)" />
                 <circle cx="50" cy="50" r="35" fill="none"
-                  :stroke="lossRate > 0 ? '#FF7F7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
-                  :stroke-dasharray="`${lossRate * 2.199} ${(100 - lossRate) * 2.199}`"
-                  :stroke-dashoffset="`${54.975 - (winRate * 2.199)}`" stroke-linecap="round"
+                  :stroke="rankedLossRate > 0 ? '#FF7F7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
+                  :stroke-dasharray="`${rankedLossRate * 2.199} ${(100 - rankedLossRate) * 2.199}`"
+                  :stroke-dashoffset="`${54.975 - (rankedWinRate * 2.199)}`" stroke-linecap="round"
                   transform="rotate(-90 50 50)" />
               </svg>
               <div class="donut-center">
-                <div class="win-percentage">{{ winRate }}%</div>
+                <div class="win-percentage">{{ rankedWinRate }}%</div>
               </div>
             </div>
           </div>
@@ -103,7 +103,10 @@ export default {
     return {
       leaderboardUser: null,
       isLoading: false,
-      errorMessage: null
+      errorMessage: null,
+      rankedGamesWon: 0,
+      rankedGamesLost: 0,
+      rankedGamesPlayed: 0
     }
   },
   computed: {
@@ -114,14 +117,14 @@ export default {
       return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 })
     },
 
-    winRate() {
-      if (!this.leaderboardUser || this.leaderboardUser.gamesPlayed === 0) return 0
-      return Math.round((this.leaderboardUser.gamesWon / this.leaderboardUser.gamesPlayed) * 100)
+    rankedWinRate() {
+      if (this.rankedGamesPlayed === 0) return 0
+      return Math.round((this.rankedGamesWon / this.rankedGamesPlayed) * 100)
     },
 
-    lossRate() {
-      if (!this.leaderboardUser || this.leaderboardUser.gamesPlayed === 0) return 0
-      return Math.round((this.leaderboardUser.gamesLost / this.leaderboardUser.gamesPlayed) * 100)
+    rankedLossRate() {
+      if (this.rankedGamesPlayed === 0) return 0
+      return Math.round((this.rankedGamesLost / this.rankedGamesPlayed) * 100)
     }
   },
 
@@ -130,9 +133,11 @@ export default {
       handler(newUserId) {
         if (newUserId) {
           this.fetchLeaderboardData()
+          this.fetchRankedStats()
         } else {
           this.leaderboardUser = null
           this.errorMessage = 'No user selected.'
+          this.resetRankedStats()
         }
       },
       immediate: true
@@ -140,7 +145,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('user', ['fetchLeaderboardForUserId']),
+    ...mapActions('user', ['fetchLeaderboardForUserId', 'fetchUserMatchHistory']),
 
     async fetchLeaderboardData() {
       this.isLoading = true
@@ -160,6 +165,38 @@ export default {
       } finally {
         this.isLoading = false
       }
+    },
+
+    async fetchRankedStats() {
+      if (!this.getProfileUserId) return
+      
+      try {
+        // Fetch a large number of matches to get comprehensive ranked stats
+        const { results } = await this.fetchUserMatchHistory({
+          userId: this.getProfileUserId,
+          offset: 0,
+          limit: 100 // Get up to 100 matches to calculate ranked stats
+        })
+
+        // Filter for ranked games only and calculate stats
+        const rankedGames = results.filter(match => 
+          match.gameMode === 'Ranked' && match.finished
+        )
+
+        this.rankedGamesPlayed = rankedGames.length
+        this.rankedGamesWon = rankedGames.filter(match => match.won === true).length
+        this.rankedGamesLost = rankedGames.filter(match => match.won === false).length
+      } catch (err) {
+        console.error('Failed to fetch ranked stats:', err)
+        // Don't show error for ranked stats, just use 0 values
+        this.resetRankedStats()
+      }
+    },
+
+    resetRankedStats() {
+      this.rankedGamesWon = 0
+      this.rankedGamesLost = 0
+      this.rankedGamesPlayed = 0
     }
   }
 }

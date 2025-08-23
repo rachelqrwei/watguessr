@@ -15,25 +15,25 @@
 
     <!-- Match Found -->
     <div v-if="queueState === 'match_found'" class="queue-status match-found">
-      <div class="match-found-animation">
-        <div class="success-checkmark">✓</div>
+      <div class="match-found-header">
+        <h3 class="match-found-title">MATCH FOUND</h3>
       </div>
-      <h3>🎮 Match Found!</h3>
+      
       <div class="match-info" v-if="matchInfo">
-        <div class="opponent-info">
-          <h4>Your Opponent:</h4>
+        <div class="opponent-section">
           <div class="opponent-card">
-            <span class="opponent-name">{{ matchInfo.opponentName }}</span>
-            <span class="opponent-rating">Rating: {{ matchInfo.opponentRating }}</span>
+            <div class="opponent-details">
+              <span class="opponent-name">{{ matchInfo.opponentName }}</span>
+              <span class="opponent-rating">{{ matchInfo.opponentRating }} ELO</span>
+            </div>
           </div>
         </div>
-        <div class="game-details">
-          <p>{{ matchInfo.roundCount }} rounds</p>
-          <p>⏱{{ matchInfo.timeLimit }}s per round</p>
-        </div>
+        
+
       </div>
+      
       <div class="starting-timer">
-        <p>Game starting in:</p>
+        <p class="timer-label">GAME STARTING IN</p>
         <div class="countdown-number">{{ gameStartCountdown }}</div>
       </div>
     </div>
@@ -191,22 +191,19 @@ export default {
   margin: 0 auto;
 }
 
-.match-found-animation {
-  margin-bottom: 16px;
+.match-found-header {
+  margin-bottom: 24px;
+  text-align: center;
 }
 
-.success-checkmark {
-  width: 60px;
-  height: 60px;
-  background: #4CAF50;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  color: white;
-  margin: 0 auto;
-  animation: bounce 0.6s ease-out;
+.match-found-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .error-icon {
@@ -269,60 +266,109 @@ export default {
 .dots-animation span:nth-child(2) { animation-delay: -0.16s; }
 
 .match-info {
-  margin: 20px 0;
-  text-align: left;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.opponent-info h4 {
-  margin: 0 0 8px 0;
+.opponent-section,
+.game-settings-section {
+  padding: 0;
+}
+
+.section-title {
+  margin: 0 0 12px 0;
   color: var(--white);
-  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .opponent-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
+  padding: 12px;
+}
+
+.opponent-details {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
 }
 
 .opponent-name {
   font-weight: 800;
   letter-spacing: 0.3px;
   color: var(--white);
+  font-size: 1rem;
 }
 
 .opponent-rating {
   color: var(--light-grey);
   font-weight: 700;
+  font-size: 0.9rem;
 }
 
-.game-details {
-  text-align: center;
-  color: var(--text-secondary);
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.game-details p {
-  margin: 4px 0;
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  color: var(--light-grey);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.setting-value {
+  color: var(--white);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
 }
 
 .starting-timer {
-  margin: 20px 0;
+  margin: 16px 0;
+  text-align: center;
+  padding: 0;
 }
 
-.starting-timer p {
-  margin: 0 0 8px 0;
-  color: var(--text-secondary);
+.timer-label {
+  margin: 0 0 12px 0;
+  color: var(--light-grey);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .countdown-number {
   font-size: 2.5rem;
-  font-weight: bold;
-  color: #4CAF50;
+  font-weight: 900;
+  color: var(--yellow);
   animation: countdown-pulse 1s infinite;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
 }
 
 .cancel-queue-btn, .retry-btn {
@@ -424,10 +470,14 @@ export default {
     font-size: 1.1rem;
   }
 
-  .opponent-card {
+  .opponent-details {
     flex-direction: column;
     gap: 8px;
     text-align: center;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
   }
 
   .countdown-number {
