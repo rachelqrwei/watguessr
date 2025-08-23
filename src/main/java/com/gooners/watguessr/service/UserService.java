@@ -235,6 +235,42 @@ public class UserService {
         return user;
     }
 
+    public User createOrGetUserFromGoogle(String email, String name, String picture) {
+        // Check if user already exists by email
+        User existingUser = userRepository.findByEmailAddress(email);
+        if (existingUser != null) {
+            // Return existing user
+            return existingUser;
+        }
+
+        // Generate a unique username from the name
+        String baseUsername = name.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        String username = baseUsername;
+        int counter = 1;
+
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + counter;
+            counter++;
+        }
+
+        // Create new user with Google credentials
+        User user = new User();
+        user.setEmailAddress(email);
+        user.setUsername(username);
+        user.setProfilePictureUrl(picture);
+        user.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+        user.setElo(150);
+        user.setStreak(1);
+        user.setVerified(true); // Google users are pre-verified
+
+        // Set a random password (won't be used for OAuth login)
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+
+        userRepository.save(user);
+        return user;
+    }
+
     public void changePassword(String emailAddress, String newPassword) {
         User user = userRepository.findByEmailAddress(emailAddress);
         user.setPassword(passwordEncoder.encode(newPassword));
