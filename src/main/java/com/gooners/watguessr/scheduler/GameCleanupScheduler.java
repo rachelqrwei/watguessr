@@ -16,8 +16,5 @@ public class GameCleanupScheduler {
 	@Scheduled(fixedRate = 60000) // every 1 minute
 	public void scheduledCleanup() {
 		int deleted = gameService.cleanupExpiredGames();
-		if (deleted > 0) {
-			System.out.println("Scheduled cleanup removed " + deleted + " empty games");
-		}
 	}
 }

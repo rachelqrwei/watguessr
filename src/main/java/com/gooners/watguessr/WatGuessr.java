@@ -16,10 +16,5 @@ public class WatGuessr {
 
 	@Autowired
 	private Environment env;
-
-	@PostConstruct
-	public void checkEnv() {
-		System.out.println("Mail host = " + env.getProperty("SPRING_MAIL_HOST"));
-	}
 }
 

@@ -55,8 +55,6 @@ public class LobbyService {
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
-		} else {
-			System.out.println("🔍 Player NOT added to lobby - duplicate or max players reached");
 		}
 	}
 
@@ -78,7 +76,6 @@ public class LobbyService {
 				// Remove corresponding Game entity from database
 				try {
 					gameRepository.deleteById(lobbyId);
-					System.out.println("Deleted empty lobby from database after user left: " + lobbyId);
 				} catch (Exception e) {
 					System.err.println("Failed to delete empty lobby from database: " + lobbyId + " - " + e.getMessage());
 				}
@@ -90,31 +87,19 @@ public class LobbyService {
 	}
 
 	public void setPlayerReady(UUID lobbyId, String userId, boolean ready) {
-		System.out.println("🔍 Setting player ready: lobbyId=" + lobbyId + ", userId=" + userId + ", ready=" + ready);
-		
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
 		if (players != null) {
-			System.out.println("🔍 Found lobby with " + players.size() + " players");
-			
 			Optional<LobbyPlayerDto> playerOpt = players.stream()
 					.filter(p -> p.getUserId().equals(userId))
 					.findFirst();
 			
 			if (playerOpt.isPresent()) {
 				LobbyPlayerDto player = playerOpt.get();
-				System.out.println("🔍 Found player: " + player.getUsername() + " (ID: " + player.getUserId() + ")");
 				player.setReady(ready);
-				System.out.println("🔍 Updated player ready status to: " + player.isReady());
-				
+
 				// Broadcast updated lobby state
 				broadcastLobbyUpdate(lobbyId);
-			} else {
-				System.out.println("🔍 Player not found in lobby: " + userId);
-				System.out.println("🔍 Available players:");
-				players.forEach(p -> System.out.println("  - " + p.getUsername() + " (ID: " + p.getUserId() + ")"));
 			}
-		} else {
-			System.out.println("🔍 Lobby not found: " + lobbyId);
 		}
 	}
 
@@ -149,10 +134,7 @@ public class LobbyService {
 
 	private void broadcastLobbyUpdate(UUID lobbyId) {
 		List<LobbyPlayerDto> players = lobbies.getOrDefault(lobbyId, Collections.emptyList());
-		System.out.println("🔍 Broadcasting lobby update for lobby: " + lobbyId);
-		System.out.println("🔍 Players to broadcast: " + players.size());
-		players.forEach(p -> System.out.println("  - " + p.getUsername() + " (ID: " + p.getUserId() + ", Ready: " + p.isReady() + ")"));
-		
+
 		messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, new LobbyUpdate(players));
 	}
 
@@ -216,7 +198,6 @@ public class LobbyService {
 			// Remove corresponding Game entity from database
 			try {
 				gameRepository.deleteById(lobbyId);
-				System.out.println("Deleted lobby from database after game start: " + lobbyId);
 			} catch (Exception e) {
 				System.err.println("Failed to delete lobby from database: " + lobbyId + " - " + e.getMessage());
 			}
@@ -239,14 +220,11 @@ public class LobbyService {
 	public int cleanupEmptyLobbies() {
 		int before = lobbies.size();
 		List<UUID> emptyLobbyIds = new ArrayList<>();
-		
-		System.out.println("Starting scheduled cleanup. Current lobbies in memory: " + before);
-		
+
 		// Collect IDs of empty lobbies
 		lobbies.entrySet().removeIf(entry -> {
 			if (entry.getValue().isEmpty()) {
 				emptyLobbyIds.add(entry.getKey());
-				System.out.println("Found empty lobby in memory: " + entry.getKey());
 				return true;
 			}
 			return false;
@@ -256,21 +234,18 @@ public class LobbyService {
 		for (UUID lobbyId : emptyLobbyIds) {
 			try {
 				gameRepository.deleteById(lobbyId);
-				System.out.println("Deleted empty lobby from database: " + lobbyId);
 			} catch (Exception e) {
 				System.err.println("Failed to delete empty lobby from database: " + lobbyId + " - " + e.getMessage());
 			}
 		}
 		
 		int deleted = before - lobbies.size();
-		System.out.println("Scheduled cleanup completed. Deleted " + deleted + " empty lobbies. Remaining: " + lobbies.size());
 		return deleted;
 	}
 
 	public boolean cleanupStaleLobby(String lobbyId) {
 		try {
 			lobbies.remove(lobbyId);
-			System.out.println("✅ Lobby cleaned up: " + lobbyId);
 			return true;
 		} catch (Exception e) {
 			System.err.println("Failed to cleanup lobby " + lobbyId + ": " + e.getMessage());

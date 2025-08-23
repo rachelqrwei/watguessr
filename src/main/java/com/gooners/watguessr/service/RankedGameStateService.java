@@ -142,8 +142,6 @@ public class RankedGameStateService {
 			// Get the round to access its scene
 			try {
 				Round firstRound = roundService.findById(UUID.fromString(gameState.getCurrentSceneId()));
-				System.out.println("🎯 Starting first round: " + firstRound.getId());
-				System.out.println("🎯 First round scene: " + firstRound.getScene().getId());
 				
 				// Broadcast round start event with the first round details
 				Map<String, Object> roundStartData = Map.of(
@@ -152,7 +150,6 @@ public class RankedGameStateService {
 					"roundNumber", 1,
 					"sceneId", firstRound.getScene().getId().toString()
 				);
-				System.out.println("🚀 Broadcasting first round start: " + roundStartData);
 				messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/round-start", roundStartData);
 			} catch (Exception e) {
 				System.err.println("Failed to get first round details: " + e.getMessage());
@@ -249,7 +246,6 @@ public class RankedGameStateService {
 		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null) {
 			String topic = "/topic/ranked-game/" + gameId + "/state";
-			System.out.println("<UNK> Broadcasting state: " + gameState.getGameStatus());
 			messagingTemplate.convertAndSend(topic, gameState);
 		} else {
 			System.err.println("❌ Cannot broadcast game state: gameState is null for gameId: " + gameId);
@@ -308,15 +304,6 @@ public class RankedGameStateService {
 					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/complete", gameState);
 				} else {
 					System.err.println("❌ Game state is null for game: " + gameId);
-				}
-			} else {
-				System.out.println("⏳ Waiting for more players to complete...");
-				// Log which players still need to complete
-				RankedGameStateDto gameState = gameStates.get(gameId);
-				if (gameState != null) {
-					gameState.getPlayers().entrySet().stream()
-						.filter(entry -> !"completed".equals(entry.getValue().getStatus()))
-						.forEach(entry -> System.out.println("Player " + entry.getValue().getUsername() + " still needs to complete (status: " + entry.getValue().getStatus() + ")"));
 				}
 			}
 		} else {

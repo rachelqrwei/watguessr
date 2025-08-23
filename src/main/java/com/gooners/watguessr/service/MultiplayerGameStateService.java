@@ -137,8 +137,6 @@ public class MultiplayerGameStateService {
 			// Get the round to access its scene
 			try {
 				Round firstRound = roundService.findById(UUID.fromString(gameState.getCurrentSceneId()));
-				System.out.println("🎯 Starting first round: " + firstRound.getId());
-				System.out.println("🎯 First round scene: " + firstRound.getScene().getId());
 				
 				// Broadcast round start event with the first round details
 				Map<String, Object> roundStartData = Map.of(
@@ -147,7 +145,6 @@ public class MultiplayerGameStateService {
 					"roundNumber", 1,
 					"sceneId", firstRound.getScene().getId().toString()
 				);
-				System.out.println("🚀 Broadcasting first round start: " + roundStartData);
 				messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/round-start", roundStartData);
 			} catch (Exception e) {
 				System.err.println("Failed to get first round details: " + e.getMessage());
@@ -271,23 +268,15 @@ public class MultiplayerGameStateService {
 	public void setPlayerCompleted(UUID gameId, String userId, boolean completed) {
 		updateLastSeen(gameId, userId);
 
-		System.out.println("🎮 Setting player completed: " + userId + " -> " + completed);
-		
 		if (completed) {
 			setPlayerStatus(gameId, userId, "completed");
 			
 			// Check if all players are completed
 			if (checkAllPlayersCompleted(gameId)) {
-				System.out.println("🏆 All players completed! Ending game...");
-				
+
 				// Game completed
 				MultiplayerGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
-					// Log final player states
-					System.out.println("📊 Final player states:");
-					gameState.getPlayers().forEach((playerId, player) -> {
-						System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + player.getScore() + ", status=" + player.getStatus());
-					});
 					
 					gameState.setGameStatus("game-complete");
 					gameState.setShouldEnd(true);
@@ -296,23 +285,19 @@ public class MultiplayerGameStateService {
 					String winnerId = findWinner(gameState);
 					if (winnerId != null) {
 						gameState.setFinalWinner(winnerId);
-						System.out.println("🏆 Winner determined: " + winnerId);
 					}
 
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
-					System.out.println("📢 Broadcasting game completion event");
 					messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/complete", gameState);
 				}
 			} else {
-				System.out.println("⏳ Waiting for more players to complete...");
 				// Log which players still need to complete
 				MultiplayerGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
 					gameState.getPlayers().entrySet().stream()
-						.filter(entry -> !"completed".equals(entry.getValue().getStatus()))
-						.forEach(entry -> System.out.println("Player " + entry.getValue().getUsername() + " still needs to complete (status: " + entry.getValue().getStatus() + ")"));
+						.filter(entry -> !"completed".equals(entry.getValue().getStatus()));
 				}
 			}
 		} else {

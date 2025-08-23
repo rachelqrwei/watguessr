@@ -69,7 +69,6 @@ public class GuessController {
     @SendTo("/topic/guesses")
     public Guess processGuessInMultiplayerGame(Guess guess) {
         // TODO: Make sure only one guess per round per user is allowed.
-        System.out.println(guess);
         return guess;
     }
 

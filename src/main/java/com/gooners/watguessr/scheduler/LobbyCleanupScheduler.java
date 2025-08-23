@@ -16,8 +16,5 @@ public class LobbyCleanupScheduler {
 	@Scheduled(fixedRate = 3600000) // every 1 minute
 	public void scheduledCleanup() {
 		int deleted = lobbyService.cleanupEmptyLobbies();
-		if (deleted > 0) {
-			System.out.println("Scheduled cleanup removed " + deleted + " empty lobbies");
-		}
 	}
 }

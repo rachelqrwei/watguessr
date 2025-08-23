@@ -197,7 +197,6 @@ public class GameService {
 
         // Check if game has already been resolved (has a winner)
         if (game.getWinner() != null) {
-            System.out.println("🎯 Game " + gameId + " has already been resolved, returning existing result");
             // Return a result with existing data to prevent duplicate ELO calculations
             HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
             RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
@@ -382,7 +381,6 @@ public class GameService {
 
         if (!oldGames.isEmpty()) {
             gameRepository.deleteAll(oldGames);
-            System.out.println("Deleted " + oldGames.size() + " old unfinished games");
         }
 
         return oldGames.size();
