@@ -4,9 +4,11 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.gooners.watguessr.entity.EmailVerification;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -83,21 +85,10 @@ public class UserService {
             throw new CustomException("Email already exists");
         }
 
-        if (dto.getUsername().length() < 3) {
-            throw new CustomException("Username must be at least 3 characters");
-        }
+        // username and password check
+        isValidUsername(dto.getUsername());
+        isValidPassword(dto.getPassword());
 
-        if (dto.getUsername().length() > 24) {
-            throw new CustomException("Username must be at most 24 characters");
-        }
-
-        if (dto.getUsername().contains(" ")) {
-            throw new CustomException("Username cannot contain spaces");
-        }
-
-        if (!isValidPassword(dto.getPassword())) {
-            throw new CustomException("Password does not meet criteria");
-        }
         //        -when saving the email, normalize to lowercase (so email@gmail.com is the same as Email@gmail.com, etc)
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
 
@@ -122,8 +113,24 @@ public class UserService {
         return user;
     }
 
-    public boolean isValidPassword(String password) {
-        return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$");
+    public void isValidPassword(String password) {
+        if (!(password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$"))) {
+            throw new CustomException("Password does not meet criteria");
+        }
+    }
+
+    public void isValidUsername(String username) {
+        if (username.length() < 3) {
+            throw new CustomException("Username must be at least 3 characters");
+        }
+
+        if (username.length() > 24) {
+            throw new CustomException("Username must be at most 24 characters");
+        }
+
+        if (username.contains(" ")) {
+            throw new CustomException("Username cannot contain spaces");
+        }
     }
 
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
@@ -273,18 +280,46 @@ public class UserService {
 
     public void changePassword(String emailAddress, String newPassword) {
         User user = userRepository.findByEmailAddress(emailAddress);
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        if (user == null) {
+            throw new CustomException("User not found with email: " + emailAddress);
+        }
+        // password check
+        isValidPassword(newPassword);
+
+        try {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new CustomException("Failed to change passWord user: " + e.getMessage());
+        }
+
     }
 
     public void deleteUser(String emailAddress) {
         User user = userRepository.findByEmailAddress(emailAddress);
-        userRepository.delete(user);
+        if (user == null) {
+            throw new CustomException("User not found with email: " + emailAddress);
+        }
+
+        try {
+            Optional<EmailVerification> evOptional = emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress());
+            if (evOptional.isPresent()) {
+                EmailVerification ev = evOptional.get();
+                emailVerificationRepository.delete(ev);
+            }
+            userRepository.delete(user);
+        } catch (Exception e) {
+            throw new CustomException("Failed to delete user: " + e.getMessage());
+        }
     }
 
     public void changeUsername(String emailAddress, String newUsername) {
         User user = userRepository.findByEmailAddress(emailAddress);
-        if (user.getUsernameChangedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC).minusDays(7))){
+
+        // username check
+        isValidUsername(user.getUsername());
+
+        if (user.getUsernameChangedAt() == null || user.getUsernameChangedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC).minusDays(7))){
             user.setUsername(newUsername);
             user.setUsernameChangedAt(OffsetDateTime.now(ZoneOffset.UTC));
             userRepository.save(user);

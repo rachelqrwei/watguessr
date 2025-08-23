@@ -42,8 +42,7 @@ public class UserController {
     private final GameService gameService;
     private final JavaMailSender mailSender;
 
-    public UserController(UserService userService, UserMapper userMapper,
-            EmailVerificationService emailVerificationService, GameService gameService, JavaMailSender mailSender) {
+    public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService, GameService gameService, JavaMailSender mailSender) {
         this.userService = userService;
         this.userMapper = userMapper;
         this.emailVerificationService = emailVerificationService;
@@ -155,8 +154,9 @@ public class UserController {
 
     @DeleteMapping("/delete-user")
     @RateLimit(requests = 2, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
-    public void deleteUser(@RequestParam String emailAddress) {
+    public ResponseEntity<String> deleteUser(@RequestParam String emailAddress) {
         userService.deleteUser(emailAddress);
+        return ResponseEntity.ok("User deleted successfully");
     }
-
+    
 }
