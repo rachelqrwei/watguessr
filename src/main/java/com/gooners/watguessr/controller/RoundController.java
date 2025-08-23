@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.dto.RoundGuessesDto;
 import com.gooners.watguessr.dto.GuessDto;
 import com.gooners.watguessr.dto.SceneDto;
@@ -37,6 +38,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/create")
+    @RateLimit(requests = 20, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many round creation requests.")
     public UUID createRound(@RequestParam UUID gameId, @RequestParam UUID userId) {
         // Check to see if round exists where they haven't made a guess yet.
         // If so, they should not be allowed to create a new round.
@@ -61,6 +63,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/{roundId}/scene")
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many scene requests.")
     public SceneDto getRoundScene(@PathVariable UUID roundId, @RequestParam(required = false) UUID userId) {
         // Make sure all guesses are in before allowing return scene.
         Round round = roundService.findById(roundId);
@@ -97,6 +100,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/by-game-with-guesses")
+    @RateLimit(requests = 60, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many round data requests.")
     public List<RoundGuessesDto> getRoundsByGameWithGuesses(@RequestParam UUID gameId) {
         Game game = gameService.findById(gameId);
         var gameRounds = game.getRounds();
