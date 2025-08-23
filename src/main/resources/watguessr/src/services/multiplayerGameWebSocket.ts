@@ -5,6 +5,7 @@ import store from '../stores';
 // STOMP client for multiplayer game state updates
 let stompClient: Client | null = null;
 let heartbeatInterval: number | null = null;
+let hasLeftGame = false; // module/global or component state
 
 export interface MultiplayerGameStateDto {
   gameId: string;
@@ -31,6 +32,7 @@ export interface PlayerStateDto {
 export function connectToMultiplayerGame(gameId: string) {
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
+  hasLeftGame = false; // module/global or component state
 
   stompClient.connect({}, () => {
     startHeartbeat(gameId);
@@ -171,10 +173,10 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
     }
   });
 
-
   // ✅ If only one player left and it's me, redirect
   const playerIds = Object.keys(players);
-  if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
+  if (!hasLeftGame && playerIds.length === 1 && playerIds[0] === currentUser.id) {
+    hasLeftGame = true; // prevent re-trigger
     store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
     alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
@@ -201,7 +203,7 @@ function handleRoundStart(roundData: any) {
   if (roundData.roundId) {
     // IMPORTANT: Reset round state to clear previous round data (including correct answer)
     store.commit('round/RESET_ROUND', null);
-    
+
     // Set the new round ID in the round store
     store.commit('round/SET_ROUND_ID', roundData.roundId);
 
