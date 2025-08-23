@@ -221,7 +221,7 @@ export default {
   transform-origin: top center;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: visible;
 }
 
 .section-with-goose {
@@ -265,40 +265,40 @@ export default {
 }
 
 @media (max-width: 1200px) {
-  .goose1 { 
-    width: 220px; 
-    right: 0; 
+  .goose1 {
+    width: 220px;
+    right: 0;
     top: -120px;
   }
-  .goose2 { 
-    width: 160px; 
-    left: 0; 
+  .goose2 {
+    width: 160px;
+    left: 0;
     top: -8px;
   }
 }
 
 @media (max-width: 992px) {
-  .goose1 { 
-    width: 180px; 
-    right: 0; 
+  .goose1 {
+    width: 180px;
+    right: 0;
     top: -100px;
   }
-  .goose2 { 
-    width: 130px; 
-    left: 0; 
+  .goose2 {
+    width: 130px;
+    left: 0;
     top: -6px;
   }
 }
 
 @media (max-width: 768px) {
-  .goose1 { 
-    width: 160px; 
-    right: 0; 
+  .goose1 {
+    width: 160px;
+    right: 0;
     top: -80px;
   }
-  .goose2 { 
-    width: 110px; 
-    left: 0; 
+  .goose2 {
+    width: 110px;
+    left: 0;
     top: -5px;
   }
 }
@@ -343,12 +343,26 @@ export default {
     padding-left: 40px;
     padding-right: 40px;
   }
+  /* Offset container padding so geese hug the viewport edges */
+  .goose1 {
+    right: -40px;
+  }
+  .goose2 {
+    left: -40px;
+  }
 }
 
 @media (min-width: 1600px) {
   .home-container {
     padding-left: 60px;
     padding-right: 60px;
+  }
+  /* Offset container padding so geese hug the viewport edges */
+  .goose1 {
+    right: -60px;
+  }
+  .goose2 {
+    left: -60px;
   }
 }
 
@@ -357,7 +371,7 @@ export default {
   .home-container {
     padding-top: 60px;
   }
-  
+
   .goose-decor {
     display: none;
   }
