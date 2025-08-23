@@ -37,7 +37,7 @@
                 <label>Username</label>
                 <div class="username-line">
                   <div class="form-row">
-                    <input type="email" :value="settings?.emailAddress" disabled />
+                    <input type="text" :value="settings?.username" disabled />
                   </div>
                   <button class="change-password-btn" @click="toggleUsernameEditing">Change Username</button>
                   <button class="change-password-btn" @click="togglePasswordEditing">Change Password</button>
@@ -45,38 +45,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Username change section -->
-<!--          <div v-if="isEditingUsername" class="form-row">-->
-<!--            <div class="password-input-group">-->
-
-<!--              <div class="input-with-icon">-->
-<!--                <input type="text"-->
-<!--                       v-model="newUsername"-->
-<!--                       :placeholder="settings?.username || 'Enter new username'"-->
-<!--                       :disabled="!isEditingUsername"-->
-<!--                />-->
-<!--                <button class="edit-inline-btn" @click="saveUsername" title="Edit username" :disabled="loading || !usernameChecks.allValid">-->
-<!--                  <font-awesome-icon :icon="'fa-solid fa-check'" />-->
-<!--                  <span class="icon-btn-text">{{ 'SAVE' }}</span>-->
-<!--                </button>-->
-<!--              </div>-->
-
-<!--              <button class="cancel-password-btn" @click="cancelUsernameEditing">Cancel</button>-->
-
-<!--              <ul v-if="isEditingUsername" class="password-checklist">-->
-<!--                <li :class="{ valid: usernameChecks.validLengths }">-->
-<!--                  {{ usernameChecks.validLengths ? "✓" : "✗" }} Between 3 to 24 in lengths-->
-<!--                </li>-->
-<!--                <li :class="{ valid: usernameChecks.validCombination }">-->
-<!--                  {{ usernameChecks.validCombination ? "✓" : "✗" }} Does not include space-->
-<!--                </li>-->
-
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </div>-->
-
-
 
             <!-- Username change section -->
             <div v-if="isEditingUsername" class="form-row">
@@ -91,7 +59,7 @@
                   />
                   <label for="newUsername">NEW USERNAME</label>
 
-                  <button class="edit-inline-btn" @click="saveUsername" title="Save username" :disabled="isLoading || !usernameChecks.allValid">
+                  <button class="edit-inline-btn" @click="saveUsername" :disabled="isLoading || !usernameChecks.allValid">
                     <font-awesome-icon :icon="'fa-solid fa-check'" />
                     <span class="icon-btn-text">SAVE</span>
                   </button>
@@ -108,15 +76,12 @@
                   </li>
                 </ul>
               </div>
-
-              <!-- Username 7-day note -->
-<!--              <div class="username-note">-->
-<!--                Username can be changed only once in 7 days-->
-<!--              </div>-->
-
+              <div class="username-caution-bar">
+                Username can be changed only once in 7 days.
+                {{ this.settings?.usernameChangedAt ? " Last changed: " + formatDate(this.settings.usernameChangedAt) : " This is your first time changing it" }}
+              </div>
             </div>
 
-          <!-- Password change section -->
             <!-- Password change section -->
             <div v-if="isEditingPassword" class="form-row">
               <div class="password-input-group">
@@ -134,7 +99,7 @@
                     <font-awesome-icon :icon="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" />
                   </span>
 
-                  <button class="edit-inline-btn" @click="onChangePassword" title="Edit username" :disabled="loading || !passwordChecks.allValid">
+                  <button class="edit-inline-btn" @click="onChangePassword" :disabled="isLoading || !passwordChecks.allValid">
                     <font-awesome-icon :icon="'fa-solid fa-check'" />
                     <span class="icon-btn-text">{{ 'SAVE' }}</span>
                   </button>
@@ -205,12 +170,12 @@ export default {
       return this.errorMessage && this.errorMessage.trim() !== ''
     },
     usernameChecks() {
-      const validLengths = !(this.newUsername.length < 3 && this.newUsername.length > 24);
-      const validCombination = !(this.newUsername.includes(""));
+      const validLengths = this.newUsername.length >= 3 && this.newUsername.length <= 24;
+      const validCombination = !(this.newUsername.includes(" "));
       return {
         validLengths,
         validCombination,
-        alllValid: validLengths && validCombination
+        allValid: validLengths && validCombination
       };
     },
     passwordChecks() {
@@ -251,17 +216,6 @@ export default {
         this.newUsername = this.settings?.username || ''
       }
     },
-
-    // editUsernmae() {
-    //   this.saveUsername()
-    // },
-    //
-    // saveUsername() {
-    //   this.isEditingUsername = true
-    //   this.errorMessage = null
-    //   this.newUsername = this.settings?.username || ''
-    // },
-
 
     async saveUsername() {
       if (!this.newUsername || this.newUsername.trim() === '') {
@@ -1038,6 +992,21 @@ input[type="email"] {
   font-weight: 600;
   text-align: center;
   max-width: 500px;
+}
+
+.username-caution-bar {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding: 4px 8px;
+  background: rgba(255, 203, 59, 0.08);
+  border: 1px solid rgba(255, 203, 59, 0.3);
+  color: rgba(255, 203, 59, 0.8);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  max-width: 500px;
+  opacity: 0.8;
 }
 
 </style>

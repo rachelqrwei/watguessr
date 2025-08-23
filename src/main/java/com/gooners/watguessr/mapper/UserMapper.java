@@ -16,7 +16,6 @@ import org.mapstruct.Mapping;
         UserSettingsDto toUserSettingsDto(User user);
 
         @Mapping(target = "id", ignore = true)
-        @Mapping(target = "createdAt", ignore = true)
         @Mapping(target = "elo",      constant = "150")     // default elo
         @Mapping(target = "streak",   constant = "0")        // default streak
         User toEntity(UserCreateDto dto);

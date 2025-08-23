@@ -11,6 +11,7 @@ public class UserSettingsDto {
     private String emailAddress;
     private Integer elo;
     private Integer streak;
+    private OffsetDateTime usernameChangedAt;
 
     public UUID getId() {
         return id;
@@ -60,6 +61,9 @@ public class UserSettingsDto {
         this.streak = streak;
     }
 
+    public OffsetDateTime getUsernameChangedAt() { return usernameChangedAt; }
+
+    public void setUsernameChangedAt(OffsetDateTime usernameChangedAt) { this.usernameChangedAt = usernameChangedAt; }
 }
 
 

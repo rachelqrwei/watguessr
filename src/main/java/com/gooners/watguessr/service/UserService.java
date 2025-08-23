@@ -283,6 +283,8 @@ public class UserService {
         if (user == null) {
             throw new CustomException("User not found with email: " + emailAddress);
         }
+        // password check
+        isValidPassword(newPassword);
 
         try {
             user.setPassword(passwordEncoder.encode(newPassword));
@@ -292,9 +294,6 @@ public class UserService {
         }
 
     }
-
-
-
 
     public void deleteUser(String emailAddress) {
         User user = userRepository.findByEmailAddress(emailAddress);
@@ -317,9 +316,8 @@ public class UserService {
     public void changeUsername(String emailAddress, String newUsername) {
         User user = userRepository.findByEmailAddress(emailAddress);
 
-        // username and password check
+        // username check
         isValidUsername(user.getUsername());
-        isValidPassword(newUsername);
 
         if (user.getUsernameChangedAt() == null || user.getUsernameChangedAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC).minusDays(7))){
             user.setUsername(newUsername);
