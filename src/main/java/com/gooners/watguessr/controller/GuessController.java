@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.dto.GuessCreateDto;
 import com.gooners.watguessr.dto.GuessDto;
 import com.gooners.watguessr.dto.RoundResult;
@@ -17,7 +18,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -30,22 +30,23 @@ public class GuessController {
     private final UserService userService;
     private final GuessMapper guessMapper;
 
-    public GuessController(GuessService guessService, RoundService roundService, UserService userService, GuessMapper guessMapper) {
+    public GuessController(GuessService guessService, RoundService roundService, UserService userService,
+            GuessMapper guessMapper) {
         this.guessService = guessService;
         this.roundService = roundService;
         this.userService = userService;
         this.guessMapper = guessMapper;
     }
-    
+
     @PostMapping
+    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
     public ResponseEntity<GuessDto> createGuess(
-            @RequestBody @Valid GuessCreateDto createDto
-    ) {
+            @RequestBody @Valid GuessCreateDto createDto) {
         // TODO: Make sure only one guess per round per user is allowed.
         // Fetch managed entities from database
         Round round = roundService.findById(createDto.getRoundId());
         User user = userService.findById(createDto.getUserId());
-        
+
         // Create guess entity manually to ensure proper entity relationships
         Guess toSave = new Guess();
         toSave.setTime(createDto.getTime());
@@ -53,10 +54,10 @@ public class GuessController {
         toSave.setGuessY(createDto.getGuessY());
         toSave.setBuilding(createDto.getBuilding());
         toSave.setFloor(createDto.getFloor());
-        toSave.setRound(round);  // Set managed Round entity
-        toSave.setUser(user);    // Set managed User entity
+        toSave.setRound(round); // Set managed Round entity
+        toSave.setUser(user); // Set managed User entity
 
-        Guess saved  = guessService.create(toSave);
+        Guess saved = guessService.create(toSave);
 
         GuessDto result = guessMapper.toDto(saved);
         return ResponseEntity
@@ -64,7 +65,7 @@ public class GuessController {
                 .body(result);
     }
 
-    @MessageMapping("/guess") //client sends to /app/guess
+    @MessageMapping("/guess") // client sends to /app/guess
     @SendTo("/topic/guesses")
     public Guess processGuessInMultiplayerGame(Guess guess) {
         // TODO: Make sure only one guess per round per user is allowed.
@@ -73,10 +74,10 @@ public class GuessController {
     }
 
     @PostMapping("/evaluate-guess")
+    @RateLimit(requests = 60, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many evaluation requests.")
     public ResponseEntity<RoundResult> evaluateGuess(
             @RequestParam UUID roundId,
-            @RequestBody Guess guess
-    ) {
+            @RequestBody Guess guess) {
         Round round = roundService.findById(roundId);
         RoundResult result = guessService.evaluateGuess(round, guess);
 

@@ -1,5 +1,6 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.entity.Building;
 import com.gooners.watguessr.service.BuildingService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,8 @@ public class BuildingController {
         this.buildingService = buildingService;
     }
 
-    @GetMapping("/all") //used in game state to check for available floors.
+    @GetMapping("/all") // used in game state to check for available floors.
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many building list requests.")
     public List<Building> getAllBuildings() {
         return buildingService.findAll();
     }
