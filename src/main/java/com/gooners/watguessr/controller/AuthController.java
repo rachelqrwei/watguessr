@@ -38,8 +38,11 @@ public class AuthController {
     private final AuthenticationService authenticationService;
     private final UserMapper userMapper;
 
-    public AuthController(UserService userService, EmailVerificationService emailVerificationService,
-            AuthenticationService authenticationService, UserMapper userMapper) {
+    public AuthController(
+            UserService userService,
+            EmailVerificationService emailVerificationService,
+            AuthenticationService authenticationService,
+            UserMapper userMapper) {
         this.userService = userService;
         this.emailVerificationService = emailVerificationService;
         this.authenticationService = authenticationService;

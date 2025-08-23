@@ -106,20 +106,26 @@ export default {
           const email = urlParams.get('email')
           const name = urlParams.get('name')
           const picture = urlParams.get('picture')
+          const isLogin = urlParams.get('login') === 'success'
 
           if (email && name) {
-            // Create user account from Google credentials
-            await this.$store.dispatch('user/signUpWithGoogle', {
-              email,
-              name,
-              picture: picture || null
-            })
+            if (isLogin) {
+              // User is already authenticated via OAuth flow, just refresh auth state
+              await this.$store.dispatch('user/initializeAuth')
+            } else {
+              // New user signup
+              await this.$store.dispatch('user/signUpWithGoogle', {
+                email,
+                name,
+                picture: picture || null
+              })
+            }
 
             // Clear URL parameters
             window.history.replaceState({}, document.title, window.location.pathname)
           }
         } catch (error) {
-          console.error('Google OAuth signup failed:', error)
+          console.error('Google OAuth callback failed:', error)
           // Handle error - could show a toast notification
         }
       }
