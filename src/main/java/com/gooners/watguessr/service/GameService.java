@@ -414,7 +414,7 @@ public class GameService {
     }
 
     public int cleanupExpiredGames() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 1 hour before now
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 2 hour before now
         List<Game> oldGames = gameRepository.findByWinnerIsNullAndCreatedAtBefore(cutoff);
         
         List<Game> gamesToDelete = new ArrayList<>();
