@@ -4,6 +4,7 @@ import store from '../stores';
 
 // STOMP client for multiplayer game state updates
 let stompClient: Client | null = null;
+let heartbeatInterval: number | null = null;
 
 export interface MultiplayerGameStateDto {
   gameId: string;
@@ -32,6 +33,7 @@ export function connectToMultiplayerGame(gameId: string) {
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
+    startHeartbeat(gameId);
 
     // Subscribe to game state updates for this specific game
     const stateSubscription = stompClient?.subscribe(`/topic/multiplayer-game/${gameId}/state`, (message) => {
@@ -56,6 +58,10 @@ export function connectToMultiplayerGame(gameId: string) {
 
   }, (error: any) => {
     console.error('WebSocket connection error:', error);
+
+    // Stop heartbeat on disconnect/error
+    stopHeartbeat();
+
     // Retry connection after 3 seconds
     setTimeout(() => {
       connectToMultiplayerGame(gameId);
@@ -65,6 +71,8 @@ export function connectToMultiplayerGame(gameId: string) {
 
 export function disconnectFromMultiplayerGame() {
   if (stompClient && stompClient.connected) {
+    stopHeartbeat();
+
     stompClient.disconnect(() => {
       store.commit('guess/RESET_GUESS', null);
     });
@@ -143,6 +151,7 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   }
 
   // Get current players from store to detect disconnections
+  const currentUser = store.getters['user/getCurrentUser'] || {};
   const currentPlayers = store.getters['multiplayerGame/multiplayerGame_getPlayers'] || {};
 
   // Convert backend DTO format to frontend store format
@@ -162,6 +171,15 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
       store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
     }
   });
+
+
+  // ✅ If only one player left and it's me, redirect
+  const playerIds = Object.keys(players);
+  if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
+    store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
+    alert("⚠️ I'm the only one left, leaving game...");
+    window.location.href = "/";
+  }
 
   // Update Vuex store
   store.commit('multiplayerGame/MG_SET_GAME_ID', gameState.gameId);
@@ -297,5 +315,29 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
     store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
   } else {
     console.log('🎯 Already on multiplayer-game-end route, skipping navigation');
+  }
+}
+
+function startHeartbeat(gameId: any) {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+  heartbeatInterval = window.setInterval(() => {
+    if (stompClient && stompClient.connected) {
+      stompClient.send(
+        "/app/ranked-game/heartbeat",
+        {},
+        JSON.stringify({ gameId: gameId })
+      );
+    }
+  }, 30000); // every 30 seconds
+}
+
+/**
+ * Stop heartbeat
+ */
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
   }
 }

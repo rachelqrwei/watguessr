@@ -4,6 +4,7 @@ import store from '../stores';
 
 // STOMP client for multiplayer game state updates
 let stompClient: Client | null = null;
+let heartbeatInterval: number | null = null;
 
 export interface RankedGameStateDto {
   gameId: string;
@@ -35,26 +36,25 @@ export function connectToRankedGame(gameId: string) {
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
 
-  stompClient.connect({}, () => {
+  stompClient.connect({}, (frame) => {
+    // Start heartbeat when connected
+    startHeartbeat(gameId);
 
-    // Subscribe to game state updates for this specific game
-    const stateSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/state`, (message) => {
+    // Subscribe to game state updates
+    stompClient?.subscribe(`/topic/ranked-game/${gameId}/state`, (message) => {
       const gameState: RankedGameStateDto = JSON.parse(message.body);
       handleGameStateUpdate(gameState);
     });
 
     // Subscribe to round start events
-    const roundStartSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/round-start`, (message) => {
+    stompClient?.subscribe(`/topic/ranked-game/${gameId}/round-start`, (message) => {
       const roundData = JSON.parse(message.body);
       handleRoundStart(roundData);
     });
 
     // Subscribe to game completion events
-    const completionSubscription = stompClient?.subscribe(`/topic/ranked-game/${gameId}/complete`, (message) => {
-      console.log('🎯 WebSocket completion event received for game:', gameId);
-      console.log('🎯 Message body:', message.body);
+    stompClient?.subscribe(`/topic/ranked-game/${gameId}/complete`, (message) => {
       const completionData = JSON.parse(message.body);
-      console.log('🎯 Parsed completion data:', completionData);
       handleGameComplete(completionData);
     });
 
@@ -63,6 +63,10 @@ export function connectToRankedGame(gameId: string) {
 
   }, (error: any) => {
     console.error('WebSocket connection error:', error);
+
+    // Stop heartbeat on disconnect/error
+    stopHeartbeat();
+
     // Retry connection after 3 seconds
     setTimeout(() => {
       connectToRankedGame(gameId);
@@ -70,8 +74,11 @@ export function connectToRankedGame(gameId: string) {
   });
 }
 
+
 export function disconnectFromRankedGame() {
   if (stompClient && stompClient.connected) {
+    stopHeartbeat();
+
     stompClient.disconnect(() => {
       store.commit('guess/RESET_GUESS', null);
     });
@@ -145,9 +152,10 @@ export function sendStartRound(gameId: string, sceneId: string) {
 function handleGameStateUpdate(gameState: RankedGameStateDto) {
   // Don't update store if we're on a game end route to prevent interference
   if (window.location.pathname.includes('-game-end')) {
-    console.log('🎯 On game end route, skipping game state update');
     return;
   }
+
+  const currentUser = store.getters['user/getCurrentUser'] || {};
 
   // Get current players from store to detect disconnections
   const currentPlayers = store.getters['rankedGame/rankedGame_getPlayers'] || {};
@@ -170,6 +178,14 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
     }
   });
 
+  const playerIds = Object.keys(players);
+  if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
+    store.dispatch('rankedGame/rankedGame_endGame', null);
+    alert("⚠️ I'm the only one left, leaving game...");
+    window.location.href = "/";
+  }
+
+
   // Update Vuex store
   store.commit('rankedGame/RG_SET_GAME_ID', gameState.gameId);
   store.commit('rankedGame/RG_SET_PLAYERS', players);
@@ -181,25 +197,11 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   }
 
   if (gameState.shouldEnd) {
-    console.log('🎯 Setting should end to true from game state update');
-    console.log('🎯 Game state details:', {
-      gameId: gameState.gameId,
-      currentRound: gameState.currentRound,
-      maxRounds: gameState.maxRounds,
-      players: gameState.players,
-      shouldEnd: gameState.shouldEnd,
-      finalWinner: gameState.finalWinner
-    });
     store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
 
   // Store pre-game ELOs for all players if we don't have them yet
   const currentPreGameElos = store.getters['rankedGame/rankedGame_getPreGameElos'] || {};
-  if (Object.keys(currentPreGameElos).length === 0) {
-    console.log('🎯 No pre-game ELOs found in store, opponent ELOs should be loaded from match info');
-  } else {
-    console.log('🎯 Pre-game ELOs already available in store:', currentPreGameElos);
-  }
 }
 
 // Handle round start events
@@ -281,22 +283,17 @@ async function requestCurrentRoundState(gameId: string) {
 
 // Handle game completion events
 function handleGameComplete(completionData: RankedGameStateDto) {
-  console.log('🎯 handleGameComplete called with data:', completionData);
-
   // Update the game state with final results
   if (completionData.finalWinner) {
-    console.log('🎯 Setting final winner:', completionData.finalWinner);
     store.commit('rankedGame/RG_SET_FINAL_WINNER', completionData.finalWinner);
   }
 
   if (completionData.shouldEnd) {
-    console.log('🎯 Setting should end to true');
     store.commit('rankedGame/RG_SET_SHOULD_END', true);
   }
 
   // Update players with final scores
   if (completionData.players) {
-    console.log('🎯 Updating players data:', completionData.players);
     const players: Record<string, { status: any; score: number; username: string }> = {};
     Object.entries(completionData.players).forEach(([playerId, playerState]) => {
       players[playerId] = {
@@ -314,15 +311,12 @@ function handleGameComplete(completionData: RankedGameStateDto) {
       maxRounds: completionData.maxRounds
     };
 
-    console.log('🎯 Saving final game data:', finalGameData);
     store.commit('rankedGame/RG_SAVE_FINAL_GAME_DATA', finalGameData);
   }
 
   // IMPORTANT: Call the backend endpoint to properly resolve the game and set winner in database
   const gameId = completionData.gameId;
   if (gameId) {
-    console.log('🎯 Calling backend endpoint to resolve game and set database winner:', gameId);
-
     // Call the backend endpoint to finish the game
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${gameId}`, {
       method: 'POST',
@@ -336,9 +330,6 @@ function handleGameComplete(completionData: RankedGameStateDto) {
       }
     })
     .then(gameResult => {
-      console.log('🎯 Game resolved successfully via backend, winner set in database');
-      console.log('🎯 ELO changes received:', gameResult.eloChanges);
-
       // Store the game result with ELO changes
       store.commit('rankedGame/RG_SET_RESULT', gameResult);
     })
@@ -349,12 +340,10 @@ function handleGameComplete(completionData: RankedGameStateDto) {
       // Handle cleanup after getting the result data
       const currentUser = store.getters['user/getCurrentUser'];
       if (currentUser?.id) {
-        console.log('🎯 Setting current user status to ended');
         store.commit('rankedGame/RG_SET_STATUS', {playerId: currentUser.id, status: 'ended'});
       }
 
       // Reset game state and disconnect WebSocket
-      console.log('🎯 Resetting game state and disconnecting WebSocket');
       store.commit('gameInfo/RESET_GAME', null, {root: true});
       store.commit('round/RESET_ROUND', null, {root: true});
       disconnectFromRankedGame();
@@ -372,5 +361,30 @@ function handleGameComplete(completionData: RankedGameStateDto) {
     store.commit('round/RESET_ROUND', null, {root: true});
     store.commit('guess/RESET_GUESS', null);
     disconnectFromRankedGame();
+  }
+}
+
+
+function startHeartbeat(gameId: any) {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+  heartbeatInterval = window.setInterval(() => {
+    if (stompClient && stompClient.connected) {
+      stompClient.send(
+        "/app/ranked-game/heartbeat",
+        {},
+        JSON.stringify({ gameId: gameId })
+      );
+    }
+  }, 30000); // every 30 seconds
+}
+
+/**
+ * Stop heartbeat
+ */
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
   }
 }

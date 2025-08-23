@@ -474,22 +474,14 @@ export default {
         this.multiplayerGame_setPlayerReady();
       }
       else if (this.getGameMode === 'ranked') {
-        console.log('🎯 Handling ranked game round end:', {
-          shouldEnd: this.rankedGame_getShouldEnd,
-          currentRound: this.rankedGame_getCurrentRound,
-          maxRounds: this.rankedGame_getMaxRounds
-        });
-
         // Handle ranked game logic
         if (this.rankedGame_getShouldEnd) {
-          console.log('🎯 Ranked game already ended, watcher should handle navigation');
           return;
         }
 
         // Check if this is the last round
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           // End the ranked game - send completed status
-          console.log('🎯 Last round reached, setting player completed');
           this.rankedGame_setPlayerCompleted();
           return;
         }
