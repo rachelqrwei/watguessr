@@ -6,7 +6,7 @@ export const actions = {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`, {
+      const response = await fetch(`/api/user/${id}`, {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
@@ -29,7 +29,7 @@ export const actions = {
 
   async fetchUserSettings(_ctx: { state: UserState }, userId: string) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/settings`, {
+      const response = await fetch(`/api/user/${userId}/settings`, {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
@@ -46,7 +46,7 @@ export const actions = {
     state.loading = true;
     state.error = null;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/leaderboard`, {
+      const response = await fetch(`/api/user/${userId}/leaderboard`, {
         credentials: "include"
       });
       if (!response.ok) throw new Error(`Failed to fetch leaderboard for user: ${response.status}`);
@@ -73,7 +73,7 @@ export const actions = {
       params.set('offset', String(offset));
       params.set('limit', String(limit));
 
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${userId}/match-history?${params.toString()}`, {
+      const res = await fetch(`/api/user/${userId}/match-history?${params.toString()}`, {
         credentials: "include"
       });
 
@@ -95,7 +95,7 @@ export const actions = {
     commit('SET_ERROR', null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
+      const response = await fetch(`/api/auth/signup`, {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
@@ -123,7 +123,7 @@ export const actions = {
     commit('SET_ERROR', null);
     try {
       // Use the auth endpoint instead of user endpoint for login
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -162,7 +162,7 @@ export const actions = {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${payload.id}`, {
+      const response = await fetch(`/api/user/${payload.id}`, {
         method: 'PUT',
         credentials: "include",
         body: JSON.stringify(payload.updates)
@@ -190,7 +190,7 @@ export const actions = {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/send-otp?to=${encodeURIComponent(to)}`;
+      const url = `/api/auth/send-otp?to=${encodeURIComponent(to)}`;
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to send OTP');
     } catch (err) {
@@ -204,7 +204,7 @@ export const actions = {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/verify-otp?email=${encodeURIComponent(payload.email)}&submittedOtp=${encodeURIComponent(payload.submittedOtp)}`;
+      const url = `/api/auth/verify-otp?email=${encodeURIComponent(payload.email)}&submittedOtp=${encodeURIComponent(payload.submittedOtp)}`;
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to verify user');
       return 'verified';
@@ -221,7 +221,7 @@ export const actions = {
     commit('SET_ERROR', null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google-signup`, {
+      const response = await fetch(`/api/auth/google-signup`, {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
@@ -250,7 +250,7 @@ export const actions = {
   async startGoogleAuth() {
     try {
       // Redirect to backend Google OAuth endpoint
-      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+      window.location.href = `/api/auth/google/start`;
     } catch (err) {
       console.error('Failed to start Google auth:', err);
       throw err;
@@ -259,7 +259,7 @@ export const actions = {
   // Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
+      const res = await fetch(`/api/auth/me`, {
         method: "GET",
         credentials: "include" // send HttpOnly cookie
       });
@@ -307,7 +307,7 @@ export const actions = {
 
     try {
       const { emailAddress, newPassword } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword} `, {
+      await fetch(`/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword} `, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
@@ -325,7 +325,7 @@ export const actions = {
 
     try {
       const { emailAddress, newUsername } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername} `, {
+      await fetch(`/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername} `, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
@@ -343,7 +343,7 @@ export const actions = {
 
     try {
       const { emailAddress} = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-password?emailAddress=${emailAddress}`, {
+      await fetch(`/api/user/delete-password?emailAddress=${emailAddress}`, {
         method: "DELETE",
         credentials: "include" // send HttpOnly cookie
       });

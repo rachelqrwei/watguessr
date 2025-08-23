@@ -26,7 +26,7 @@ export const mutations = {
     localStorage.removeItem('user_data');
 
     // Call backend logout to clear HTTP-only cookie
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    fetch(`/api/auth/logout`, { method: 'POST', credentials: 'include' });
   },
 
   SET_LOADING(state: UserState, loading: boolean) {
