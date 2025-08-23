@@ -320,13 +320,13 @@ public class RankedGameStateService {
 				.put(userId, Instant.now());
 	}
 
-	@Scheduled(fixedRate = 60000) // every 1 min
+	@Scheduled(fixedRate = 30000) // every 30 seconds
 	public void cleanupInactiveUsers() {
 		if (gameStates.isEmpty()) {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(30); // 3 minutes
+		Instant cutoff = Instant.now().minusSeconds(30); // 30 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();

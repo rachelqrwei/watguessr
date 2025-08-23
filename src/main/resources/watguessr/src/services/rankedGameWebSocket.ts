@@ -5,6 +5,7 @@ import store from '../stores';
 // STOMP client for multiplayer game state updates
 let stompClient: Client | null = null;
 let heartbeatInterval: number | null = null;
+let hasLeftGame = false; // module/global or component state
 
 export interface RankedGameStateDto {
   gameId: string;
@@ -35,6 +36,7 @@ export interface PlayerStateDto {
 export function connectToRankedGame(gameId: string) {
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
+  hasLeftGame = false; // module/global or component state
 
   stompClient.connect({}, (frame) => {
     // Start heartbeat when connected
@@ -179,8 +181,9 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   });
 
   const playerIds = Object.keys(players);
-  if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
-    store.dispatch('rankedGame/rankedGame_endGame', null);
+  if (!hasLeftGame && playerIds.length === 1 && playerIds[0] === currentUser.id) {
+    hasLeftGame = true; // prevent re-trigger
+    store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
     alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
   }
