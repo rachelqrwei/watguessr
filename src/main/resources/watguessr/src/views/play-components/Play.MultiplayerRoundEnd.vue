@@ -236,18 +236,15 @@ export default {
           this.guessUpdateSubscription = window.stompClient.subscribe(
             `/topic/round/${roundId}/guesses`,
             (message) => {
-              console.log('🎯 Received live guess update:', message.body);
               this.handleLiveGuessUpdate(JSON.parse(message.body));
             }
           );
-          console.log('📡 Subscribed to live guess updates for round:', roundId);
         }
 
         // Also subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
           `/topic/multiplayer-game/${gameId}/state`,
           (message) => {
-            console.log('📊 Received game state update in round end:', message.body);
             // Refresh guesses when game state updates
             this.refreshGuesses();
           }
@@ -267,8 +264,6 @@ export default {
 
       // Show notification
       this.showNewGuessNotification(newGuess);
-
-      console.log('✅ Added live guess update:', newGuess);
     },
 
     // Show notification for new guess

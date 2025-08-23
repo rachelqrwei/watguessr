@@ -286,24 +286,17 @@ export default {
     // Watch for when ranked game should end
     'rankedGame_getShouldEnd': {
       handler(newShouldEnd, oldShouldEnd) {
-        console.log('🎯 rankedGame_getShouldEnd watcher triggered:', { newShouldEnd, oldShouldEnd, gameMode: this.getGameMode });
-        console.log('🎯 Current route:', this.$route.path);
-
         // Don't trigger navigation if we're already on a game end route
         if (this.$route.path.includes('-game-end')) {
-          console.log('🎯 Already on game end route, ignoring watcher');
           return;
         }
 
         if (this.getGameMode === 'ranked' && newShouldEnd && !oldShouldEnd) {
-          console.log('🎯 Ranked game should end, navigating to ranked-game-end after delay');
           // Add small delay to ensure game state is fully updated
           setTimeout(() => {
-            console.log('🎯 Executing navigation to /ranked-game-end');
             try {
               // Use replace instead of push to avoid navigation history issues
               this.$router.replace('/ranked-game-end');
-              console.log('🎯 Navigation executed successfully');
             } catch (error) {
               console.error('🎯 Navigation failed:', error);
             }
@@ -419,9 +412,6 @@ export default {
       else if (this.getGameMode === 'ranked') {
         this.rankedGame_updatePlayerStatus({ status: 'ended' });
       }
-
-      console.log("submitted guess");
-
       await this.submitGuess();
     },
 
@@ -492,7 +482,6 @@ export default {
           distance: this.getRoundResult?.distance ?? 0
         };
 
-        console.log('🎯 Setting player ready for next round');
         this.rankedGame_setPlayerReady();
       }
     },
@@ -576,25 +565,12 @@ export default {
         const players = this.rankedGame_getPlayers;
         if (players && Object.keys(players).length > 0) {
           const allPlayersReady = Object.values(players).every(p => p.status === 'ready');
-          console.log('🎯 All players ready check:', {
-            allPlayersReady,
-            playerStatuses: Object.values(players).map(p => ({ username: p.username, status: p.status }))
-          });
 
           if (allPlayersReady && !this.showCountdown && !this.countdownShown) {
-            console.log('🎯 Showing countdown for ranked game!');
             this.showCountdown = true;
             this.showStopwatch = false;
             this.countdownShown = true;
-          } else {
-            console.log('🎯 Countdown not shown because:', {
-              allPlayersReady,
-              showCountdown: this.showCountdown,
-              countdownShown: this.countdownShown
-            });
           }
-        } else {
-          console.log('🎯 No players found for ranked game');
         }
       }
     },
@@ -640,10 +616,6 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
-
-    // Don't disconnect WebSocket when game ends - let the game end component handle cleanup
-    // The store data needs to persist for the game end screen to display results
-    console.log('🎯 Play component unmounting, keeping WebSocket connected for game end screen');
   }
 }
 </script>

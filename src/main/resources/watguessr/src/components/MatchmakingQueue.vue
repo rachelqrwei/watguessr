@@ -7,7 +7,7 @@
         <span class="timer-text">Time in queue:</span>
         <span class="timer-value">{{ formatTime(queueTime) }}</span>
       </div>
-      
+
       <button class="cancel-queue-btn" @click="cancelQueue">
         Cancel Search
       </button>
@@ -78,21 +78,15 @@ export default {
   },
   watch: {
     queueState(newState, oldState) {
-      console.log(`🔄 Queue state changed: ${oldState} → ${newState}`);
-
       if (newState === 'searching' && oldState !== 'searching') {
-        console.log('⏱️ Starting queue timer');
         this.startQueueTimer();
       } else if (newState !== 'searching' && oldState === 'searching') {
-        console.log('⏱️ Stopping queue timer');
         this.stopQueueTimer();
       }
 
       if (newState === 'match_found' && oldState !== 'match_found') {
-        console.log('⏰ Starting game countdown');
         this.startGameCountdown();
       } else if (newState !== 'match_found' && oldState === 'match_found') {
-        console.log('⏰ Stopping game countdown');
         this.stopGameCountdown();
       }
     }
@@ -100,46 +94,36 @@ export default {
   mounted() {
     // Start timers if component is mounted in the right state
     if (this.queueState === 'searching') {
-      console.log('🔄 Component mounted in searching state, starting timer');
       this.startQueueTimer();
     }
     if (this.queueState === 'match_found') {
-      console.log('🔄 Component mounted in match_found state, starting countdown');
       this.startGameCountdown();
     }
   },
   methods: {
     startQueueTimer() {
-      console.log('⏱️ Starting queue timer');
       this.stopQueueTimer(); // Stop any existing timer
       this.queueTime = 0;
       this.queueTimer = setInterval(() => {
         this.queueTime++;
         // Only log every 10 seconds to reduce noise
-        if (this.queueTime % 10 === 0) {
-          console.log(`⏱️ Queue time: ${this.queueTime}s`);
-        }
       }, 1000);
     },
 
     stopQueueTimer() {
       if (this.queueTimer) {
-        console.log('⏹️ Stopping queue timer');
         clearInterval(this.queueTimer);
         this.queueTimer = null;
       }
     },
 
     startGameCountdown() {
-      console.log('⏰ Starting game countdown from 5');
       this.stopGameCountdown(); // Stop any existing countdown
       this.gameStartCountdown = 5;
       this.gameStartTimer = setInterval(() => {
         this.gameStartCountdown--;
-        console.log(`⏰ Game countdown: ${this.gameStartCountdown}`);
         if (this.gameStartCountdown <= 0) {
           this.stopGameCountdown();
-          console.log('🎮 Emitting game-start event');
           this.$emit('game-start');
         }
       }, 1000);

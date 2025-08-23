@@ -14,7 +14,6 @@ export const actions: ActionTree<RoundState, RootState> = {
     // Check game mode - don't create individual rounds for ranked games
     const gameMode = rootGetters['gameInfo/getGameMode'];
     if (gameMode === 'ranked') {
-      console.log('🎯 Ranked game detected - skipping individual round creation. Rounds are managed by the game state service.');
       // For ranked games, the round ID should already be set by the WebSocket round-start event
       // Just return the current round ID if it exists
       if (state.roundId) {

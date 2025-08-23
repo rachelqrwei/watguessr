@@ -100,8 +100,6 @@ export default {
 
     async handleGoogleOAuthCallback() {
       const urlParams = new URLSearchParams(window.location.search)
-      console.log([...urlParams.entries()])
-
 
       if (urlParams.get('google_auth') === 'true') {
         try {

@@ -11,7 +11,6 @@ export function joinRankedQueue(userId: string) {
       userId: userId
     };
     stompClient.send('/app/matchmaking/join', {}, JSON.stringify(message));
-    console.log('📤 Join queue message sent:', message);
   } else {
     console.warn('⚠️ WebSocket not connected, cannot join queue');
   }
@@ -23,7 +22,6 @@ export function leaveRankedQueue(userId: string) {
       userId: userId
     };
     stompClient.send('/app/matchmaking/leave', {}, JSON.stringify(message));
-    console.log('📤 Leave queue message sent:', message);
   } else {
     console.warn('⚠️ WebSocket not connected, cannot leave queue');
   }
@@ -40,13 +38,9 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
-    console.log('✅ Connected to Matchmaking WebSocket');
-    console.log("subscribing to /topic/matchmaking/" + userId);
-
     // Subscribe to matchmaking updates
     stompClient!.subscribe(`/topic/matchmaking/${userId}`, (message) => {
       const data = JSON.parse(message.body);
-      console.log('📨 Received matchmaking update:', data);
 
       // Handle different types of matchmaking messages
       switch (data.type) {
@@ -62,8 +56,6 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
         case 'queue_timeout':
           callbacks.onQueueTimeout?.(data.data?.message || 'Queue timeout');
           break;
-        default:
-          console.log('📬 Unknown message type:', data.type);
       }
     });
 
@@ -72,7 +64,6 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
     callbacks.onError?.('Connection failed. Retrying...');
     // Retry connection after 3 seconds
     setTimeout(() => {
-      console.log('🔄 Retrying WebSocket connection...');
       connectToMatchmakingWebSocket(userId, callbacks);
     }, 3000);
   });
@@ -81,15 +72,9 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
 export function disconnectFromMatchmakingWebSocket() {
   if (stompClient) {
     if (stompClient.connected) {
-      console.log('🔌 Disconnecting from Matchmaking WebSocket...');
       stompClient.disconnect(() => {
-        console.log('✅ Successfully disconnected from Matchmaking WebSocket');
       });
-    } else {
-      console.log('⚠️ STOMP client exists but is not connected');
     }
     stompClient = null;
-  } else {
-    console.log('⚠️ No STOMP client to disconnect');
   }
 }

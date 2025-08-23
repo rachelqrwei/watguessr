@@ -202,12 +202,7 @@ export default {
 
         if (currentRound && currentRound.guesses) {
           this.allGuesses = currentRound.guesses;
-          console.log('🎯 Fetched guesses for ranked round:', this.allGuesses);
-        } else {
-          console.log('❌ No guesses found for current round:', currentRound);
         }
-      } catch (error) {
-        console.error('Error fetching all guesses:', error);
       }
     },
 
@@ -241,18 +236,15 @@ export default {
           this.guessUpdateSubscription = window.stompClient.subscribe(
             `/topic/round/${roundId}/guesses`,
             (message) => {
-              console.log('🎯 Received live guess update:', message.body);
               this.handleLiveGuessUpdate(JSON.parse(message.body));
             }
           );
-          console.log('📡 Subscribed to live guess updates for round:', roundId);
         }
 
         // Also subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
           `/topic/ranked-game/${gameId}/state`,
           (message) => {
-            console.log('📊 Received game state update in round end:', message.body);
             // Refresh guesses when game state updates
             this.refreshGuesses();
           }
@@ -272,8 +264,6 @@ export default {
 
       // Show notification
       this.showNewGuessNotification(newGuess);
-
-      console.log('✅ Added live guess update:', newGuess);
     },
 
     // Show notification for new guess
@@ -381,7 +371,6 @@ export default {
       }
 
       // Add all players' guess markers
-      console.log('🗺️ Adding markers for guesses:', this.allGuesses);
       this.allGuesses.forEach((guess, index) => {
         const isCurrentUser = guess.userId === this.currentUser?.id;
         const coordinates = [guess.guessX, guess.guessY];
@@ -394,7 +383,6 @@ export default {
           markerColor = '#7F7F7F'; // Other players
           const playerData = this.rankedGame_getPlayers[guess.userId];
           markerLabel = playerData ? playerData.username : `Player ${guess.userId}`;
-          console.log('👤 Other player marker:', guess.userId, markerLabel, playerData);
         }
 
         const marker = new mapboxgl.Marker({

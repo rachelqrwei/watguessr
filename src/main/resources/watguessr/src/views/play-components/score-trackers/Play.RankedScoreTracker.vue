@@ -70,7 +70,6 @@ export default {
     // Get all players from ranked game store
     players() {
       const players = this.rankedGame_getPlayers || {};
-      console.log('🎯 Players from store:', players);
       return players;
     },
 
@@ -80,17 +79,14 @@ export default {
     currentPlayer() {
       if (!this.currentUser || !this.players) return null;
       const player = this.players[this.currentUser.id];
-      console.log('🎯 Current player data:', player);
       return player;
     },
 
     // Get opponent player data (first player that's not the current user)
     opponentPlayer() {
-      console.log(this.players);
       if (!this.currentUser || !this.players) return null;
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
       const opponent = opponentId ? this.players[opponentId] : null;
-      console.log('🎯 Opponent player data:', opponent);
       return opponent;
     },
 
@@ -164,13 +160,6 @@ export default {
         }, 300);
       }
     }
-  },
-
-  mounted() {
-    // Debug: Log initial state
-    console.log('🎯 RankedScoreTracker mounted');
-    console.log('🎯 Current user:', this.currentUser);
-    console.log('🎯 Players from store:', this.players);
   }
 };
 </script>
@@ -230,12 +219,12 @@ export default {
     height: 35px;
     padding: 10px 10px 12px 20px;
   }
-  
+
   .player-score-text-container {
     padding: 10px 20px 0 20px;
     gap: 20px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 13px;
@@ -248,12 +237,12 @@ export default {
     height: 32px;
     padding: 8px 8px 10px 18px;
   }
-  
+
   .player-score-text-container {
     padding: 8px 18px 0 18px;
     gap: 18px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 12px;
@@ -266,12 +255,12 @@ export default {
     height: 30px;
     padding: 6px 6px 8px 16px;
   }
-  
+
   .player-score-text-container {
     padding: 6px 16px 0 16px;
     gap: 16px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 11px;
@@ -283,18 +272,18 @@ export default {
     bottom: 8%;
     padding: 0 12px;
   }
-  
+
   .player-score-progress-container {
     width: 260px;
     height: 28px;
     padding: 5px 5px 7px 14px;
   }
-  
+
   .player-score-text-container {
     padding: 5px 14px 0 14px;
     gap: 14px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 10px;
@@ -306,18 +295,18 @@ export default {
     bottom: 7%;
     padding: 0 10px;
   }
-  
+
   .player-score-progress-container {
     width: 240px;
     height: 26px;
     padding: 4px 4px 6px 12px;
   }
-  
+
   .player-score-text-container {
     padding: 4px 12px 0 12px;
     gap: 12px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 9px;
@@ -329,18 +318,18 @@ export default {
     bottom: 6%;
     padding: 0 8px;
   }
-  
+
   .player-score-progress-container {
     width: 220px;
     height: 24px;
     padding: 3px 3px 5px 10px;
   }
-  
+
   .player-score-text-container {
     padding: 3px 10px 0 10px;
     gap: 10px;
   }
-  
+
   .player-name,
   .player-elo {
     font-size: 8px;

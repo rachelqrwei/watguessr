@@ -146,7 +146,6 @@ export function sendStartRound(gameId: string, sceneId: string) {
 function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   // Don't update store if we're on a game end route to prevent interference
   if (window.location.pathname.includes('-game-end')) {
-    console.log('🎯 On game end route, skipping game state update');
     return;
   }
 
@@ -313,8 +312,6 @@ function handleGameComplete(completionData: MultiplayerGameStateDto) {
     };
 
     store.commit('multiplayerGame/MG_SAVE_FINAL_GAME_DATA', finalGameData);
-  } else {
-    console.log('🎯 Already on multiplayer-game-end route, skipping navigation');
   }
 }
 

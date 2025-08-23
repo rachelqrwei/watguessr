@@ -173,21 +173,6 @@ export default {
       }
     },
   },
-
-  watch: {
-    loggedIn(newVal) {
-      console.log('User login status changed:', newVal);
-    },
-
-    getCurrentUser(newUser, oldUser) {
-      if (newUser && !oldUser) {
-        console.log('✅ User logged in:', newUser.username);
-      } else if (!newUser && oldUser) {
-        console.log('👋 User logged out');
-      }
-    }
-  },
-
   mounted() {
     this.fetchUserById();
     document.addEventListener('click', this.onClickOutside);

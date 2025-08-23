@@ -29,12 +29,7 @@ export const actions: ActionTree<RankedGameState, RootState> = {
     // Store the current user's pre-game ELO
     if (currentUser?.elo) {
       commit('RG_SET_PRE_GAME_ELOS', { [username]: currentUser.elo });
-      console.log('🎯 Stored pre-game ELO for current user:', username, currentUser.elo);
     }
-
-    // Note: Opponent ELO should be stored via rankedGame_storeOpponentElos action
-    // when the match is found in the Lobby component
-    console.log('🎯 Current user ELO stored, opponent ELO should be stored from match info');
   },
 
   // Store opponent pre-game ELOs (called from Lobby when match is found)
@@ -77,19 +72,16 @@ export const actions: ActionTree<RankedGameState, RootState> = {
 
   async rankedGame_endGame({ state, commit, rootGetters }) {
     try {
-      console.log('🎯 rankedGame_endGame called with gameId:', state.rankedGame_gameId);
       const currentUser = rootGetters['user/getCurrentUser'];
       const userId = currentUser?.id;
 
       // Check if we already have result data (from WebSocket)
       const existingResult = state.rankedGame_result;
       if (existingResult && Object.keys(existingResult.eloChanges || {}).length > 0) {
-        console.log('🎯 Result data already available from WebSocket, skipping backend call');
         return;
       }
 
       // Only call backend if we don't have results from WebSocket
-      console.log('🎯 No result data from WebSocket, calling backend /finish/ranked endpoint...');
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/game/finish/ranked?gameId=${state.rankedGame_gameId}`, {
         method: 'POST',
         credentials: 'include'
@@ -100,14 +92,6 @@ export const actions: ActionTree<RankedGameState, RootState> = {
       }
 
       const rankedGameResult = await response.json();
-      console.log('🎯 Received result data from backend:', rankedGameResult);
-
-      // Check if ELO changes are empty (game already resolved)
-      if (!rankedGameResult.eloChanges || Object.keys(rankedGameResult.eloChanges).length === 0) {
-        console.log('🎯 Game was already resolved by another player, ELO changes already calculated');
-      } else {
-        console.log('🎯 ELO changes calculated successfully:', rankedGameResult.eloChanges);
-      }
 
       commit('RG_SET_RESULT', rankedGameResult);
       commit('RG_SET_STATUS', {playerId: userId, status: 'ended'});
