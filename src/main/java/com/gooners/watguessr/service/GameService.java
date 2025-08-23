@@ -195,17 +195,22 @@ public class GameService {
     public RankedGameResultDto resolveRankedGame(UUID gameId) {
         Game game = findById(gameId);
 
+        HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+        
         // Check if game has already been resolved (has a winner)
         if (game.getWinner() != null) {
-            // Return a result with existing data to prevent duplicate ELO calculations
-            HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+            // Game already resolved, but we still need to return ELO changes
+            // Calculate ELO changes based on the existing winner and user points
+            Integer averageElo = game.getRankedAverageElo();
+            HashMap<UUID, Integer> userEloChanges = calculateEloChangesForResolvedGame(userPoints, game.getWinner().getId(), averageElo);
+            
             RankedGameResultDto rankedGameResultDto = new RankedGameResultDto();
-            rankedGameResultDto.setEloChanges(new HashMap<>()); // Empty ELO changes since already calculated
+            rankedGameResultDto.setEloChanges(userEloChanges);
             rankedGameResultDto.setUserPoints(userPoints);
             return rankedGameResultDto;
         }
 
-        HashMap<UUID, Integer> userPoints = getUserPointsForGame(gameId);
+        // Game not yet resolved, determine winner and calculate ELO changes
         UUID winnerId = findWinner(userPoints);
         Integer averageElo = game.getRankedAverageElo();
 
@@ -294,6 +299,39 @@ public class GameService {
         return userEloChanges;
     }
 
+    /**
+     * Calculates ELO changes for a game that has already been resolved
+     * This method doesn't update the database, just calculates the changes
+     * 
+     * @param userPoints HashMap containing user IDs and their scores
+     * @param winnerId The ID of the winner
+     * @param averageElo The average ELO of all players in the match
+     * @return HashMap containing user IDs and their ELO changes
+     */
+    private HashMap<UUID, Integer> calculateEloChangesForResolvedGame(HashMap<UUID, Integer> userPoints, UUID winnerId, Integer averageElo) {
+        Integer winnerScore = userPoints.get(winnerId);
+        HashMap<UUID, Integer> userEloChanges = new HashMap<>();
+
+        for (HashMap.Entry<UUID, Integer> entry : userPoints.entrySet()) {
+            UUID userId = entry.getKey();
+            Integer userScore = entry.getValue();
+            User user = userService.findById(userId);
+
+            // Determine if user won
+            boolean won = userId.equals(winnerId);
+
+            // Calculate score difference from winner's score
+            Integer scoreDifference = Math.abs(userScore - winnerScore);
+
+            // Calculate ELO change using utility
+            Integer eloChange = EloCalculator.calculateEloChange(averageElo, user.getElo(), won, scoreDifference);
+
+            userEloChanges.put(userId, eloChange);
+        }
+
+        return userEloChanges;
+    }
+
     private HashMap<UUID, Integer> getUserPointsForGame(UUID gameId) {
         List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
         HashMap<UUID, Integer> userPoints = new HashMap<>();
@@ -376,13 +414,48 @@ public class GameService {
     }
 
     public int cleanupExpiredGames() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(1); // 24 hours before now
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 1 hour before now
         List<Game> oldGames = gameRepository.findByWinnerIsNullAndCreatedAtBefore(cutoff);
-
-        if (!oldGames.isEmpty()) {
-            gameRepository.deleteAll(oldGames);
+        
+        List<Game> gamesToDelete = new ArrayList<>();
+        
+        // Check each old game to see if it should be deleted
+        for (Game game : oldGames) {
+            String gameMode = game.getGameMode();
+            Integer currentRounds = roundService.getRoundCountForGame(game.getId());
+            boolean shouldDelete = false;
+            String reason = "";
+            
+            if ("Ranked".equalsIgnoreCase(gameMode)) {
+                // Ranked games should have 5 rounds
+                if (currentRounds < 5) {
+                    shouldDelete = true;
+                    reason = "Ranked game with only " + currentRounds + " rounds (required: 5)";
+                }
+            } else if ("Multiplayer".equalsIgnoreCase(gameMode)) {
+                // Multiplayer games should have the specified number of rounds
+                Integer requiredRounds = game.getMultiplayerRoundCount();
+                if (requiredRounds != null && currentRounds < requiredRounds) {
+                    shouldDelete = true;
+                    reason = "Multiplayer game with only " + currentRounds + " rounds (required: " + requiredRounds + ")";
+                }
+            } else {
+                // For singleplayer games or any other game mode, delete if they're old and unfinished
+                shouldDelete = true;
+                reason = "Old unfinished " + gameMode + " game";
+            }
+            
+            if (shouldDelete) {
+                gamesToDelete.add(game);
+                System.out.println("Cleaning up game " + game.getId() + " (" + gameMode + "): " + reason);
+            }
         }
 
-        return oldGames.size();
+        if (!gamesToDelete.isEmpty()) {
+            gameRepository.deleteAll(gamesToDelete);
+            System.out.println("Cleaned up " + gamesToDelete.size() + " expired games");
+        }
+
+        return gamesToDelete.size();
     }
 }
