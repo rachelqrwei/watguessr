@@ -122,6 +122,7 @@ export function sendPlayerReady(gameId: string, userId: string) {
 
 // Send player ready status
 export function sendPlayerCompleted(gameId: string, userId: string) {
+  hasLeftGame = false;
   if (!stompClient || !stompClient.connected) {
     console.warn('WebSocket not connected, cannot send completed');
     return;
@@ -137,6 +138,7 @@ export function sendPlayerCompleted(gameId: string, userId: string) {
 
 // Send round start request
 export function sendStartRound(gameId: string, sceneId: string) {
+  hasLeftGame = false;
   if (!stompClient || !stompClient.connected) {
     console.warn('WebSocket not connected, cannot start round');
     return;
@@ -209,6 +211,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
 
 // Handle round start events
 function handleRoundStart(roundData: any) {
+  hasLeftGame = false;
   // Start a new round in the frontend
   if (roundData.roundId) {
    //reset round state to clear previous round data (including correct answer)
