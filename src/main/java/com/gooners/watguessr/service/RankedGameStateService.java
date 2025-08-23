@@ -4,8 +4,10 @@ import com.gooners.watguessr.dto.RankedGameStateDto;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RankedGameStateService {
 	
 	private final Map<UUID, RankedGameStateDto> gameStates = new ConcurrentHashMap<>();
+	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
 
@@ -34,12 +37,16 @@ public class RankedGameStateService {
 		
 		// Initialize all players with loading status, 0 score, and usernames
 		Map<String, PlayerStateDto> players = new HashMap<>();
+		Map<String, Instant> userLastSeen = new ConcurrentHashMap<>();
+
 		for (User user : users) {
 			PlayerStateDto playerState = new PlayerStateDto();
 			playerState.setScore(0);
 			playerState.setStatus("loading");
 			playerState.setUsername(user.getUsername());
 			players.put(user.getId().toString(), playerState);
+
+			userLastSeen.put(user.getId().toString(), Instant.now());
 		}
 		gameState.setPlayers(players);
 		
@@ -47,14 +54,12 @@ public class RankedGameStateService {
 		try {
 			Round firstRound = roundService.create(gameId);
 			gameState.setCurrentSceneId(firstRound.getId().toString());
-			System.out.println("🎯 Created first round for ranked game: " + firstRound.getId());
-			System.out.println("🎯 First round scene ID: " + firstRound.getScene().getId());
-			System.out.println("🎯 Game state currentSceneId set to: " + gameState.getCurrentSceneId());
 		} catch (Exception e) {
 			System.err.println("Failed to create first round: " + e.getMessage());
 		}
 		
 		gameStates.put(gameId, gameState);
+		gameUserLastSeen.put(gameId, userLastSeen);
 		broadcastGameState(gameId);
 		
 		// Start the first round immediately so all players get the round ID
@@ -62,6 +67,8 @@ public class RankedGameStateService {
 	}
 
 	public void updatePlayerProgress(UUID gameId, String userId, Integer score, String status) {
+		updateLastSeen(gameId, userId);
+
 		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
@@ -80,6 +87,8 @@ public class RankedGameStateService {
 	}
 	
 	public void setPlayerStatus(UUID gameId, String userId, String status) {
+		updateLastSeen(gameId, userId);
+
 		RankedGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
@@ -91,6 +100,8 @@ public class RankedGameStateService {
 	}
 
 	public void setPlayerReady(UUID gameId, String userId, boolean ready) {
+		updateLastSeen(gameId, userId);
+
 		setPlayerStatus(gameId, userId, ready ? "ready" : "ended");
 		
 		// Check if all players are ready to advance
@@ -210,7 +221,6 @@ public class RankedGameStateService {
 						"roundNumber", currentRound + 1,
 						"sceneId", newRound.getScene().getId().toString()
 					);
-					System.out.println("🚀 Broadcasting round start: " + roundStartData);
 					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/round-start", roundStartData);
 				} catch (Exception e) {
 					System.err.println("Failed to create new round: " + e.getMessage());
@@ -219,9 +229,10 @@ public class RankedGameStateService {
 				broadcastGameState(gameId);
 			} else {
 				// This is the final round - no more rounds to advance to
-				System.out.println("🎯 Final round reached. Waiting for all players to complete...");
 				gameState.setGameStatus("final-round");
 				broadcastGameState(gameId);
+				removeGame(gameId);
+
 			}
 		}
 	}
@@ -247,72 +258,53 @@ public class RankedGameStateService {
 
 	private String findWinner(RankedGameStateDto gameState) {
 		if (gameState.getPlayers().isEmpty()) {
-			System.out.println("❌ Cannot find winner: no players in game state");
 			return null;
 		}
 
 		String winnerId = null;
 		Integer maxScore = Integer.MIN_VALUE;
 
-		System.out.println("🔍 Finding winner among players:");
 		for (Map.Entry<String, PlayerStateDto> entry : gameState.getPlayers().entrySet()) {
 			String playerId = entry.getKey();
 			PlayerStateDto player = entry.getValue();
 			Integer playerScore = player.getScore();
-			System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + playerScore + ", status=" + player.getStatus());
-			
+
 			if (playerScore > maxScore) {
 				maxScore = playerScore;
 				winnerId = playerId;
-				System.out.println("  🎯 New leader: " + player.getUsername() + " with score " + playerScore);
 			}
 		}
 
-		System.out.println("🏆 Final winner determined: " + (winnerId != null ? "Player " + winnerId + " with score " + maxScore : "None"));
 		return winnerId;
 	}
 
 	public void setPlayerCompleted(UUID gameId, String userId, boolean completed) {
-		System.out.println("🎮 Setting player completed: " + userId + " -> " + completed);
-		
 		if (completed) {
 			setPlayerStatus(gameId, userId, "completed");
 			
 			// Check if all players completed
 			if (checkAllPlayersCompleted(gameId)) {
-				System.out.println("🏆 All players completed! Ending game...");
-				
 				// Game completed
 				RankedGameStateDto gameState = gameStates.get(gameId);
 				if (gameState != null) {
 					// Log final player states
-					System.out.println("📊 Final player states:");
 					gameState.getPlayers().forEach((playerId, player) -> {
-						System.out.println("  Player " + player.getUsername() + " (ID: " + playerId + "): score=" + player.getScore() + ", status=" + player.getStatus());
 					});
 					
 					gameState.setGameStatus("game-complete");
 					gameState.setShouldEnd(true);
 
 					// Determine the winner for WebSocket state
-					System.out.println("🔍 Determining winner for WebSocket state: " + gameId);
 					String winnerId = findWinner(gameState);
 					if (winnerId != null) {
 						gameState.setFinalWinner(winnerId);
-						System.out.println("🏆 Winner set in WebSocket state: " + winnerId);
 					} else {
 						System.err.println("❌ Failed to determine winner for WebSocket state: " + gameId);
 					}
 
-					// IMPORTANT: Frontend will call GameService endpoint to resolve game and set database winner
-					System.out.println("🎯 Game completion event sent to frontend - frontend will call backend endpoint to resolve game");
-					System.out.println("🎯 Winner set in WebSocket state: " + gameState.getFinalWinner());
-
-					System.out.println("📢 Broadcasting final game state with winner: " + gameState.getFinalWinner());
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
-					System.out.println("📢 Broadcasting game completion event");
 					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/complete", gameState);
 				} else {
 					System.err.println("❌ Game state is null for game: " + gameId);
@@ -332,7 +324,52 @@ public class RankedGameStateService {
 		}
 	}
 
-	// Inner class for player state
+	public void updateLastSeen(UUID gameId, String userId) {
+		gameUserLastSeen
+				.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
+				.put(userId, Instant.now());
+	}
+
+	@Scheduled(fixedRate = 60000) // every 1 min
+	public void cleanupInactiveUsers() {
+		if (gameStates.isEmpty()) {
+			return;
+		}
+
+		Instant cutoff = Instant.now().minusSeconds(30); // 3 minutes
+
+		for (var gameEntry : gameUserLastSeen.entrySet()) {
+			UUID gameId = gameEntry.getKey();
+			Map<String, Instant> userMap = gameEntry.getValue();
+
+			for (var userEntry : new HashMap<>(userMap).entrySet()) {
+				String userId = userEntry.getKey();
+				Instant lastSeen = userEntry.getValue();
+
+				if (lastSeen.isBefore(cutoff)) {
+					forceLeaveUser(gameId, userId);
+					userMap.remove(userId);
+				}
+			}
+		}
+	}
+
+	private void forceLeaveUser(UUID gameId, String userId) {
+		// Your existing logic to remove user from game
+		gameUserLastSeen.remove(gameId, userId);
+
+		// Remove user from game state players
+		RankedGameStateDto gameState = gameStates.get(gameId);
+		if (gameState != null) {
+			Map<String, PlayerStateDto> players = gameState.getPlayers();
+			if (players != null) {
+				players.remove(userId);
+			}
+		}
+
+		broadcastGameState(gameId); // notify all clients
+	}
+    // Inner class for player state
 	public static class PlayerStateDto {
 		private Integer score;
 		private String status; // "idle", "loading", "playing", "ended", "ready", "completed"

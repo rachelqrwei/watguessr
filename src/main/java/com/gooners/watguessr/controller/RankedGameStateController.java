@@ -1,11 +1,13 @@
 package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.RankedGameStateDto;
+import com.gooners.watguessr.entity.HeartbeatMessage;
 import com.gooners.watguessr.service.RankedGameStateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,6 +54,11 @@ public class RankedGameStateController {
 		UUID gameId = UUID.fromString(request.getGameId());
 		UUID sceneId = UUID.fromString(request.getSceneId());
 		rankedGameStateService.startRound(gameId, sceneId);
+	}
+
+	@MessageMapping("/ranked-game/heartbeat")
+	public void handleHeartbeatForRankedGame(HeartbeatMessage heartbeat, Principal principal) {
+		rankedGameStateService.updateLastSeen(UUID.fromString(heartbeat.getGameId()), principal.getName());
 	}
 
 	/**

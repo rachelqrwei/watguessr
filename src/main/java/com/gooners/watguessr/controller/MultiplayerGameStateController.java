@@ -2,6 +2,7 @@ package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.dto.MultiplayerGameStateDto;
 import com.gooners.watguessr.entity.Guess;
+import com.gooners.watguessr.entity.HeartbeatMessage;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.service.MultiplayerGameStateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -59,25 +60,14 @@ public class MultiplayerGameStateController {
 		multiplayerGameStateService.startRound(gameId, sceneId);
 	}
 
-	@MessageMapping("/lobby/heartbeat")
-	public void handleHeartbeat(HeartbeatMessage heartbeat, Principal principal) {
+	@MessageMapping("/multiplayer-game/heartbeat")
+	public void handleHeartbeatForMultiplayerGame(HeartbeatMessage heartbeat, Principal principal) {
 		multiplayerGameStateService.updateLastSeen(UUID.fromString(heartbeat.getGameId()), principal.getName());
 	}
 
 	/**
 	 * Request DTOs
 	 */
-
-	public class HeartbeatMessage {
-		private String gameId;
-
-		public String getGameId() {
-			return gameId;
-		}
-		public void setGameId(String gameId) {
-			this.gameId = gameId;
-		}
-	}
 
 	public static class UpdatePlayerProgressRequest {
 		private String gameId;

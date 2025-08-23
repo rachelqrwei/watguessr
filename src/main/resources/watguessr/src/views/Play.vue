@@ -483,14 +483,13 @@ export default {
 
         // Handle ranked game logic
         if (this.rankedGame_getShouldEnd) {
-          console.log('🎯 Ranked game already ended, watcher should handle navigation');
+          await this.rankedGame_endGame();
           return;
         }
 
         // Check if this is the last round
         if (this.rankedGame_getCurrentRound >= this.rankedGame_getMaxRounds) {
           // End the ranked game - send completed status
-          console.log('🎯 Last round reached, setting player completed');
           this.rankedGame_setPlayerCompleted();
           return;
         }
