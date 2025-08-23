@@ -454,6 +454,7 @@ export default {
       else if (this.getGameMode === 'multiplayer') {
         // Handle multiplayer logic
         if (this.multiplayerGame_getShouldEnd) {
+          await this.multiplayerGame_endGame();
           this.$router.push('/multiplayer-game-end');
           return;
         }

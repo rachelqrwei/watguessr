@@ -1,12 +1,12 @@
 <template>
   <div class="game-end-background" aria-hidden="true"></div>
-  
+
   <!-- Home Button -->
   <div class="page-logo">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
     <RouterLink to="/" class="logo-text">WATGUESSR.IO</RouterLink>
   </div>
-  
+
   <div class="game-end-container">
     <!-- Loading state -->
     <div v-if="!hasCompleteData" class="loading-container">
@@ -160,11 +160,9 @@ export default {
     // Get opponent player data (first player that's not the current user)
     opponentPlayerId() {
       if (!this.currentUser || !this.players) {
-        console.log('🎯 opponentPlayerId: Missing currentUser or players', { currentUser: this.currentUser, players: this.players });
         return null;
       }
       const opponentId = Object.keys(this.players).find(id => id !== this.currentUser.id);
-      console.log('🎯 opponentPlayerId computed:', { currentUserId: this.currentUser.id, allPlayerIds: Object.keys(this.players), opponentId });
       return opponentId;
     },
 
@@ -185,7 +183,6 @@ export default {
       if (this.currentUser?.username) {
         const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
         if (preGameElos && preGameElos[this.currentUser.username]) {
-          console.log('🎯 Using pre-game ELO from store for current user:', preGameElos[this.currentUser.username]);
           return preGameElos[this.currentUser.username];
         }
       }
@@ -213,20 +210,12 @@ export default {
       // Get pre-game ELO from store if available
       if (this.opponentPlayer?.username) {
         const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-        console.log('🎯 Debugging opponent ELO:', {
-          opponentUsername: this.opponentPlayer.username,
-          preGameElos: preGameElos,
-          hasOpponentElo: preGameElos && preGameElos[this.opponentPlayer.username]
-        });
-
         if (preGameElos && preGameElos[this.opponentPlayer.username]) {
-          console.log('🎯 Using pre-game ELO from store for opponent:', preGameElos[this.opponentPlayer.username]);
           return preGameElos[this.opponentPlayer.username];
         }
       }
 
       // Fallback value
-      console.log('🎯 No pre-game ELO found for opponent, using fallback: 1200');
       return 1200;
     },
 
@@ -284,112 +273,36 @@ export default {
     ...mapActions('singleplayerGame', {
       doRestartGame: "singleplayerGame_restartGame"
     }),
+    ...mapActions("multiplayerGame", [
+      "multiplayerGame_endGame"]),
 
     goHome() {
+      this.multiplayerGame_endGame();
       this.$router.push('/');
     },
   },
 
   mounted() {
-    // Debug: Log initial state
-    console.log('🎯 RankedGameEnd mounted');
-    console.log('🎯 Current user:', this.currentUser);
-    console.log('🎯 Players from store:', this.players);
-    console.log('🎯 Current round:', this.rankedGame_getCurrentRound);
-    console.log('🎯 Max rounds:', this.rankedGame_getMaxRounds);
-    console.log('🎯 Final winner:', this.rankedGame_getFinalWinner);
-    console.log('🎯 Winner computed:', this.winner);
-    console.log('🎯 Player 1 score:', this.player1Score);
-    console.log('🎯 Player 2 score:', this.player2Score);
-    console.log('🎯 Ranked game result:', this.rankedGame_getResult);
-    console.log('🎯 ELO changes:', this.rankedGame_getResult?.eloChanges);
-    console.log('🎯 Player 1 ELO change:', this.player1EloChange);
-    console.log('🎯 Player 2 ELO change:', this.player2EloChange);
-
-    // Debug: Log pre-game ELOs
     const preGameElos = this.$store.getters['rankedGame/rankedGame_getPreGameElos'];
-    console.log('🎯 Pre-game ELOs available on mount:', preGameElos);
-    if (preGameElos && Object.keys(preGameElos).length > 0) {
-      console.log('🎯 Pre-game ELOs details:', preGameElos);
-      if (this.currentUser?.id) {
-        console.log('🎯 Current user pre-game ELO on mount:', preGameElos[this.currentUser.id]);
-      }
-      if (this.opponentPlayerId) {
-        console.log('🎯 Opponent pre-game ELO on mount:', preGameElos[this.opponentPlayerId]);
-      }
-    }
 
     // Try to load final game data if not available
     if (!this.hasCompleteData) {
-      console.log('🎯 Incomplete data, trying to load final game data...');
       this.$store.dispatch('rankedGame/rankedGame_loadFinalGameData');
     }
 
     // If we have game data but no ELO changes, trigger the game completion
     if (this.hasCompleteData && (!this.rankedGame_getResult || !this.rankedGame_getResult.eloChanges || Object.keys(this.rankedGame_getResult.eloChanges).length === 0)) {
-      console.log('🎯 Game data available but no ELO changes, triggering game completion...');
       this.$store.dispatch('rankedGame/rankedGame_endGame');
     }
 
     // Set a timeout to trigger game completion if ELO changes aren't received within 5 seconds
     this.completionTimeout = setTimeout(() => {
       if (this.hasCompleteData && (!this.rankedGame_getResult || !this.rankedGame_getResult.eloChanges || Object.keys(this.rankedGame_getResult.eloChanges).length === 0)) {
-        console.log('🎯 Timeout reached, forcing game completion...');
         this.$store.dispatch('rankedGame/rankedGame_endGame');
       }
     }, 5000);
   },
-
-  watch: {
-    // Watch for changes in store data
-    players: {
-      handler(newPlayers) {
-        console.log('🎯 Players data changed in RankedGameEnd:', newPlayers);
-      },
-      deep: true
-    },
-
-    'rankedGame_getShouldEnd': {
-      handler(newVal) {
-        console.log('🎯 shouldEnd changed in RankedGameEnd:', newVal);
-      }
-    },
-
-    // Watch for ELO changes becoming available
-    'rankedGame_getResult': {
-      handler(newResult) {
-        console.log('🎯 Ranked game result changed in RankedGameEnd:', newResult);
-        if (newResult && newResult.eloChanges && Object.keys(newResult.eloChanges).length > 0) {
-          console.log('🎯 ELO changes now available:', newResult.eloChanges);
-        }
-      },
-      deep: true
-    },
-
-    // Watch for pre-game ELOs becoming available
-    'rankedGame_getPreGameElos': {
-      handler(newPreGameElos) {
-        console.log('🎯 Pre-game ELOs changed in RankedGameEnd:', newPreGameElos);
-        if (newPreGameElos && Object.keys(newPreGameElos).length > 0) {
-          console.log('🎯 Pre-game ELOs now available:', newPreGameElos);
-          // Log specific ELOs for current user and opponent
-          if (this.currentUser?.id) {
-            console.log('🎯 Current user pre-game ELO:', newPreGameElos[this.currentUser.id]);
-          }
-          if (this.opponentPlayerId) {
-            console.log('🎯 Opponent pre-game ELO:', newPreGameElos[this.opponentPlayerId]);
-          }
-        }
-      },
-      deep: true
-    }
-  },
-
   beforeUnmount() {
-    // Clean up when leaving the game end screen
-    console.log('🎯 RankedGameEnd unmounting, cleaning up');
-    // Don't disconnect WebSocket here - let it stay connected to receive completion events
-    // this.$store.dispatch('rankedGame/rankedGame_disconnect');
     this.$store.dispatch('rankedGame/rankedGame_clearFinalGameData');
     if (this.completionTimeout) {
       clearTimeout(this.completionTimeout);
@@ -725,41 +638,41 @@ export default {
     padding: 28px 20px 24px;
     gap: 20px;
   }
-  
+
   .game-label {
     font-size: 32px;
   }
-  
+
   .winner-announcement {
     font-size: 22px;
   }
-  
+
   .results-section {
     gap: 28px;
   }
-  
+
   .player-result {
     min-width: 180px;
   }
-  
+
   .player-score {
     font-size: 28px;
   }
-  
+
   .vs-divider {
     width: 70px;
     height: 70px;
   }
-  
+
   .vs-text {
     font-size: 18px;
   }
-  
+
   .elo-summary {
     max-width: 360px;
     padding: 18px;
   }
-  
+
   .btn {
     padding: 10px 20px;
     font-size: 13px;
@@ -772,41 +685,41 @@ export default {
     padding: 24px 18px 20px;
     gap: 18px;
   }
-  
+
   .game-label {
     font-size: 28px;
   }
-  
+
   .winner-announcement {
     font-size: 20px;
   }
-  
+
   .results-section {
     gap: 24px;
   }
-  
+
   .player-result {
     min-width: 160px;
   }
-  
+
   .player-score {
     font-size: 24px;
   }
-  
+
   .vs-divider {
     width: 65px;
     height: 65px;
   }
-  
+
   .vs-text {
     font-size: 17px;
   }
-  
+
   .elo-summary {
     max-width: 320px;
     padding: 16px;
   }
-  
+
   .btn {
     padding: 9px 18px;
     font-size: 12px;
@@ -819,41 +732,41 @@ export default {
     padding: 20px 16px 18px;
     gap: 16px;
   }
-  
+
   .game-label {
     font-size: 24px;
   }
-  
+
   .winner-announcement {
     font-size: 18px;
   }
-  
+
   .results-section {
     gap: 20px;
   }
-  
+
   .player-result {
     min-width: 140px;
   }
-  
+
   .player-score {
     font-size: 20px;
   }
-  
+
   .vs-divider {
     width: 60px;
     height: 60px;
   }
-  
+
   .vs-text {
     font-size: 16px;
   }
-  
+
   .elo-summary {
     max-width: 300px;
     padding: 14px;
   }
-  
+
   .btn {
     padding: 8px 16px;
     font-size: 11px;
@@ -866,41 +779,41 @@ export default {
     padding: 18px 14px 16px;
     gap: 14px;
   }
-  
+
   .game-label {
     font-size: 20px;
   }
-  
+
   .winner-announcement {
     font-size: 16px;
   }
-  
+
   .results-section {
     gap: 18px;
   }
-  
+
   .player-result {
     min-width: 120px;
   }
-  
+
   .player-score {
     font-size: 18px;
   }
-  
+
   .vs-divider {
     width: 55px;
     height: 55px;
   }
-  
+
   .vs-text {
     font-size: 15px;
   }
-  
+
   .elo-summary {
     max-width: 280px;
     padding: 12px;
   }
-  
+
   .btn {
     padding: 7px 14px;
     font-size: 10px;

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,9 +59,26 @@ public class MultiplayerGameStateController {
 		multiplayerGameStateService.startRound(gameId, sceneId);
 	}
 
+	@MessageMapping("/lobby/heartbeat")
+	public void handleHeartbeat(HeartbeatMessage heartbeat, Principal principal) {
+		multiplayerGameStateService.updateLastSeen(UUID.fromString(heartbeat.getGameId()), principal.getName());
+	}
+
 	/**
 	 * Request DTOs
 	 */
+
+	public class HeartbeatMessage {
+		private String gameId;
+
+		public String getGameId() {
+			return gameId;
+		}
+		public void setGameId(String gameId) {
+			this.gameId = gameId;
+		}
+	}
+
 	public static class UpdatePlayerProgressRequest {
 		private String gameId;
 		private String userId;

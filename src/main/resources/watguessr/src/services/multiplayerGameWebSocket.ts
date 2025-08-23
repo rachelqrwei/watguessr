@@ -143,6 +143,7 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   }
 
   // Get current players from store to detect disconnections
+  const currentUser = store.getters['user/getCurrentUser'] || {};
   const currentPlayers = store.getters['multiplayerGame/multiplayerGame_getPlayers'] || {};
 
   // Convert backend DTO format to frontend store format
@@ -162,6 +163,15 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
       store.dispatch('multiplayerGame/multiplayerGame_handlePlayerDisconnection', playerId);
     }
   });
+
+
+  // ✅ If only one player left and it's me, redirect
+  const playerIds = Object.keys(players);
+  if (playerIds.length === 1 && playerIds[0] === currentUser.id) {
+    store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
+    console.warn("⚠️ I'm the only one left, leaving game...");
+    window.location.href = "/";
+  }
 
   // Update Vuex store
   store.commit('multiplayerGame/MG_SET_GAME_ID', gameState.gameId);

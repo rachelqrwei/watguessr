@@ -4,8 +4,10 @@ import com.gooners.watguessr.dto.MultiplayerGameStateDto;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MultiplayerGameStateService {
 	
 	private final Map<UUID, MultiplayerGameStateDto> gameStates = new ConcurrentHashMap<>();
+	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
 
@@ -31,12 +34,16 @@ public class MultiplayerGameStateService {
 		
 		// Initialize all players with loading status, 0 score, and usernames
 		Map<String, PlayerStateDto> players = new HashMap<>();
+		Map<String, Instant> userLastSeen = new ConcurrentHashMap<>();
+
 		for (User user : users) {
 			PlayerStateDto playerState = new PlayerStateDto();
 			playerState.setScore(0);
 			playerState.setStatus("loading");
 			playerState.setUsername(user.getUsername());
 			players.put(user.getId().toString(), playerState);
+
+			userLastSeen.put(user.getId().toString(), Instant.now());
 		}
 		gameState.setPlayers(players);
 		
@@ -44,14 +51,13 @@ public class MultiplayerGameStateService {
 		try {
 			Round firstRound = roundService.create(gameId);
 			gameState.setCurrentSceneId(firstRound.getId().toString());
-			System.out.println("🎯 Created first round for multiplayer game: " + firstRound.getId());
-			System.out.println("🎯 First round scene ID: " + firstRound.getScene().getId());
-			System.out.println("🎯 Game state currentSceneId set to: " + gameState.getCurrentSceneId());
 		} catch (Exception e) {
 			System.err.println("Failed to create first round: " + e.getMessage());
 		}
 		
 		gameStates.put(gameId, gameState);
+		gameUserLastSeen.put(gameId, userLastSeen);
+
 		broadcastGameState(gameId);
 		
 		// Start the first round immediately so all players get the round ID
@@ -59,6 +65,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void updatePlayerProgress(UUID gameId, String userId, Integer score, String status) {
+		updateLastSeen(gameId, userId);
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
@@ -77,6 +84,7 @@ public class MultiplayerGameStateService {
 	}
 	
 	public void setPlayerStatus(UUID gameId, String userId, String status) {
+		updateLastSeen(gameId, userId);
 		MultiplayerGameStateDto gameState = gameStates.get(gameId);
 		if (gameState != null && gameState.getPlayers().containsKey(userId)) {
 			PlayerStateDto player = gameState.getPlayers().get(userId);
@@ -88,6 +96,7 @@ public class MultiplayerGameStateService {
 	}
 
 	public void setPlayerReady(UUID gameId, String userId, boolean ready) {
+		updateLastSeen(gameId, userId);
 		setPlayerStatus(gameId, userId, ready ? "ready" : "ended");
 		
 		// Check if all players are ready to advance
@@ -207,7 +216,6 @@ public class MultiplayerGameStateService {
 						"roundNumber", currentRound + 1,
 						"sceneId", newRound.getScene().getId().toString()
 					);
-					System.out.println("🚀 Broadcasting round start: " + roundStartData);
 					messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/round-start", roundStartData);
 				} catch (Exception e) {
 					System.err.println("Failed to create new round: " + e.getMessage());
@@ -216,9 +224,9 @@ public class MultiplayerGameStateService {
 				broadcastGameState(gameId);
 			} else {
 				// This is the final round - no more rounds to advance to
-				System.out.println("🎯 Final round reached. Waiting for all players to complete...");
 				gameState.setGameStatus("final-round");
 				broadcastGameState(gameId);
+				removeGame(gameId);
 			}
 		}
 	}
@@ -261,6 +269,8 @@ public class MultiplayerGameStateService {
 	}
 
 	public void setPlayerCompleted(UUID gameId, String userId, boolean completed) {
+		updateLastSeen(gameId, userId);
+
 		System.out.println("🎮 Setting player completed: " + userId + " -> " + completed);
 		
 		if (completed) {
@@ -308,6 +318,52 @@ public class MultiplayerGameStateService {
 		} else {
 			setPlayerStatus(gameId, userId, "ended");
 		}
+	}
+
+	public void updateLastSeen(UUID gameId, String userId) {
+		gameUserLastSeen
+				.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
+				.put(userId, Instant.now());
+	}
+
+	@Scheduled(fixedRate = 60000) // every 1 min
+	public void cleanupInactiveUsers() {
+		if (gameStates.isEmpty()) {
+			return;
+		}
+
+		Instant cutoff = Instant.now().minusSeconds(30); // 3 minutes
+
+		for (var gameEntry : gameUserLastSeen.entrySet()) {
+			UUID gameId = gameEntry.getKey();
+			Map<String, Instant> userMap = gameEntry.getValue();
+
+			for (var userEntry : new HashMap<>(userMap).entrySet()) {
+				String userId = userEntry.getKey();
+				Instant lastSeen = userEntry.getValue();
+
+				if (lastSeen.isBefore(cutoff)) {
+					forceLeaveUser(gameId, userId);
+					userMap.remove(userId);
+				}
+			}
+		}
+	}
+
+	private void forceLeaveUser(UUID gameId, String userId) {
+		// Your existing logic to remove user from game
+		gameUserLastSeen.remove(gameId, userId);
+
+		// Remove user from game state players
+		MultiplayerGameStateDto gameState = gameStates.get(gameId);
+		if (gameState != null) {
+			Map<String, PlayerStateDto> players = gameState.getPlayers();
+			if (players != null) {
+				players.remove(userId);
+			}
+		}
+
+		broadcastGameState(gameId); // notify all clients
 	}
 
 	// Inner class for player state
