@@ -39,23 +39,45 @@ FROM nginx:alpine
 # Remove default nginx config and create a simple static file server
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Create simple nginx configuration for static files only
+# Create nginx configuration for SPA routing
 COPY <<EOF /etc/nginx/conf.d/default.conf
 server {
     listen 80;
-    server_name localhost;
+    server_name _;
     root /usr/share/nginx/html;
     index index.html;
     
-    # Handle Vue Router - serve index.html for all frontend routes
-    location / {
-        try_files \$uri \$uri/ /index.html;
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header Access-Control-Allow-Origin "*";
     }
     
-    # Add CORS headers for any remaining static assets
-    add_header 'Access-Control-Allow-Origin' '*' always;
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
-    add_header 'Access-Control-Allow-Headers' '*' always;
+    # Handle all routes - serve index.html for any request that doesn't match a file
+    location / {
+        try_files \$uri \$uri/ /index.html;
+        
+        # Add headers for HTML files
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+    }
+    
+    # Explicitly handle 404 errors by serving index.html
+    error_page 404 /index.html;
+    
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
 }
 EOF
 
