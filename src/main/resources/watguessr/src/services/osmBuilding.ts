@@ -77,7 +77,7 @@ function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number):
 /**
  * Returns nearby building/feature name from cached IndexedDB
  */
-export async function getNearbyName(lat: number, lon: number, radius: number = 50): Promise<string | null> {
+export async function getNearbyName(lat: number, lon: number, radius: number = 40): Promise<string | null> {
   const db = await dbPromise;
   const elements: OSMElement[] = await db.getAll('buildings');
 
