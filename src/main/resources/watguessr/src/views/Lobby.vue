@@ -97,10 +97,9 @@
           </li>
         </transition-group>
 
-        <!-- Show message if no players -->
-        <div v-if="players.length === 0" class="no-players-msg" style="background: rgba(255,0,0,0.2); padding: 15px; margin: 15px 0; border-radius: 8px; color: white; text-align: center;">
-          <p><strong>⚠️ No players loaded yet</strong></p>
-          <p>Players array is empty. This might indicate a connection issue.</p>
+        <!-- Show loading message if no players -->
+        <div v-if="players.length === 0" class="loading-players-msg">
+          <p><strong>LOADING USERS</strong><span class="dots-animation loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
         </div>
 
         <p v-if="players.length < 2" class="waiting-msg">
@@ -1002,6 +1001,48 @@ image.png.lobby-details .stat-group:first-of-type { margin-top: 0; }
   border-color: #6BA8FF !important;
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(127, 185, 255, 0.4);
+}
+
+/* Loading message styling */
+.loading-players-msg {
+  background: rgba(128, 128, 128, 0.2);
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+}
+
+.loading-players-msg p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.loading-dots span {
+  animation: dots 1.4s infinite ease-in-out both;
+  font-size: 1.2rem;
+  color: var(--white);
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes dots {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
