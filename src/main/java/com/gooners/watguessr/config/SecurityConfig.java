@@ -61,7 +61,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/*/leaderboard").permitAll()
                         .requestMatchers("/api/user/*/match-history").permitAll()
                         .requestMatchers("/api/round/by-game-with-guesses").permitAll()
-                        .requestMatchers("/ws-game/**").authenticated()
+                        .requestMatchers("/ws-game/**").permitAll() // Allow WebSocket handshake
+                        .requestMatchers("/ws-matchmaking/**").permitAll() // Allow WebSocket handshake
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(bearerTokenResolver())
@@ -101,14 +102,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Only allow your frontend URL and localhost for development
         configuration.setAllowedOrigins(List.of(
-            "https://watguessr-frontend-x2gln.ondigitalocean.app/", // Replace with your actual frontend URL
+            "https://watguessr-frontend-x2gln.ondigitalocean.app", // Remove trailing slash
             "http://localhost:5173", // For local development
             "http://localhost:3000"  // Alternative local development port
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        configuration.setAllowedHeaders(List.of("*")); // Allow all headers for WebSocket compatibility
         configuration.setAllowCredentials(true); // crucial for cookies
         configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
+        configuration.setMaxAge(3600L); // Cache preflight requests for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
