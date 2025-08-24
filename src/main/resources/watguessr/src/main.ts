@@ -29,6 +29,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faUserGroup,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Polyfills for Node.js globals (needed for WebSocket libraries)
@@ -66,6 +67,7 @@ library.add(
   faChevronLeft,
   faChevronRight,
   faUserGroup,
+  faTimes,
 )
 
 // Global fetch wrapper to detect expired/invalid sessions

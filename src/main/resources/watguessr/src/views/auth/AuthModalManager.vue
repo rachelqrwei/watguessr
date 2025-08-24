@@ -16,24 +16,8 @@ import SignUpModal from './SignUpModal.vue'
 
 export default {
   components: { LoginModal, SignUpModal },
-  data() {
-    return {
-      showLogin: false,
-      showSignUp: false,
-    };
-  },
   props: ["showLogin", "showSignUp"],
-  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp'],
-  methods: {
-    openLogin() {
-      this.showSignUp = false;
-      this.showLogin = true;
-    },
-    openSignUp() {
-      this.showLogin = false;
-      this.showSignUp = true;
-    }
-  }
+  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp']
 };
 </script>
 

@@ -51,7 +51,7 @@ aws:
   s3:
     bucket:
       name: ${AWS_S3_BUCKET_NAME:watguessr}
-  profile: ${AWS_PROFILE:watguessr-dev}
+  profile: ${AWS_PROFILE:watguessr-s3}
 
 oauth:
   google:
