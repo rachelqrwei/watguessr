@@ -27,6 +27,16 @@
         </div>
       </div>
     </div>
+
+    <div
+      v-if="showSearchResults && searchResults.length === 0 && hasSearched && searchQuery.trim()"
+      class="search-dropdown"
+    >
+      <div class="no-results-item">
+        <font-awesome-icon icon="search" class="no-results-icon" />
+        <div class="no-results-text">No users found</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -41,50 +51,63 @@ export default {
       searchQuery: '',
       searchResults: [],
       showSearchResults: false,
-      searchTimeout: null
+      searchTimeout: null,
+      hasSearched: false,
     }
   },
   methods: {
     ...mapMutations('profile', ['SET_PROFILE_USER_ID']),
     colorFor(username) {
-      return colorPairFromName(username, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 })
+      return colorPairFromName(username, {
+        bgSaturation: 90,
+        bgLightness: 80,
+        fgSaturation: 100,
+        fgLightness: 30,
+        fgHueShift: -12,
+      })
     },
 
     async searchUsers(query) {
       if (!query.trim()) {
-        return [];
+        return []
       }
 
       try {
-        const params = new URLSearchParams();
-        params.set('searchTerm', query.trim());
-        params.set('limit', '5');
+        const params = new URLSearchParams()
+        params.set('searchTerm', query.trim())
+        params.set('limit', '5')
 
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?${params.toString()}`, {
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error(`Search failed: ${response.status}`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user/leaderboard?${params.toString()}`,
+          {
+            credentials: 'include',
+          },
+        )
+        if (!response.ok) throw new Error(`Search failed: ${response.status}`)
 
-        const data = await response.json();
-        return data.results || [];
+        const data = await response.json()
+        return data.results || []
       } catch (err) {
-        console.error('Search error:', err);
-        return [];
+        console.error('Search error:', err)
+        return []
       }
     },
 
     async handleSearchUsers(query) {
       if (!query.trim()) {
         this.searchResults = []
+        this.hasSearched = false
         return
       }
 
       try {
         const results = await this.searchUsers(query)
         this.searchResults = results
+        this.hasSearched = true
       } catch (err) {
         console.error('Search error:', err)
         this.searchResults = []
+        this.hasSearched = true
       }
     },
 
@@ -108,14 +131,14 @@ export default {
       this.searchQuery = user.username
       this.showSearchResults = false
       this.SET_PROFILE_USER_ID(user.id)
-    }
+    },
   },
 
   beforeUnmount() {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout)
     }
-  }
+  },
 }
 </script>
 
@@ -216,7 +239,7 @@ export default {
 }
 
 .result-elo {
-  font-family: "Red Hat Text", sans-serif;
+  font-family: 'Red Hat Text', sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: 0.7rem;
@@ -234,30 +257,30 @@ export default {
     max-width: 400px;
     margin: 0 auto 24px auto;
   }
-  
+
   .search-bar {
     padding: 10px 14px;
   }
-  
+
   .search-input {
     font-size: 0.85rem;
   }
-  
+
   .search-icon {
     font-size: 0.9rem;
   }
-  
+
   .result-avatar {
     width: 28px;
     height: 28px;
     font-size: 0.9rem;
     margin-right: 10px;
   }
-  
+
   .result-username {
     font-size: 0.85rem;
   }
-  
+
   .result-elo {
     font-size: 0.65rem;
   }
@@ -268,34 +291,34 @@ export default {
     max-width: 350px;
     margin: 0 auto 20px auto;
   }
-  
+
   .search-bar {
     padding: 8px 12px;
   }
-  
+
   .search-input {
     font-size: 0.8rem;
   }
-  
+
   .search-icon {
     font-size: 0.85rem;
   }
-  
+
   .search-result-item {
     padding: 8px 10px;
   }
-  
+
   .result-avatar {
     width: 24px;
     height: 24px;
     font-size: 0.8rem;
     margin-right: 8px;
   }
-  
+
   .result-username {
     font-size: 0.8rem;
   }
-  
+
   .result-elo {
     font-size: 0.6rem;
   }
@@ -306,38 +329,38 @@ export default {
     max-width: 300px;
     margin: 0 auto 16px auto;
   }
-  
+
   .search-bar {
     padding: 6px 10px;
   }
-  
+
   .search-input {
     font-size: 0.75rem;
   }
-  
+
   .search-icon {
     font-size: 0.8rem;
   }
-  
+
   .search-dropdown {
     max-height: 150px;
   }
-  
+
   .search-result-item {
     padding: 6px 8px;
   }
-  
+
   .result-avatar {
     width: 20px;
     height: 20px;
     font-size: 0.7rem;
     margin-right: 6px;
   }
-  
+
   .result-username {
     font-size: 0.75rem;
   }
-  
+
   .result-elo {
     font-size: 0.55rem;
   }
@@ -348,32 +371,98 @@ export default {
     max-width: 280px;
     margin: 0 auto 12px auto;
   }
-  
+
   .search-bar {
     padding: 5px 8px;
   }
-  
+
   .search-input {
     font-size: 0.7rem;
   }
-  
+
   .search-icon {
     font-size: 0.75rem;
   }
-  
+
   .result-avatar {
     width: 18px;
     height: 18px;
     font-size: 0.65rem;
     margin-right: 5px;
   }
-  
+
   .result-username {
     font-size: 0.7rem;
   }
-  
+
   .result-elo {
     font-size: 0.5rem;
+  }
+}
+
+/* No Results Indicator */
+.no-results-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  color: var(--light-grey);
+  opacity: 0.8;
+}
+
+.no-results-icon {
+  font-size: 1rem;
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
+.no-results-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .no-results-item {
+    padding: 14px 10px;
+  }
+
+  .no-results-icon {
+    font-size: 0.9rem;
+    margin-right: 7px;
+  }
+
+  .no-results-text {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .no-results-item {
+    padding: 12px 8px;
+  }
+
+  .no-results-icon {
+    font-size: 0.8rem;
+    margin-right: 6px;
+  }
+
+  .no-results-text {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .no-results-item {
+    padding: 10px 6px;
+  }
+
+  .no-results-icon {
+    font-size: 0.75rem;
+    margin-right: 5px;
+  }
+
+  .no-results-text {
+    font-size: 0.75rem;
   }
 }
 </style>
