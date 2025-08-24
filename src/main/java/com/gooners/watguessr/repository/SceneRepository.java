@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface SceneRepository extends JpaRepository<Scene, UUID> {
-
-    @Query(value = "SELECT * FROM scene ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    
+    @Query(value = "SELECT * FROM watguessr.scene ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
     Scene getRandom();
 }
