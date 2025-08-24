@@ -17,13 +17,16 @@ public class S3Config {
     @Value("${aws.profile:}")
     private String profile;
 
+    @Value("${aws.access-key-id:}")
+    private String accessKeyId;
+
+    @Value("${aws.secret-access-key:}")
+    private String secretAccessKey;
+
     @Bean
     public S3Client s3Client() {
-        // Check if we're in production (using environment variables)
-        String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
-        String secretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
-        
-        if (accessKey != null && secretKey != null) {
+        if (accessKeyId != null && !accessKeyId.trim().isEmpty() && 
+            secretAccessKey != null && !secretAccessKey.trim().isEmpty()) {
             // Use environment variables (production setup)
             return S3Client.builder()
                     .region(Region.of(region))

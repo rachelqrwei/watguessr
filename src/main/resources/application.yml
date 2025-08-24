@@ -52,6 +52,8 @@ aws:
     bucket:
       name: ${AWS_S3_BUCKET_NAME:watguessr}
   profile: ${AWS_PROFILE:watguessr-s3}
+  access-key-id: ${AWS_ACCESS_KEY_ID:}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
 
 oauth:
   google:
@@ -60,25 +62,3 @@ oauth:
     redirect-uri: ${GOOGLE_REDIRECT_URI}
 frontend:
   base-url: ${FRONTEND_BASE_URL:http://localhost:5173} # for final redirect
-
-
-# # 1. Install AWS CLI (if not already installed) run these commands in the terminal
-# # macOS
-# brew install awscli
-# # Windows: Download from https://aws.amazon.com/cli/
-# # Linux: Use curl command from AWS docs
-
-# # 2. Configure AWS CLI with your credentials
-# aws configure --profile watguessr-dev
-
-# # They'll be prompted for:
-# AWS_ACCESS_KEY_ID=AKIAQC5YHNSIYIKXVF5X
-# AWS_SECRET_ACCESS_KEY=mk6AJKoNY/ueTnlS07cjkBLeIwuCc8YXIA3aEhO7
-# AWS_REGION=us-east-2
-# AWS_S3_BUCKET_NAME=watguessr
-
-# # 3. Set environment variable
-# export AWS_PROFILE=watguessr-dev
-
-# # 4. Test AWS access
-# aws s3 ls s3://watguessr/watguessr-s3/ --profile watguessr-dev
