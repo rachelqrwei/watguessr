@@ -84,7 +84,7 @@ export default {
     },
     redirectGoogle() {
       // Start the Google OAuth flow
-              window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/google-login`;
+              window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
     }
   },
 
