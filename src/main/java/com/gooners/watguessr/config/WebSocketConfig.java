@@ -21,6 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		registry.addEndpoint("/ws-game") // WebSocket endpoint
 				.setAllowedOrigins(
 					"https://watguessr-frontend-x2gln.ondigitalocean.app", // Production frontend
+					"https://watguessr.io", // Custom domain frontend
 					"http://localhost:5173", // Local development
 					"http://localhost:3000"  // Alternative local development port
 				)
@@ -28,6 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		registry.addEndpoint("/ws-matchmaking") // WebSocket endpoint
 				.setAllowedOrigins(
 					"https://watguessr-frontend-x2gln.ondigitalocean.app", // Production frontend
+					"https://watguessr.io", // Custom domain frontend
 					"http://localhost:5173", // Local development
 					"http://localhost:3000"  // Alternative local development port
 				)
