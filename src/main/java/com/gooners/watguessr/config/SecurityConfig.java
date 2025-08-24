@@ -113,6 +113,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
             "https://watguessr-frontend-x2gln.ondigitalocean.app", // Digital Ocean frontend
             "https://watguessr.io", // Custom domain frontend
+            "https://api.watguessr.io", // Custom domain backend
             "http://localhost:5173", // For local development
             "http://localhost:3000"  // Alternative local development port
         ));
