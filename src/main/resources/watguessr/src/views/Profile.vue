@@ -179,13 +179,14 @@ export default {
 /* Responsive Design */
 @media (max-width: 768px) {
   .profile-view {
-    padding: 30px 16px 30px;
+    padding: 30px 24px 30px;
     margin-top: 80px;
   }
   
   .profile-hint {
     margin: 12px 0 20px 0;
     font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
   }
   
   .loading-spinner {
@@ -203,13 +204,14 @@ export default {
 
 @media (max-width: 600px) {
   .profile-view {
-    padding: 24px 12px 24px;
+    padding: 24px 20px 24px;
     margin-top: 80px;
   }
   
   .profile-hint {
     margin: 16px 0 24px 0;
     font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
   }
   
   .loading-spinner {
@@ -227,13 +229,14 @@ export default {
 
 @media (max-width: 480px) {
   .profile-view {
-    padding: 20px 8px 20px;
+    padding: 20px 16px 20px;
     margin-top: 80px;
   }
   
   .profile-hint {
     margin: 20px 0 28px 0;
     font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
   }
   
   .loading-spinner {
@@ -251,7 +254,7 @@ export default {
 
 @media (max-width: 360px) {
   .profile-view {
-    padding: 16px 6px 16px;
+    padding: 16px 12px 16px;
     margin-top: 80px;
   }
   

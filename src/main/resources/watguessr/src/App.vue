@@ -565,7 +565,7 @@ onMounted(() => {
   }
 
   .content-wrapper {
-    padding: 20px;
+    padding: 0;
   }
 }
 

@@ -14,6 +14,7 @@
       <div class="game-modes-wrapper">
         <div class="section-header">
           <h2>PLAY WATGUESSR</h2>
+          <p class="mobile-unsupported-text">Mobile play is currently unsupported. Please log in on desktop!</p>
         </div>
 
         <div class="game-modes">
@@ -139,6 +140,20 @@ export default {
   letter-spacing: 1.2px;
   text-transform: uppercase;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-unsupported-text {
+  font-family: "Red Hat Text", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.9rem;
+  letter-spacing: 1.0px;
+  color: var(--light-grey);
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
+  margin-bottom: 0;
+  display: none;
 }
 
 .game-modes {
@@ -568,6 +583,60 @@ export default {
   }
 
   .trapezoid-pair {
+    width: auto;
+    height: auto;
+    display: flex;
+    gap: 12px;
+  }
+
+  .player-1-trapezoid,
+  .player-2-trapezoid {
+    position: static;
+    width: 260px;
+    height: 130px;
+    padding: 18px;
+    clip-path: none;
+    border-radius: 10px;
+  }
+
+  .player-2-trapezoid {
+    left: auto;
+    padding-left: 18px;
+  }
+
+  .ranked-button {
+    width: 160px;
+    height: 130px;
+  }
+
+  .ranked-progress {
+    width: 90px;
+    height: 130px;
+  }
+
+  .ranked-text h3 {
+    font-size: 22px;
+  }
+
+  .play-option-container h3 {
+    font-size: 30px;
+  }
+
+  .play-option-container p {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 800px) {
+  .play-section {
+    padding: 18px 16px 36px;
+  }
+
+  .game-modes {
+    gap: 12px;
+  }
+
+  .trapezoid-pair {
     width: 440px;
     height: 130px;
   }
@@ -607,51 +676,6 @@ export default {
   }
 }
 
-@media (max-width: 800px) {
-  .play-section {
-    padding: 18px 12px 36px;
-  }
-
-  .trapezoid-pair {
-    width: 400px;
-    height: 120px;
-  }
-
-  .player-1-trapezoid,
-  .player-2-trapezoid {
-    width: 240px;
-    height: 120px;
-    padding: 16px;
-  }
-
-  .player-2-trapezoid {
-    left: 240px;
-    padding-left: 60px;
-  }
-
-  .ranked-button {
-    width: 140px;
-    height: 120px;
-  }
-
-  .ranked-progress {
-    width: 80px;
-    height: 120px;
-  }
-
-  .ranked-text h3 {
-    font-size: 20px;
-  }
-
-  .play-option-container h3 {
-    font-size: 26px;
-  }
-
-  .play-option-container p {
-    font-size: 9px;
-  }
-}
-
 /* Mobile responsive for error modal */
 @media (max-width: 768px) {
   .error-modal {
@@ -679,6 +703,10 @@ export default {
     padding: 10px 24px;
     font-size: 12px;
     border-radius: 8px;
+  }
+
+  .section-header {
+    text-align: center;
   }
 
   .section-header h2 {
@@ -741,6 +769,13 @@ export default {
   }
   .ranked-text {
     transform: translateY(-4px);
+  }
+
+  .mobile-unsupported-text {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
   }
 }
 </style>

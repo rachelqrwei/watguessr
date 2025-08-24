@@ -132,6 +132,10 @@ export default {
     font-size: 1rem;
   }
 
+  .title-underline {
+    margin-top: 20px;
+  }
+
   .hero-section {
     margin-top: -27px;
   }

@@ -134,6 +134,7 @@ export default {
   .features-grid {
     grid-template-columns: 1fr;
     max-width: 100%;
+    gap: 20px;
   }
 }
 </style>

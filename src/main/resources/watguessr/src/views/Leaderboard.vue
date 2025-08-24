@@ -873,6 +873,14 @@ export default {
     max-width: none;
   }
 
+  .search-input {
+    background: rgba(60, 60, 62, 0.8);
+  }
+
+  .sort-select {
+    background: rgba(60, 60, 62, 0.8);
+  }
+
   .sort-section {
     justify-content: space-between;
   }
@@ -1216,8 +1224,8 @@ export default {
   }
   
   .pagination {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 12px;
     margin-top: 16px;
   }
 
@@ -1225,14 +1233,14 @@ export default {
     padding: 10px 16px;
     font-size: 0.8rem;
     justify-content: center;
-    min-width: 120px;
+    min-width: 100px;
     height: 44px;
   }
 
   .page-info {
     font-size: 0.8rem;
-    order: -1;
-    margin-bottom: 8px;
+    order: 0;
+    margin-bottom: 0;
   }
 }
 

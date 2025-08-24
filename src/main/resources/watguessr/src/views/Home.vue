@@ -461,29 +461,29 @@ export default {
 /* Ensure content fits within viewport on all screen sizes */
 @media (max-width: 1200px) {
   .home-container {
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
 @media (max-width: 768px) {
   .home-container {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
 @media (max-width: 480px) {
   .home-container {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
 @media (max-width: 360px) {
   .home-container {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
