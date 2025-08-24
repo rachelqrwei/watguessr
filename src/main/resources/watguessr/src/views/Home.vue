@@ -8,9 +8,12 @@ import TestimonialsSection from '@/views/home-components/TestimonialsSection.vue
 import LobbyBrowser from '@/components/LobbyBrowser.vue'
 import CreateLobbyModal from '@/components/CreateLobbyModal.vue'
 import JoinLobbyModal from '@/components/JoinLobbyModal.vue'
+import OtpModal from '@/views/auth/OtpModal.vue'
+import LoginModal from "@/views/auth/LoginModal.vue";
 
 export default {
   components: {
+    LoginModal,
     HeroSection,
     GameModesSection,
     FeaturesSection,
@@ -18,7 +21,8 @@ export default {
     TestimonialsSection,
     LobbyBrowser,
     CreateLobbyModal,
-    JoinLobbyModal
+    JoinLobbyModal,
+    OtpModal
   },
 
   data() {
@@ -28,7 +32,11 @@ export default {
       showGeese: true,
       showLobbyBrowser: false,
       showCreateModal: false,
-      showJoinModal: false
+      showJoinModal: false,
+      showOtpModal: false,
+      otpEmail: '',
+      otpUsername: '',
+      showLoginModal: false,
     }
   },
 
@@ -129,6 +137,58 @@ export default {
           // Handle error - could show a toast notification
         }
       }
+    },
+
+    // New method to handle OTP modal from router
+    handleOtpRedirect() {
+      const urlParams = new URLSearchParams(window.location.search)
+      const email = urlParams.get('email')
+      const username = urlParams.get('username')
+      const action = urlParams.get('action')
+
+      if (email && username && action === 'send-otp') {
+        this.otpEmail = email
+        this.otpUsername = username
+        this.showOtpModal = true
+
+        // Clear URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname)
+      }
+    },
+
+    // Method to send OTP and show modal
+    async sendOtpAndShowModal(email, username) {
+      try {
+        await this.$store.dispatch('user/sendOtp', email)
+        this.otpEmail = email
+        this.otpUsername = username
+        this.showOtpModal = true
+      } catch (error) {
+        console.error('Failed to send OTP:', error)
+        // You could show a toast notification here
+      }
+    },
+
+    closeOtpModal() {
+      this.showOtpModal = false
+      this.otpEmail = ''
+      this.otpUsername = ''
+    },
+
+    closeLoginModal() {
+      this.showLoginModal = false
+    },
+
+    async handleOtpVerified() {
+      // Handle successful OTP verification
+      this.closeOtpModal()
+      this.showLoginModal = true
+    },
+
+    async handleOtpResend() {
+      if (this.otpEmail) {
+        await this.$store.dispatch('user/sendOtp', this.otpEmail)
+      }
     }
   },
 
@@ -142,6 +202,9 @@ export default {
 
     // Handle Google OAuth callback
     this.handleGoogleOAuthCallback()
+
+    // Handle OTP redirect
+    this.handleOtpRedirect()
   },
 
   unmounted() {
@@ -210,6 +273,20 @@ export default {
       @close="closeJoinModal"
       @lobby-joined="handleLobbyJoined"
     />
+
+    <OtpModal
+      :visible="showOtpModal"
+      :email="otpEmail"
+      @close="closeOtpModal"
+      @verified="handleOtpVerified"
+      @resend="handleOtpResend"
+    />
+
+    <LoginModal
+      :visible="showLoginModal"
+      @close="closeLoginModal"
+    />
+
   </div>
 </template>
 

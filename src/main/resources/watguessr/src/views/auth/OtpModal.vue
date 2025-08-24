@@ -4,34 +4,44 @@
       <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="otp-title">
       <button class="close-btn" @click="$emit('close')" aria-label="Close">×</button>
 
-      <h2 id="otp-title" class="title">Enter Verification Code</h2>
-      <p class="subtitle">We sent a 6‑digit code to <strong>{{ email }}</strong>.</p>
-
-      <div class="form-row">
-        <input
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          v-model="otp"
-          maxlength="6"
-          placeholder="123456"
-          class="otp-input"
-          @keyup.enter="submitOtp"
-          autofocus
-        />
-        <button class="verify-btn" :disabled="submitting || otp.length !== 6" @click="submitOtp">
-          {{ submitting ? 'Verifying…' : 'Verify' }}
-        </button>
+      <!-- Success State -->
+      <div v-if="success" class="success-state">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Account Verified!</h2>
+        <p class="success-message">Your account has been successfully verified. You can now access all features.</p>
+        <div class="success-countdown">Redirecting in {{ redirectCountdown }} seconds...</div>
       </div>
 
-      <div class="helper-row">
-        <button class="link-btn" :disabled="cooldown > 0" @click="$emit('resend')">
-          {{ cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code' }}
-        </button>
-      </div>
+      <!-- OTP Input State -->
+      <div v-else>
+        <h2 id="otp-title" class="title">Enter Verification Code</h2>
+        <p class="subtitle">We sent a 6‑digit code to <strong>{{ email }}</strong>.</p>
 
-      <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="success" class="success">Verified! Redirecting…</p>
+        <div class="form-row">
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            v-model="otp"
+            maxlength="6"
+            placeholder="123456"
+            class="otp-input"
+            @keyup.enter="submitOtp"
+            autofocus
+          />
+          <button class="verify-btn" :disabled="submitting || otp.length !== 6" @click="submitOtp">
+            {{ submitting ? 'Verifying…' : 'Verify' }}
+          </button>
+        </div>
+
+        <div class="helper-row">
+          <button class="link-btn" :disabled="cooldown > 0" @click="$emit('resend')">
+            {{ cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code' }}
+          </button>
+        </div>
+
+        <p v-if="error" class="error">{{ error }}</p>
+      </div>
     </div>
   </div>
   </Transition>
@@ -53,7 +63,9 @@ export default {
       success: false,
       submitting: false,
       cooldown: 0,
-      _iv: null
+      redirectCountdown: 3,
+      _iv: null,
+      _redirectIv: null
     };
   },
   methods: {
@@ -69,7 +81,7 @@ export default {
         if (res === 'verified') {
           this.success = true;
           this.$emit('verified');
-          setTimeout(() => this.$emit('close'), 600);
+          this.startRedirectCountdown();
         } else {
           this.error = res || 'Verification failed.';
         }
@@ -78,6 +90,18 @@ export default {
       } finally {
         this.submitting = false;
       }
+    },
+
+    startRedirectCountdown() {
+      this.redirectCountdown = 3;
+      this._redirectIv = setInterval(() => {
+        if (this.redirectCountdown > 0) {
+          this.redirectCountdown--;
+        } else {
+          clearInterval(this._redirectIv);
+          this.$emit('close');
+        }
+      }, 1000);
     }
   },
   mounted() {
@@ -89,6 +113,9 @@ export default {
   },
   beforeUnmount() {
     clearInterval(this._iv);
+    if (this._redirectIv) {
+      clearInterval(this._redirectIv);
+    }
   }
 };
 </script>
@@ -173,4 +200,55 @@ export default {
 /* messages */
 .error   { margin-top: 12px; color: #FF7F7F; text-align: center; }
 .success { margin-top: 12px; color: #B6FF7F; text-align: center; }
+
+/* Success State */
+.success-state {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #4CAF50;
+  color: white;
+  font-size: 48px;
+  line-height: 80px;
+  margin: 0 auto 20px;
+  animation: successPulse 0.6s ease-out;
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4CAF50;
+  margin: 0 0 12px;
+}
+
+.success-message {
+  color: #ccc;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.success-countdown {
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 </style>

@@ -6,6 +6,7 @@ export interface User {
   elo: number;
   streak: number;
   lastLoginAt: string;
+  verified: boolean;
 }
 
 export interface UserState {
