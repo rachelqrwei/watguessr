@@ -1,6 +1,8 @@
 package com.gooners.watguessr.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.entity.User;
@@ -59,7 +61,6 @@ public class GoogleAuthController {
     }
 
     @GetMapping("/start")
-    @RateLimit(requests = 10, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OAuth start requests.")
     public void start(HttpServletResponse res, HttpSession session) throws IOException {
         var state = randomUrlSafe();
         var nonce = randomUrlSafe();
@@ -82,7 +83,6 @@ public class GoogleAuthController {
     }
 
     @GetMapping("/callback")
-    @RateLimit(requests = 15, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OAuth callback requests.")
     public void callback(
             @RequestParam("code") String code,
             @RequestParam("state") String state,
@@ -90,92 +90,12 @@ public class GoogleAuthController {
             HttpSession session,
             HttpServletResponse response) throws IOException {
 
-        // Check for OAuth errors
         if (error != null) {
             response.sendRedirect(frontendBaseUrl + "?error=oauth_cancelled");
             return;
         }
 
-        // Verify state parameter
-        String sessionState = (String) session.getAttribute("oauth_state");
-        if (sessionState == null || !sessionState.equals(state)) {
-            response.sendRedirect(frontendBaseUrl + "?error=invalid_state");
-            return;
-        }
-
-        try {
-            // Exchange authorization code for access token
-            String tokenResponse = exchangeCodeForToken(code);
-            JsonNode tokenData = objectMapper.readTree(tokenResponse);
-            String accessToken = tokenData.get("access_token").asText();
-
-            // Get user info from Google
-            String userInfoResponse = getUserInfo(accessToken);
-            JsonNode userInfo = objectMapper.readTree(userInfoResponse);
-
-            // Extract user details
-            String email = userInfo.get("email").asText();
-            String name = userInfo.get("name").asText();
-            String picture = userInfo.has("picture") ? userInfo.get("picture").asText() : null;
-
-            // Create or get user and authenticate them
-            User user = userService.createOrGetUserFromGoogle(email, name, picture);
-            UserDto userDto = authenticationService.authenticateGoogleUser(user, response);
-
-            // Redirect to frontend with success and user data
-            String userData = String.format(
-                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
-                    java.net.URLEncoder.encode(email, "UTF-8"),
-                    java.net.URLEncoder.encode(name, "UTF-8"),
-                    picture != null ? java.net.URLEncoder.encode(picture, "UTF-8") : "");
-
-            response.sendRedirect(frontendBaseUrl + userData);
-
-        } catch (Exception e) {
-            response.sendRedirect(frontendBaseUrl + "?error=auth_failed");
-        }
-    }
-
-    @GetMapping("/google-login")
-    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many Google login requests.")
-    public void googleLogin(
-            @RequestParam(value = "code", required = false) String code,
-            @RequestParam(value = "state", required = false) String state,
-            @RequestParam(value = "error", required = false) String error,
-            HttpServletResponse response,
-            HttpSession session) throws IOException {
-
-        // Step 1: Handle OAuth errors
-        if (error != null) {
-            response.sendRedirect(frontendBaseUrl + "?error=oauth_cancelled");
-            return;
-        }
-
-        // Step 2: If code is not present, redirect to Google OAuth start URL
-        if (code == null) {
-            var oauthState = randomUrlSafe();
-            var oauthNonce = randomUrlSafe();
-            session.setAttribute("oauth_state", oauthState);
-            session.setAttribute("oauth_nonce", oauthNonce);
-
-
-            String scope = java.net.URLEncoder.encode("openid email profile", "UTF-8");
-
-            String authUrl = UriComponentsBuilder
-                    .fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
-                    .queryParam("client_id", clientId)
-                    .queryParam("redirect_uri", redirectUri)
-                    .queryParam("response_type", "code")
-                    .queryParam("scope", scope)
-                    .queryParam("state", oauthState)
-                    .queryParam("nonce", oauthNonce)
-                    .build(true).toUriString();
-
-            response.sendRedirect(authUrl);
-            return;
-        }
-
-        // Step 3: Verify state
+        // verify state
         String sessionState = (String) session.getAttribute("oauth_state");
         if (sessionState == null || !sessionState.equals(state)) {
             response.sendRedirect(frontendBaseUrl + "?error=invalid_state");
@@ -185,31 +105,29 @@ public class GoogleAuthController {
         try {
             // Exchange code for access token
             String tokenResponse = exchangeCodeForToken(code);
-            JsonNode tokenData = new ObjectMapper().readTree(tokenResponse);
+            JsonNode tokenData = objectMapper.readTree(tokenResponse);
             String accessToken = tokenData.get("access_token").asText();
 
-            // Get user info from Google
+            // Fetch user info
             String userInfoResponse = getUserInfo(accessToken);
-            JsonNode userInfo = new ObjectMapper().readTree(userInfoResponse);
+            JsonNode userInfo = objectMapper.readTree(userInfoResponse);
 
             String email = userInfo.get("email").asText();
             String name = userInfo.get("name").asText();
             String picture = userInfo.has("picture") ? userInfo.get("picture").asText() : null;
 
-            // Create or get user
+            // Persist / authenticate user
             User user = userService.createOrGetUserFromGoogle(email, name, picture);
+            authenticationService.authenticateGoogleUser(user, response);
 
-            // Authenticate user and set JWT cookie
-            UserDto userDto = authenticationService.authenticateGoogleUser(user, response);
-
-            // Redirect to frontend with success
-            String redirectData = String.format(
+            // Redirect frontend
+            String redirectParams = String.format(
                     "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
-                    java.net.URLEncoder.encode(email, "UTF-8"),
-                    java.net.URLEncoder.encode(name, "UTF-8"),
-                    picture != null ? java.net.URLEncoder.encode(picture, "UTF-8") : "");
+                    URLEncoder.encode(email, StandardCharsets.UTF_8),
+                    URLEncoder.encode(name, StandardCharsets.UTF_8),
+                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "");
 
-            response.sendRedirect(frontendBaseUrl + redirectData);
+            response.sendRedirect(frontendBaseUrl + redirectParams);
 
         } catch (Exception e) {
             response.sendRedirect(frontendBaseUrl + "?error=auth_failed");
