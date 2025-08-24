@@ -9,9 +9,11 @@ import LobbyBrowser from '@/components/LobbyBrowser.vue'
 import CreateLobbyModal from '@/components/CreateLobbyModal.vue'
 import JoinLobbyModal from '@/components/JoinLobbyModal.vue'
 import OtpModal from '@/views/auth/OtpModal.vue'
+import LoginModal from "@/views/auth/LoginModal.vue";
 
 export default {
   components: {
+    LoginModal,
     HeroSection,
     GameModesSection,
     FeaturesSection,
@@ -33,7 +35,8 @@ export default {
       showJoinModal: false,
       showOtpModal: false,
       otpEmail: '',
-      otpUsername: ''
+      otpUsername: '',
+      showLoginModal: false,
     }
   },
 
@@ -147,7 +150,7 @@ export default {
         this.otpEmail = email
         this.otpUsername = username
         this.showOtpModal = true
-        
+
         // Clear URL parameters
         window.history.replaceState({}, document.title, window.location.pathname)
       }
@@ -172,11 +175,14 @@ export default {
       this.otpUsername = ''
     },
 
+    closeLoginModal() {
+      this.showLoginModal = false
+    },
+
     async handleOtpVerified() {
       // Handle successful OTP verification
       this.closeOtpModal()
-      // You could redirect to a specific page or show success message
-      this.$router.push('/profile') // or wherever you want to redirect after verification
+      this.showLoginModal = true
     },
 
     async handleOtpResend() {
@@ -196,7 +202,7 @@ export default {
 
     // Handle Google OAuth callback
     this.handleGoogleOAuthCallback()
-    
+
     // Handle OTP redirect
     this.handleOtpRedirect()
   },
@@ -268,7 +274,6 @@ export default {
       @lobby-joined="handleLobbyJoined"
     />
 
-    <!-- OTP Modal -->
     <OtpModal
       :visible="showOtpModal"
       :email="otpEmail"
@@ -276,6 +281,12 @@ export default {
       @verified="handleOtpVerified"
       @resend="handleOtpResend"
     />
+
+    <LoginModal
+      :visible="showLoginModal"
+      @close="closeLoginModal"
+    />
+
   </div>
 </template>
 
