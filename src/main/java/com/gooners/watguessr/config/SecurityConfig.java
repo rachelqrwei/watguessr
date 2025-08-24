@@ -56,13 +56,22 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // Authentication endpoints (must be public)
                         .requestMatchers("/api/auth/**").permitAll()
+                        
+                        // Public data endpoints (leaderboards, stats)
                         .requestMatchers("/api/user/leaderboard/**").permitAll()
                         .requestMatchers("/api/user/*/leaderboard").permitAll()
                         .requestMatchers("/api/user/*/match-history").permitAll()
-                        .requestMatchers("/api/round/by-game-with-guesses").permitAll()
-                        .requestMatchers("/ws-game/**").permitAll() // Allow WebSocket handshake
-                        .requestMatchers("/ws-matchmaking/**").permitAll() // Allow WebSocket handshake
+                        
+                        // Public lobby browsing (but not joining/creating)
+                        .requestMatchers("/api/game/lobby/public").permitAll()
+                        
+                        // WebSocket handshake endpoints (authentication happens after handshake)
+                        .requestMatchers("/ws-game/**").permitAll()
+                        .requestMatchers("/ws-matchmaking/**").permitAll()
+                        
+                        // All other endpoints require authentication
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(bearerTokenResolver())
@@ -102,8 +111,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Only allow your frontend URL and localhost for development
         configuration.setAllowedOrigins(List.of(
-            "https://watguessr-frontend-x2gln.ondigitalocean.app", // Remove trailing slash
-            "https://watguessr.io",
+            "https://watguessr-frontend-x2gln.ondigitalocean.app", // Digital Ocean frontend
+            "https://watguessr.io", // Custom domain frontend
             "http://localhost:5173", // For local development
             "http://localhost:3000"  // Alternative local development port
         ));
