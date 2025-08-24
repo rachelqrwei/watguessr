@@ -1,4 +1,4 @@
-# Multi-stage build for Vue.js frontend
+# Multi-stage build for Vue.js frontend - Static hosting version
 
 # Build stage
 FROM node:20-alpine AS build
@@ -33,16 +33,14 @@ COPY --chown=appuser:appgroup . .
 # Build the application with environment variables
 RUN npm run build
 
-# Production stage - serve with nginx
+# Production stage - serve static files
 FROM nginx:alpine
 
-# Remove default nginx config
+# Remove default nginx config and create a simple static file server
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Create custom nginx configuration with proper SSL and IPv4 settings
+# Create simple nginx configuration for static files only
 COPY <<EOF /etc/nginx/conf.d/default.conf
-resolver 8.8.8.8 ipv6=off;
-
 server {
     listen 80;
     server_name localhost;
@@ -53,35 +51,11 @@ server {
     location / {
         try_files \$uri \$uri/ /index.html;
     }
-
-    # Proxy API requests to your backend
-    location /api/ {
-        proxy_pass https://watguessr-j5xct.ondigitalocean.app/api/;
-        proxy_ssl_server_name on;
-        proxy_ssl_verify off;
-        proxy_set_header Host watguessr-j5xct.ondigitalocean.app;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_buffering off;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Proxy WebSocket connections
-    location /ws-matchmaking/ {
-        proxy_pass https://watguessr-j5xct.ondigitalocean.app/ws-matchmaking/;
-        proxy_ssl_server_name on;
-        proxy_ssl_verify off;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host watguessr-j5xct.ondigitalocean.app;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
+    
+    # Add CORS headers for any remaining static assets
+    add_header 'Access-Control-Allow-Origin' '*' always;
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+    add_header 'Access-Control-Allow-Headers' '*' always;
 }
 EOF
 

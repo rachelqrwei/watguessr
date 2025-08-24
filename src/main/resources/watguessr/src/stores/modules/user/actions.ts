@@ -125,6 +125,7 @@ export const actions = {
       // Use the auth endpoint instead of user endpoint for login
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: 'PUT',
+        credentials: 'include', // Essential for cross-site cookies
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });

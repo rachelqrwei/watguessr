@@ -42,6 +42,9 @@ if (typeof Buffer === 'undefined') {
   (window as any).Buffer = { isBuffer: () => false };
 }
 
+// Disable Mapbox telemetry to avoid CORS errors
+(window as any).MapboxGLTelemetryDisabled = true;
+
 // Add icons to the library
 library.add(
   faPlay,
@@ -73,10 +76,25 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : (input as Request).url;
     const status = (res as Response).status;
     const isLogout = url?.includes('/api/auth/logout');
-    if (!isLogout && (status === 401 || status === 403)) {
-      // Clear auth and prompt login with a reason message
-      store.commit('user/CLEAR_AUTH');
-      store.commit('user/OPEN_LOGIN', 'Your session expired. Please log in again.');
+    const isPublicEndpoint = url?.includes('/api/user/leaderboard') || 
+                            url?.includes('/api/round/by-game-with-guesses') ||
+                            url?.includes('/api/auth/') ||
+                            url?.includes('/api/user/') && url?.includes('/leaderboard') ||
+                            url?.includes('/api/user/') && url?.includes('/match-history');
+    
+    // Only trigger logout for authenticated endpoints that return 401/403
+    // Don't trigger logout for public endpoints or CORS preflight failures
+    if (!isLogout && !isPublicEndpoint && (status === 401 || status === 403)) {
+      // Check if this might be a CORS issue by looking at response headers
+      const hasContentType = res.headers.get('content-type');
+      
+      // Only logout if we actually got a response from the server (not a CORS error)
+      if (hasContentType) {
+        console.log('Logging out because of 401/403');
+        // Clear auth and prompt login with a reason message
+        store.commit('user/CLEAR_AUTH');
+        store.commit('user/OPEN_LOGIN', 'Your session expired. Please log in again.');
+      }
     }
   } catch {
     // no-op
