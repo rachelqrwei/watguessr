@@ -87,10 +87,10 @@ public class AuthController {
         // Overwrite the HttpOnly cookie with empty value and immediate expiration
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(true) // set true if using HTTPS
+                .secure(true) // set true for HTTPS
                 .path("/")
                 .maxAge(0) // expire immediately
-                .sameSite("Strict") // optional: adjust according to your setup
+                .sameSite("None") // Allow cross-site requests for CORS
                 .build();
 
         return ResponseEntity.ok()

@@ -109,7 +109,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*")); // Allow all headers for WebSocket compatibility
         configuration.setAllowCredentials(true); // crucial for cookies
-        configuration.setExposedHeaders(List.of("Set-Cookie")); // so frontend sees cookies if needed
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization")); // so frontend sees cookies if needed
         configuration.setMaxAge(3600L); // Cache preflight requests for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
