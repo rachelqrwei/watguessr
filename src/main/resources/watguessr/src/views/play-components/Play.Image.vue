@@ -28,7 +28,35 @@ export default {
     handleWheel(e) {
       e.preventDefault()
       const delta = e.deltaY > 0 ? -0.1 : 0.1
-      this.scale = Math.min(Math.max(this.scale + delta, 1), 4) // zoom 1x–4x
+      const newScale = Math.min(Math.max(this.scale + delta, 1), 4) // zoom 1x–4x
+      
+      // Get the image element and its bounding rectangle
+      const imageElement = e.currentTarget.querySelector('#image')
+      if (!imageElement) return
+      
+      const rect = imageElement.getBoundingClientRect()
+      
+      // Calculate mouse position relative to the image
+      const mouseX = e.clientX - rect.left
+      const mouseY = e.clientY - rect.top
+      
+      // Calculate the center of the image
+      const imageCenterX = rect.width / 2
+      const imageCenterY = rect.height / 2
+      
+      // Calculate the offset from center
+      const offsetX = mouseX - imageCenterX
+      const offsetY = mouseY - imageCenterY
+      
+      // Calculate the scale factor change
+      const scaleFactor = newScale / this.scale
+      
+      // Update translation to keep the mouse position fixed
+      this.translateX += offsetX * (1 - scaleFactor)
+      this.translateY += offsetY * (1 - scaleFactor)
+      
+      // Update scale
+      this.scale = newScale
     },
     startDrag(e) {
       if (this.scale === 1) return // no dragging if not zoomed in
