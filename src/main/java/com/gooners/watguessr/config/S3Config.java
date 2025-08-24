@@ -19,12 +19,24 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        if (profile != null && !profile.trim().isEmpty()) {
+        // Check if we're in production (using environment variables)
+        String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
+        String secretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+        
+        if (accessKey != null && secretKey != null) {
+            // Use environment variables (production setup)
+            return S3Client.builder()
+                    .region(Region.of(region))
+                    .credentialsProvider(DefaultCredentialsProvider.create())
+                    .build();
+        } else if (profile != null && !profile.trim().isEmpty()) {
+            // Use profile (local development)
             return S3Client.builder()
                     .region(Region.of(region))
                     .credentialsProvider(ProfileCredentialsProvider.create(profile))
                     .build();
         } else {
+            // Fallback to default credentials provider
             return S3Client.builder()
                     .region(Region.of(region))
                     .credentialsProvider(DefaultCredentialsProvider.create())
