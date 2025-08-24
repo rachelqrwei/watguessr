@@ -79,7 +79,7 @@ export default {
 .content {
   width: 100%;
   max-width: 800px;
-  margin: 0 0 0 -200px;
+  margin: 0 auto;
   text-align: left;
 }
 
@@ -197,6 +197,22 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .notfound-page {
+    padding: 40px 20px 40px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .content {
+    margin: 0;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .text-content {
+    margin: 0 auto;
+  }
+
   .title {
     font-size: 7.5rem;
     letter-spacing: -4px;
@@ -224,12 +240,34 @@ export default {
 }
 
 @media (max-width: 480px) {
+  .notfound-page {
+    padding: 20px 16px 40px;
+    align-items: center;
+  }
+
+  .content {
+    margin: 0;
+    text-align: center;
+  }
+
   .title {
     font-size: 5.5rem;
   }
-  
+}
+
+@media (min-width: 801px) {
   .notfound-page {
-    padding: 20px;
+    padding: 120px 40px 40px;
+    align-items: flex-start;
+  }
+
+  .content {
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .text-content {
+    max-width: 600px;
   }
 }
 
@@ -237,7 +275,7 @@ export default {
   position: fixed;
   bottom: 150px;
   right: 0;
-  z-index: 10;
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -250,18 +288,23 @@ export default {
 
 @media (max-width: 768px) {
   .goose-image {
-    width: 400px;
+    width: 350px;
+  }
+  
+  .goose-decoration {
+    bottom: 80px;
+    right: -50px;
   }
 }
 
 @media (max-width: 480px) {
   .goose-image {
-    width: 300px;
+    width: 280px;
   }
   
   .goose-decoration {
-    bottom: 60px;
-    right: 0;
+    bottom: 40px;
+    right: -30px;
   }
 }
 </style>

@@ -34,7 +34,10 @@
     <div v-if="sideMenuOpen" class="side-menu-overlay" @click="closeSideMenu"></div>
     <div class="side-menu" :class="{ 'side-menu-open': sideMenuOpen }">
       <div class="side-menu-header">
-        <h3>Menu</h3>
+        <div class="logo-container">
+          <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
+          <span class="logo-text">WATGUESSR.IO</span>
+        </div>
         <button class="close-menu-btn" @click="closeSideMenu">
           <font-awesome-icon icon="times" />
         </button>
@@ -43,8 +46,8 @@
         <ul>
           <li @click="navigateTo('home')">Home</li>
           <li @click="navigateTo('leaderboard')">Leaderboard</li>
+          <li @click="navigateTo('profile')">Profile</li>
           <template v-if="loggedIn">
-            <li @click="navigateTo('profile')">Profile</li>
             <li @click="handleLogout">Log Out</li>
           </template>
           <template v-else>
@@ -152,7 +155,16 @@ export default {
 
     navigateTo(routeName) {
       this.closeSideMenu();
-      this.$router.push({ name: routeName });
+      if (routeName === 'profile') {
+        const userId = this.getCurrentUser?.id;
+        if (userId) {
+          this.$router.push({ name: 'profile', params: { userId } });
+        } else {
+          this.$router.push({ name: 'profile' });
+        }
+      } else {
+        this.$router.push({ name: routeName });
+      }
     },
 
     openSideMenuFromLogo() {
@@ -552,8 +564,8 @@ export default {
   left: -300px;
   width: 300px;
   height: 100vh;
-  background: rgba(42, 42, 44, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(42, 42, 44, 0.65);
+  backdrop-filter: blur(8px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 1000;
   transition: left 0.3s ease;
@@ -570,13 +582,28 @@ export default {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255, 203, 59, 0.1) 0%, rgba(255, 203, 59, 0.05) 100%);
 }
 
-.side-menu-header h3 {
+.side-menu-header .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.side-menu-header .logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--yellow);
+}
+
+.side-menu-header .logo-text {
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--white);
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
+  outline: none;
 }
 
 .close-menu-btn {
@@ -604,13 +631,33 @@ export default {
   padding: 16px 20px;
   color: var(--white);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.side-menu-nav li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.side-menu-nav li:hover::before {
+  opacity: 1;
 }
 
 .side-menu-nav li:hover {
-  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .side-menu-nav li:active {
@@ -618,7 +665,7 @@ export default {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .side-menu {
     width: 280px;
     left: -280px;
@@ -628,8 +675,13 @@ export default {
     padding: 16px;
   }
 
-  .side-menu-header h3 {
-    font-size: 1.1rem;
+  .side-menu-header .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .side-menu-header .logo-text {
+    font-size: 20px;
   }
 
   .side-menu-nav li {
@@ -648,8 +700,13 @@ export default {
     padding: 14px;
   }
 
-  .side-menu-header h3 {
-    font-size: 1rem;
+  .side-menu-header .logo-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .side-menu-header .logo-text {
+    font-size: 18px;
   }
 
   .side-menu-nav li {
@@ -668,8 +725,13 @@ export default {
     padding: 12px;
   }
 
-  .side-menu-header h3 {
-    font-size: 0.95rem;
+  .side-menu-header .logo-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .side-menu-header .logo-text {
+    font-size: 16px;
   }
 
   .side-menu-nav li {

@@ -338,7 +338,7 @@ export default {
   }
 
   .player-info {
-    text-align: right;
+    text-align: left;
     flex: none;
   }
 
