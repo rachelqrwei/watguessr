@@ -77,10 +77,10 @@ export const actions: ActionTree<RoundState, RootState> = {
       if (response.ok) {
         const scene = await response.json();
         const correctAnswer = {
-          buildingName: scene.buildingName || 'Unknown Building',
+          buildingName: scene.buildingName || 'Outside',
           locationX: scene.locationX,
           locationY: scene.locationY,
-          floor: scene.floor || 'Unknown Floor'
+          floor: scene.floor || 'Ground'
         };
         commit('SET_CORRECT_ANSWER', correctAnswer);
       } else {

@@ -88,10 +88,10 @@ export default {
         if (data?.features?.length > 0) {
           return data.features[0].text; // closest name
         } else {
-          return 'Unknown Building';
+          return 'Outside';
         }
       } catch (error) {
-        return 'Unknown Building';
+        return 'Outside';
       }
     },
 
