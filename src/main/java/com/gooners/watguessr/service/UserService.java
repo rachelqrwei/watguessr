@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.gooners.watguessr.entity.EmailVerification;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
+import com.gooners.watguessr.entity.EmailVerification;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.EmailVerificationRepository;
@@ -32,13 +32,15 @@ public class UserService {
     private final GameRepository gameRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailVerificationService emailVerificationService;
 
-    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository) {
+    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.leaderboardMapper = leaderboardMapper;
         this.gameRepository = gameRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationRepository = emailVerificationRepository;
+        this.emailVerificationService = emailVerificationService;
     }
 
     public void update(User user) {
@@ -94,6 +96,14 @@ public class UserService {
 
         User user = new User(dto.getEmail(), dto.getUsername(), hashedPassword);
         userRepository.save(user);
+        
+        // Automatically send OTP email after signup
+        try {
+            emailVerificationService.prepareToSendEmail(dto.getEmail(), dto.getUsername());
+        } catch (Exception e) {
+            // Log the error but don't fail the signup
+            System.err.println("Failed to send OTP email after signup: " + e.getMessage());
+        }
     }
 
     public User login(String username, String rawPassword) {
