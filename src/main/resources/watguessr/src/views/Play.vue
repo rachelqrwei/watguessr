@@ -391,7 +391,7 @@ export default {
       // Check if the building exists in our database
       const buildingExists = this.getBuildingsMap && this.getBuildingsMap[this.getGuessBuilding];
       if (!buildingExists) {
-        this.SET_BUILDING('-----');
+        this.SET_BUILDING('Outside');
       }
 
       if (buildingExists && !this.selectedFloor) {

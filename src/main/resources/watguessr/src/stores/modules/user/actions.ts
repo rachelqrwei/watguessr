@@ -3,6 +3,7 @@ import type { UserState, User } from './state';
 export const actions = {
 
   async fetchUserById({ state, commit }: { state: UserState; commit: any }, id: string) {
+    if (!id || id === 'undefined') return null;
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
@@ -42,7 +43,7 @@ export const actions = {
   },
 
   async fetchLeaderboardForUserId({ state }: { state: UserState }, userId: string) {
-    if (!userId) return null;
+    if (!userId || userId === 'undefined') return null;
     state.loading = true;
     state.error = null;
     try {
@@ -64,7 +65,7 @@ export const actions = {
     payload: { userId: string; offset: number; limit: number }
   ) {
     const { userId, offset, limit } = payload;
-    if (!userId) return { results: [], hasNext: false };
+    if (!userId || userId === 'undefined') return { results: [], hasNext: false };
 
     state.loading = true;
     state.error = null;

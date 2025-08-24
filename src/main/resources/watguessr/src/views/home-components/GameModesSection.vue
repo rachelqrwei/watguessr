@@ -1,15 +1,16 @@
 <template>
-  <!-- Error Message -->
-  <div v-if="showError" class="error-overlay" @click="hideError">
-    <div class="error-modal" @click.stop>
-      <div class="error-icon">⚠️</div>
-      <h3>Login Required</h3>
-      <p><em>Log in to enter game</em></p>
-      <button class="error-close-btn" @click="hideError">OK</button>
+  <div class="game-modes-container">
+    <!-- Error Message -->
+    <div v-if="showError" class="error-overlay" @click="hideError">
+      <div class="error-modal" @click.stop>
+        <div class="error-icon">⚠️</div>
+        <h3>Login Required</h3>
+        <p><em>Log in to enter game</em></p>
+        <button class="error-close-btn" @click="hideError">OK</button>
+      </div>
     </div>
-  </div>
 
-  <section class="play-section" :class="{ loaded: isLoaded }">
+    <section class="play-section" :class="{ loaded: isLoaded }">
     <div class="play-content">
       <div class="game-modes-wrapper">
         <div class="section-header">
@@ -47,7 +48,8 @@
         </div>
       </div>
     </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -60,6 +62,7 @@ export default {
       default: false
     }
   },
+  emits: ['open-lobby-browser'],
   data() {
     return {
       showError: false
@@ -98,6 +101,10 @@ export default {
 </script>
 
 <style scoped>
+.game-modes-container {
+  position: relative;
+}
+
 .play-section {
   padding: 18px 36px 36px;
   opacity: 0;

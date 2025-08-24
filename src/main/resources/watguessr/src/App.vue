@@ -50,7 +50,7 @@
         <div class="report-bug-sidebar">
           <h4>REPORT A BUG</h4>
           <p v-if="!getCurrentUser">To leave feedback, please
-            <span class="link" @click="showLogin = true">LOG IN</span>
+            <span class="link" @click="openLogin">LOG IN</span>
           </p>
           <p v-else>
             <span class="link" @click="showReportBug = true">CLICK HERE</span> to report a bug
@@ -108,8 +108,6 @@ import ReportBugModal from "@/components/ReportBugModal.vue";
 
 const route = useRoute()
 const isHoveringHeader = ref(false)
-const showLogin = ref(false) //  reactive state for login modal
-const showSignUp = ref(false);
 const showReportBug = ref(false);
 
 const isHomePage = computed(() => route.path === '/')

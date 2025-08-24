@@ -4,6 +4,7 @@ import com.gooners.watguessr.entity.Game;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -41,4 +42,14 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
 
     Optional<Game> findByLobbyCode(String lobbyCode);
 
-    List<Game> findByWinnerIsNullAndCreatedAtBefore(OffsetDateTime dateTime);}
+    List<Game> findByWinnerIsNullAndCreatedAtBefore(OffsetDateTime dateTime);
+
+    // New methods for user deletion
+    @Query("SELECT g FROM Game g WHERE g.winner.id = :userId")
+    List<Game> findGamesWonByUser(@Param("userId") UUID userId);
+
+    @Modifying
+    @Query("UPDATE Game g SET g.winner = NULL WHERE g.winner.id = :userId")
+    void clearWinnerForUser(@Param("userId") UUID userId);
+
+}

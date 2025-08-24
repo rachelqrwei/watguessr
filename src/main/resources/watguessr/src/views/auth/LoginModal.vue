@@ -135,9 +135,9 @@ export default {
   background: rgba(42, 42, 44, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
-  padding: 3rem 2rem;
+  padding: 3rem 3rem;
   border-radius: 10px;
-  width: 300px;
+  width: 350px;
   color: #fff;
   font-family: 'Segoe UI', sans-serif;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);

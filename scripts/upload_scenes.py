@@ -10,8 +10,8 @@ set username and password to the one i sent yall
 
 3. set up environemnt variables
 export SPRING_DATASOURCE_URL="jdbc:postgresql://db-postgresql-nyc3-28009-do-user-24874859-0.j.db.ondigitalocean.com:25060/watguessr" OR 5432 DEPENDING ON WHICH U USE
-export SPRING_DATASOURCE_USERNAME="watuser"
-export SPRING_DATASOURCE_PASSWORD="goon"
+export SPRING_DATASOURCE_USERNAME=
+export SPRING_DATASOURCE_PASSWORD=
 export AWS_REGION="us-east-2"
 
 4. Install dependencies

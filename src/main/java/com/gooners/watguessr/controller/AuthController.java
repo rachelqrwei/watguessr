@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PutMapping("/login")
-    @RateLimit(requests = 5, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many login attempts. Please try again later.")
+    @RateLimit(requests = 15, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many login attempts. Please try again later.")
     public ResponseEntity<UserDto> login(
             @RequestBody @Valid UserLoginDto loginDto,
             HttpServletResponse response) {
@@ -62,7 +62,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many profile requests.")
+    @RateLimit(requests = 300, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many profile requests.")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -76,7 +76,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    @RateLimit(requests = 3, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many signup attempts. Please try again later.")
+    @RateLimit(requests = 15, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many signup attempts. Please try again later.")
     public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto dto) {
         userService.signup(dto);
         return ResponseEntity.ok("Account created");

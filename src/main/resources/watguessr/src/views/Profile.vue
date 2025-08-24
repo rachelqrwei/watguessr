@@ -54,6 +54,7 @@ export default {
       required: false
     }
   },
+  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp'],
   data() {
     return {
 

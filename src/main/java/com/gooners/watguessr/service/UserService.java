@@ -17,12 +17,15 @@ import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.EmailVerification;
+import com.gooners.watguessr.entity.Guess;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.EmailVerificationRepository;
 import com.gooners.watguessr.repository.GameRepository;
+import com.gooners.watguessr.repository.GuessRepository;
 import com.gooners.watguessr.repository.UserRepository;
 import com.gooners.watguessr.utils.CustomException;
+import com.gooners.watguessr.entity.Game;
 
 @Service
 @Transactional
@@ -33,14 +36,16 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailVerificationService emailVerificationService;
+    private final GuessRepository guessRepository;
 
-    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailVerificationService emailVerificationService) {
+    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailVerificationService emailVerificationService, GuessRepository guessRepository) {
         this.userRepository = userRepository;
         this.leaderboardMapper = leaderboardMapper;
         this.gameRepository = gameRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationRepository = emailVerificationRepository;
         this.emailVerificationService = emailVerificationService;
+        this.guessRepository = guessRepository;
     }
 
     public void update(User user) {
@@ -312,12 +317,34 @@ public class UserService {
         }
 
         try {
+            UUID userId = user.getId();
+            
+            // Step 1: Delete all guesses made by the user
+            List<Guess> userGuesses = guessRepository.findAllByUserId(userId);
+            if (!userGuesses.isEmpty()) {
+                guessRepository.deleteAllByUserId(userId);
+                System.out.println("Deleted " + userGuesses.size() + " guesses for user: " + userId);
+            }
+
+            // Step 2: Clear winner references in games where this user was the winner
+            List<Game> gamesWon = gameRepository.findGamesWonByUser(userId);
+            if (!gamesWon.isEmpty()) {
+                gameRepository.clearWinnerForUser(userId);
+                System.out.println("Cleared winner reference in " + gamesWon.size() + " games for user: " + userId);
+            }
+
+            // Step 3: Delete email verification records
             Optional<EmailVerification> evOptional = emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress());
             if (evOptional.isPresent()) {
                 EmailVerification ev = evOptional.get();
                 emailVerificationRepository.delete(ev);
+                System.out.println("Deleted email verification record for user: " + userId);
             }
+
+            // Step 4: Finally delete the user
             userRepository.delete(user);
+            System.out.println("Successfully deleted user: " + userId);
+            
         } catch (Exception e) {
             throw new CustomException("Failed to delete user: " + e.getMessage());
         }
