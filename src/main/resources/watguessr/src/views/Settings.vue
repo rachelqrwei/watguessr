@@ -136,6 +136,40 @@
             <button class="delete-user-btn" @click="onDeleteUser">Delete User</button>
           </div>
           </div>
+
+          <!-- Keybinds Section -->
+          <div class="card keybinds-card">
+            <div class="keybinds-header">
+              <h2 class="keybinds-title"><font-awesome-icon icon="fa-solid fa-keyboard" class="keyboard-icon" /> KEYBINDS</h2>
+            </div>
+            
+            <div class="keybinds-content">
+              <div class="keybind-row">
+                <span class="keybind-label">Switch between Image view and Map view:</span>
+                <div class="keybind-keys">
+                  <div class="key-square">A</div>
+                  <span class="keybind-separator">and</span>
+                  <div class="key-square">D</div>
+                </div>
+              </div>
+              
+              <div class="keybind-row">
+                <span class="keybind-label">Switch floors:</span>
+                <div class="keybind-keys">
+                  <div class="key-square">W</div>
+                  <span class="keybind-separator">and</span>
+                  <div class="key-square">S</div>
+                </div>
+              </div>
+              
+              <div class="keybind-row">
+                <span class="keybind-label">Submit guess:</span>
+                <div class="keybind-keys">
+                  <div class="key-space">SPACE</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </transition>
@@ -861,6 +895,112 @@ input[type="email"] {
   box-shadow: 0 0 0 3px rgba(255, 203, 59, 0.12);
 }
 
+/* Keybinds Section Styles */
+.keybinds-card {
+  margin-top: 24px;
+}
+
+.keybinds-header {
+  margin-bottom: 12px;
+}
+
+.keybinds-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.keyboard-icon {
+  color: var(--yellow);
+}
+
+.keybinds-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.keybind-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.keybind-label {
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.keybind-keys {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.keybind-separator {
+  color: var(--light-grey);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.key-square {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.key-square:hover {
+  background: rgba(255, 227, 127, 0.15);
+  border-color: var(--yellow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.key-space {
+  min-width: 80px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  padding: 0 12px;
+}
+
+.key-space:hover {
+  background: rgba(255, 227, 127, 0.15);
+  border-color: var(--yellow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
 @media (max-width: 768px) {
   .profile-content {
     grid-template-columns: 1fr;
@@ -870,6 +1010,15 @@ input[type="email"] {
 
   .hero { grid-template-columns: 1fr; gap: 0; }
 
+  .keybind-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .keybind-keys {
+    align-self: flex-end;
+  }
 }
 
 .password-checklist {
