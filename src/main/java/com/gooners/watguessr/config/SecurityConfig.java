@@ -103,6 +103,7 @@ public class SecurityConfig {
         // Only allow your frontend URL and localhost for development
         configuration.setAllowedOrigins(List.of(
             "https://watguessr-frontend-x2gln.ondigitalocean.app", // Remove trailing slash
+            "https://watguessr.io",
             "http://localhost:5173", // For local development
             "http://localhost:3000"  // Alternative local development port
         ));
