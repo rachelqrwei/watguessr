@@ -356,4 +356,23 @@ export const actions = {
     }
   },
 
+  async sendOtpAndRedirect({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string }) {
+    try {
+      // Send OTP first by calling the sendOtp action directly
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/send-otp?to=${encodeURIComponent(payload.email)}`;
+      const response = await fetch(url, { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to send OTP');
+
+      // Create redirect URL to home with OTP parameters
+      const otpUrl = `${window.location.origin}/?email=${encodeURIComponent(payload.email)}&username=${encodeURIComponent(payload.username)}&action=send-otp`;
+
+      // Redirect to home with OTP parameters
+      window.location.href = otpUrl;
+
+      return { success: true };
+    } catch (err) {
+      commit('SET_ERROR', err instanceof Error ? err.message : 'Failed to send OTP');
+      throw err;
+    }
+  },
 };
