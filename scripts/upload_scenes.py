@@ -7,9 +7,9 @@ HOW TO RUN:
 
 2. aws configure --profile watguessr-upload
 set username and password to the one i sent yall
-    
+
 3. set up environemnt variables
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5433/watguessr" OR 5432 DEPENDING ON WHICH U USE
+export SPRING_DATASOURCE_URL="jdbc:postgresql://db-postgresql-nyc3-28009-do-user-24874859-0.j.db.ondigitalocean.com:25060/watguessr" OR 5432 DEPENDING ON WHICH U USE
 export SPRING_DATASOURCE_USERNAME="watuser"
 export SPRING_DATASOURCE_PASSWORD="goon"
 export AWS_REGION="us-east-2"
@@ -29,7 +29,7 @@ export AWS_REGION="us-east-2"
     --floor "Ground" \
     --lon -80.5498286537569 \
     --lat 43.4709910994781 \
-    /Users/rache/Downloads/watguessr-scene-images/south1.jpg 
+    /Users/rache/Downloads/watguessr-scene-images/south1.jpg
     find the absolute path on your mac, you can get it by holding option button in finder
 
 
@@ -67,7 +67,7 @@ def parse_args() -> argparse.Namespace:
 
     # AWS
     parser.add_argument("files", nargs="+", help="Image files or directories to upload")
-    parser.add_argument("--aws-profile", default=os.getenv("AWS_PROFILE", "watguessr-uploader"))
+    parser.add_argument("--aws-profile", default=os.getenv("AWS_PROFILE", "watguessr-upload"))
     parser.add_argument("--bucket", default=os.getenv("AWS_S3_BUCKET_NAME"), help="S3 bucket name")
     parser.add_argument("--region", default=os.getenv("AWS_REGION", "us-east-2"))
     parser.add_argument("--prefix", default="", help="S3 key prefix (folder). Default: none (bucket root)")

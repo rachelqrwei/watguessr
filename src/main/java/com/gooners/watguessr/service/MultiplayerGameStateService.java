@@ -320,7 +320,7 @@ public class MultiplayerGameStateService {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(30); // 30 seconds
+		Instant cutoff = Instant.now().minusSeconds(90); // 30 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();
