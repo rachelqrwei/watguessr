@@ -50,6 +50,12 @@ public class UserController {
         this.mailSender = mailSender;
     }
 
+    @GetMapping(value = "/{id}")
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many user fetch requests.")
+    public UserDto getUser(@PathVariable UUID id) {
+        return this.userMapper.toDto(this.userService.findById(id));
+    }
+
     @GetMapping(value = "/leaderboard")
     public ResponseEntity<QueryResults<LeaderboardUser>> getLeaderboard(
             @RequestParam(required = false) String searchTerm,
