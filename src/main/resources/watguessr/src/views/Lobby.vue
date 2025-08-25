@@ -388,9 +388,15 @@ export default {
       this.rankedErrorMessage = '';
       // Connect to matchmaking WebSocket with callbacks
       connectToMatchmakingWebSocket(this.myId, {
+        onConnected: () => {
+          // Connection is ready, now join the queue
+          console.log('🚀 Connection ready, joining ranked queue...')
+          joinRankedQueue(this.myId)
+        },
         onQueueJoined: () => {
           // Ensure we stay in searching state
-          this.rankedQueueState = 'searching';
+          this.rankedQueueState = 'searching'
+          console.log('Successfully joined ranked queue')
         },
         onQueueLeft: () => {
           this.rankedQueueState = 'idle';
@@ -401,29 +407,25 @@ export default {
           // Find opponent from the players list
           const players = matchInfo.players || [];
 
-          const opponent = players.find(p => p.id !== this.myId) || players[0];
+          const opponent = players.find((p) => p.id !== this.myId) || players[0]
 
           this.rankedMatchInfo = {
             opponentName: opponent?.username || 'Anonymous Player',
             opponentRating: opponent?.elo || 1200,
             roundCount: 5, // Default for ranked games
             timeLimit: 20, // Default for ranked games
-            gameId: matchInfo.gameId
-          };
+            gameId: matchInfo.gameId,
+          }
         },
         onQueueTimeout: (message) => {
-          this.rankedQueueState = 'error';
-          this.rankedErrorMessage = message;
+          this.rankedQueueState = 'error'
+          this.rankedErrorMessage = message
         },
         onError: (error) => {
-          this.rankedQueueState = 'error';
-          this.rankedErrorMessage = error;
-        }
-      });
-      // Join the queue after a delay to ensure connection is established
-      setTimeout(() => {
-        joinRankedQueue(this.myId);
-      }, 1500);
+          this.rankedQueueState = 'error'
+          this.rankedErrorMessage = error
+        },
+      })
     },
     cancelRankedQueue() {
       leaveRankedQueue(this.myId);
