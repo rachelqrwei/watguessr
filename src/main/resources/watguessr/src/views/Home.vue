@@ -116,9 +116,18 @@ export default {
           const picture = urlParams.get('picture')
           const isLogin = urlParams.get('login') === 'success'
 
-          if (email && name) {
-            // User is already authenticated via OAuth flow, just refresh auth state
+          if (email && name && isLogin) {
             await this.$store.dispatch('user/initializeAuth')
+
+            // Check if authentication was successful
+            const isAuthenticated = this.$store.getters['user/isAuthenticated']
+
+            if (isAuthenticated) {
+              console.log('Google OAuth authentication successful')
+              // Optionally redirect to a specific page or show success message
+            } else {
+              console.error('Google OAuth authentication failed - user not authenticated')
+            }
 
             // Clear URL parameters
             window.history.replaceState({}, document.title, window.location.pathname)

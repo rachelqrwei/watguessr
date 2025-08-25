@@ -68,11 +68,23 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String username = jwt.getSubject(); // same as jwt.getClaim("sub")
+        try {
+            String username = jwt.getSubject(); // same as jwt.getClaim("sub")
+            
+            if (username == null || username.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
 
-        User user = userService.findByUsername(username);
-        UserDto userDto = userMapper.toDto(user);
-        return ResponseEntity.ok(userDto);
+            User user = userService.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            UserDto userDto = userMapper.toDto(user);
+            return ResponseEntity.ok(userDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
     @PostMapping("/signup")
@@ -87,10 +99,10 @@ public class AuthController {
         // Overwrite the HttpOnly cookie with empty value and immediate expiration
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(true) // set true for HTTPS
+                .secure(false) // set to false for local development, true for production
                 .path("/")
                 .maxAge(0) // expire immediately
-                .sameSite("None") // Allow cross-site requests for CORS
+                .sameSite("Lax") // Use Lax for better compatibility
                 .build();
 
         return ResponseEntity.ok()

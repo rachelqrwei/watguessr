@@ -223,20 +223,17 @@ export const actions = {
         credentials: "include"
       });
 
-      if (res.status === 204) {
+      if (res.status === 401) {
+        // User is not authenticated
         commit('SET_AUTHENTICATED', false);
         commit('SET_CURRENT_USER', null);
       } else if (res.ok) {
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const userData = await res.json();
-          commit('SET_CURRENT_USER', userData);
-          commit('SET_AUTHENTICATED', true);
-        } else {
-          commit('SET_AUTHENTICATED', false);
-          commit('SET_CURRENT_USER', null);
-        }
+        // User is authenticated, parse the response
+        const userData = await res.json();
+        commit('SET_CURRENT_USER', userData);
+        commit('SET_AUTHENTICATED', true);
       } else {
+        // Other error status
         commit('SET_AUTHENTICATED', false);
         commit('SET_CURRENT_USER', null);
       }

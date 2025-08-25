@@ -1,8 +1,11 @@
 package com.gooners.watguessr.controller;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.entity.User;
@@ -77,6 +80,31 @@ public class GoogleAuthController {
                 .build(true).toUriString();
 
         res.sendRedirect(authUrl);
+    }
+
+    @GetMapping("/url")
+    public ResponseEntity<Map<String, String>> getOAuthUrl(HttpSession session) throws UnsupportedEncodingException {
+        var state = randomUrlSafe();
+        var nonce = randomUrlSafe();
+        session.setAttribute("oauth_state", state);
+        session.setAttribute("oauth_nonce", nonce);
+
+        String encodedScope = java.net.URLEncoder.encode("openid email profile", "UTF-8");
+
+        var authUrl = UriComponentsBuilder
+                .fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .queryParam("scope", encodedScope)
+                .queryParam("state", state)
+                .queryParam("nonce", nonce)
+                .build(true).toUriString();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("authUrl", authUrl);
+        
+        return ResponseEntity.ok(response);
     }
 
 

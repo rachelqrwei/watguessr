@@ -42,10 +42,10 @@ public class AuthenticationService {
         // 4️⃣ Set JWT as HttpOnly cookie
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(true)           // use true for HTTPS in production
+                .secure(false)           // set to false for local development, true for production
                 .path("/")
                 .maxAge(3600)           // 1 hour
-                .sameSite("None")       // Allow cross-site requests for CORS
+                .sameSite("Lax")        // Use Lax for better compatibility
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
@@ -65,10 +65,10 @@ public class AuthenticationService {
         // Set JWT as HttpOnly cookie
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(true)          // use true in production with HTTPS
+                .secure(false)          // set to false for local development, true for production
                 .path("/")
                 .maxAge(3600)           // 1 hour
-                .sameSite("None")
+                .sameSite("Lax")        // Use Lax for better compatibility
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
