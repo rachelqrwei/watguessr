@@ -5,7 +5,8 @@
         <div class="left-column">
           <div class="hero">
             <div class="avatar-wrap">
-              <div class="avatar" :style="{ background: avatarColors.bg, color: avatarColors.fg }" aria-hidden="true">{{ (leaderboardUser?.username || 'G').charAt(0).toUpperCase() }}</div>
+              <div class="avatar" :style="{ background: avatarColors.bg, color: avatarColors.fg }" aria-hidden="true">{{
+                (leaderboardUser?.username || 'G').charAt(0).toUpperCase() }}</div>
             </div>
             <div class="hero-info">
               <h1 class="name">{{ leaderboardUser.username }}</h1>
@@ -36,45 +37,42 @@
         <div class="right-column">
           <div class="card wins-losses-card">
             <div class="wins-losses-content">
-            <div class="left-legend-section">
-              <div class="card-label">Ranked Winrate</div>
-              <div class="chart-legend">
-                <div class="legend-item">
-                  <div class="legend-color wins-color"></div>
-                  <div class="legend-text">
-                    <span class="legend-value">{{ leaderboardUser?.gamesWon || 0 }}</span>
-                    <span class="legend-label">wins</span>
+              <div class="left-legend-section">
+                <div class="card-label">Ranked Winrate</div>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <div class="legend-color wins-color"></div>
+                    <div class="legend-text">
+                      <span class="legend-value">{{ leaderboardUser?.gamesWon || 0 }}</span>
+                      <span class="legend-label">wins</span>
+                    </div>
                   </div>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color losses-color"></div>
-                  <div class="legend-text">
-                    <span class="legend-value">{{ leaderboardUser?.gamesLost || 0 }}</span>
-                    <span class="legend-label">losses</span>
+                  <div class="legend-item">
+                    <div class="legend-color losses-color"></div>
+                    <div class="legend-text">
+                      <span class="legend-value">{{ leaderboardUser?.gamesLost || 0 }}</span>
+                      <span class="legend-label">losses</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="donut-chart-container">
-              <svg class="donut-chart" viewBox="0 0 100 100">
-                <!-- Background circle (red for losses) -->
-                <circle cx="50" cy="50" r="35" fill="none" 
-                  :stroke="rankedLossRate > 0 ? '#FF7F7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8" />
-                <!-- Win rate circle (green, covers the red background) -->
-                <circle cx="50" cy="50" r="35" fill="none"
-                  :stroke="rankedWinRate > 0 ? '#B6FF7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
-                  :stroke-dasharray="`${winRateCircumference} ${totalCircumference}`" 
-                  stroke-dashoffset="220"
-                  stroke-linecap="round" transform="rotate(-90 50 50)" />
-              </svg>
-              <div class="donut-center">
-                <div class="win-percentage">{{ rankedWinRate }}%</div>
+              <div class="donut-chart-container">
+                <svg class="donut-chart" viewBox="0 0 100 100" style="transform: rotate(-90deg)">
+                  <!-- Background circle (red for empty) -->
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#FF7F7F" stroke-width="8" />
+                  <!-- Win rate circle (green) -->
+                  <circle cx="50" cy="50" r="35" fill="none"
+                    :stroke="rankedWinRate > 0 ? '#B6FF7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
+                    :stroke-dasharray="strokeDashArray" stroke-dashoffset="0" stroke-linecap="round" />
+                </svg>
+                <div class="donut-center">
+                  <div class="win-percentage">{{ rankedWinRate }}%</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
     <div v-else-if="isLoading" class="loading">
       <div class="loading-spinner"></div>
@@ -107,7 +105,7 @@ export default {
   },
   computed: {
     ...mapGetters('profile', ['getProfileUserId']),
-    
+
     avatarColors() {
       const name = this.leaderboardUser?.username || 'Guest'
       return colorPairFromName(name, { bgSaturation: 90, bgLightness: 80, fgSaturation: 100, fgLightness: 30, fgHueShift: -12 })
@@ -135,6 +133,12 @@ export default {
 
     winRateCircumference() {
       return (this.rankedWinRate / 100) * this.totalCircumference
+    },
+
+    strokeDashArray() {
+      const dash = this.winRateCircumference  // Green portion
+      const gap = this.totalCircumference - this.winRateCircumference  // Gap portion
+      return `${dash} ${gap}`
     }
   },
 
@@ -157,11 +161,11 @@ export default {
 
     async fetchUserStats() {
       if (!this.getProfileUserId) return
-      
+
       this.isLoading = true
       this.errorMessage = null
       this.leaderboardUser = null
-      
+
       try {
         const id = this.getProfileUserId
         if (id) {
@@ -388,7 +392,7 @@ export default {
   width: 100%;
 }
 
-.right-column > .wins-losses-card {
+.right-column>.wins-losses-card {
   margin-top: auto;
 }
 
@@ -428,7 +432,6 @@ export default {
   position: absolute;
   width: 100%;
   height: 100%;
-  transform: rotate(-90deg);
 }
 
 .donut-chart circle {
@@ -499,7 +502,9 @@ export default {
 }
 
 /* Loading and error states */
-.loading, .error, .empty {
+.loading,
+.error,
+.empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -520,8 +525,13 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error {
@@ -557,38 +567,38 @@ export default {
     height: 64px;
     font-size: 1.4rem;
   }
-  
+
   .name {
     font-size: 1.6rem;
     letter-spacing: 0.8px;
   }
-  
+
   .elo-pill {
     font-size: 0.8rem;
     padding: 6px 10px;
   }
-  
+
   .card-label {
     font-size: 0.75rem;
     letter-spacing: 0.6px;
   }
-  
+
   .streak-number {
     font-size: 1.2rem;
   }
-  
+
   .card-value {
     font-size: 1.2rem;
   }
-  
+
   .win-percentage {
     font-size: 1.3rem;
   }
-  
+
   .legend-value {
     font-size: 1rem;
   }
-  
+
   .legend-label {
     font-size: 0.7rem;
     letter-spacing: 0.7px;
@@ -600,48 +610,48 @@ export default {
     padding: 16px 14px;
     gap: 8px;
   }
-  
+
   .hero {
     gap: 10px;
   }
-  
+
   .avatar {
     width: 56px;
     height: 56px;
     font-size: 1.2rem;
   }
-  
+
   .name {
     font-size: 1.4rem;
     letter-spacing: 0.6px;
   }
-  
+
   .elo-pill {
     font-size: 0.75rem;
     padding: 5px 8px;
   }
-  
+
   .card-label {
     font-size: 0.7rem;
     letter-spacing: 0.5px;
   }
-  
+
   .streak-number {
     font-size: 1.1rem;
   }
-  
+
   .card-value {
     font-size: 1.1rem;
   }
-  
+
   .win-percentage {
     font-size: 1.1rem;
   }
-  
+
   .legend-value {
     font-size: 0.9rem;
   }
-  
+
   .legend-label {
     font-size: 0.65rem;
     letter-spacing: 0.6px;
@@ -653,53 +663,53 @@ export default {
     padding: 14px 10px;
     gap: 6px;
   }
-  
+
   .hero {
     gap: 8px;
   }
-  
+
   .avatar {
     width: 48px;
     height: 48px;
     font-size: 1rem;
   }
-  
+
   .name {
     font-size: 1.2rem;
     letter-spacing: 0.5px;
   }
-  
+
   .elo-pill {
     font-size: 0.7rem;
     padding: 4px 6px;
   }
-  
+
   .card-label {
     font-size: 0.65rem;
     letter-spacing: 0.4px;
   }
-  
+
   .streak-number {
     font-size: 1rem;
   }
-  
+
   .card-value {
     font-size: 1rem;
   }
-  
+
   .win-percentage {
     font-size: 1rem;
   }
-  
+
   .legend-value {
     font-size: 0.8rem;
   }
-  
+
   .legend-label {
     font-size: 0.6rem;
     letter-spacing: 0.5px;
   }
-  
+
   .donut-chart-container {
     width: 120px;
     height: 120px;
@@ -711,53 +721,53 @@ export default {
     padding: 12px 8px;
     gap: 5px;
   }
-  
+
   .hero {
     gap: 6px;
   }
-  
+
   .avatar {
     width: 40px;
     height: 40px;
     font-size: 0.9rem;
   }
-  
+
   .name {
     font-size: 1.1rem;
     letter-spacing: 0.4px;
   }
-  
+
   .elo-pill {
     font-size: 0.65rem;
     padding: 3px 5px;
   }
-  
+
   .card-label {
     font-size: 0.6rem;
     letter-spacing: 0.3px;
   }
-  
+
   .streak-number {
     font-size: 0.9rem;
   }
-  
+
   .card-value {
     font-size: 0.9rem;
   }
-  
+
   .win-percentage {
     font-size: 0.9rem;
   }
-  
+
   .legend-value {
     font-size: 0.75rem;
   }
-  
+
   .legend-label {
     font-size: 0.55rem;
     letter-spacing: 0.4px;
   }
-  
+
   .donut-chart-container {
     width: 100px;
     height: 100px;
