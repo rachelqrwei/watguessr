@@ -62,7 +62,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    @RateLimit(requests = 300, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many profile requests.")
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many profile requests.")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

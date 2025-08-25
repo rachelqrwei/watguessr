@@ -63,7 +63,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/{roundId}/scene")
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many scene requests.")
+    @RateLimit(requests = 50, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many scene requests.")
     public SceneDto getRoundScene(@PathVariable UUID roundId, @RequestParam(required = false) UUID userId) {
         // Make sure all guesses are in before allowing return scene.
         Round round = roundService.findById(roundId);

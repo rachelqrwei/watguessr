@@ -20,7 +20,7 @@ public class BuildingController {
     }
 
     @GetMapping("/all") // used in game state to check for available floors.
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many building list requests.")
+    @RateLimit(requests = 50, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many building list requests.")
     public List<Building> getAllBuildings() {
         return buildingService.findAll();
     }

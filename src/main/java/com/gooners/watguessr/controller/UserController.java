@@ -73,7 +73,7 @@ public class UserController {
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "50") Integer limit) {
+            @RequestParam(required = false, defaultValue = "5") Integer limit) {
 
         return ResponseEntity.ok(userService.getLeaderboard(searchTerm, sortBy, limit, offset));
     }
@@ -101,9 +101,21 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}/leaderboard") // for the profile stats section
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many leaderboard user requests.")
+    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many leaderboard user requests.")
     public LeaderboardUser getLeaderboardUserById(@PathVariable UUID id) {
         return userService.getLeaderboardUserById(id);
+    }
+
+    @GetMapping(value = "/{id}/ranked-stats") // for ranked-only statistics
+    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many ranked stats requests.")
+    public LeaderboardUser getRankedStatsForUser(@PathVariable UUID id) {
+        return userService.getRankedStatsForUser(id);
+    }
+
+    @GetMapping(value = "/{id}/total-games") // for total games played
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many total games requests.")
+    public Integer getTotalGamesPlayedForUser(@PathVariable UUID id) {
+        return userService.getTotalGamesPlayedForUser(id);
     }
 
     @PostMapping("/report-bug")

@@ -39,7 +39,7 @@ public class GameController {
     }
 
     @GetMapping(value = "/lobby/{lobbyId}")
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many lobby fetch requests.")
+    @RateLimit(requests = 50, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many lobby fetch requests.")
     public LobbyDto getLobbyById(@PathVariable UUID lobbyId) {
         return gameService.getLobbyById(lobbyId);
     }

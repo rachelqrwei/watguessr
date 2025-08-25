@@ -25,7 +25,7 @@ public class SceneController {
     }
 
     @GetMapping(value = "/image")
-    @RateLimit(requests = 200, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many image requests.")
+    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many image requests.")
     public ResponseEntity<byte[]> getImage(@RequestParam UUID roundId) {
         // TODO: ??????.
         try (ResponseInputStream<GetObjectResponse> objectStream = sceneService.getImageByRoundId(roundId)) {

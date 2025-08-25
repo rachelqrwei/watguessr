@@ -18,12 +18,12 @@ import java.util.UUID;
 public interface GameRepository extends JpaRepository<Game, UUID> {
     
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
-           "WHERE g.winner IS NOT NULL AND g.winner.id = :userId AND g.gameMode <> 'Singleplayer'")
-    Integer countGamesWonByUser(@Param("userId") UUID userId);
+           "WHERE g.winner IS NOT NULL AND g.winner.id = :userId AND g.gameMode = 'Ranked'")
+    Integer countRankedGamesWonByUser(@Param("userId") UUID userId);
 
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
-            "WHERE g.winner IS NOT NULL AND g.winner.id != :userId AND g.gameMode <> 'Singleplayer'")
-    Integer countGamesLostByUser(@Param("userId") UUID userId);
+            "WHERE g.winner IS NOT NULL AND g.winner.id != :userId AND g.gameMode = 'Ranked'")
+    Integer countRankedGamesLostByUser(@Param("userId") UUID userId);
 
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
            "JOIN Round r ON r.game.id = g.id " +

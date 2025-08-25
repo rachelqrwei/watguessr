@@ -3,7 +3,9 @@ package com.gooners.watguessr.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -150,8 +152,7 @@ public class UserService {
 
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
-        int requestedLimit = limit != null ? limit : 20;
-        int actualLimit = Math.min(Math.max(requestedLimit, 1), 50); // enforce 1..50
+        int actualLimit = 5;
         int actualOffset = offset != null ? offset : 0;
 
         int page = actualOffset / actualLimit;
@@ -169,13 +170,17 @@ public class UserService {
             case "gamesLostDesc" ->
                     leaderboardUsers.sort((a, b) -> Integer.compare(b.getGamesLost(), a.getGamesLost()));
             case "winRateDesc" -> leaderboardUsers.sort((a, b) -> {
-                double winRateA = a.getGamesPlayed() > 0 ? (double) a.getGamesWon() / a.getGamesPlayed() : 0;
-                double winRateB = b.getGamesPlayed() > 0 ? (double) b.getGamesWon() / b.getGamesPlayed() : 0;
+                int rankedGamesA = a.getGamesWon() + a.getGamesLost();
+                int rankedGamesB = b.getGamesWon() + b.getGamesLost();
+                double winRateA = rankedGamesA > 0 ? (double) a.getGamesWon() / rankedGamesA : 0;
+                double winRateB = rankedGamesB > 0 ? (double) b.getGamesWon() / rankedGamesB : 0;
                 return Double.compare(winRateB, winRateA);
             });
             case "winRateAsc" -> leaderboardUsers.sort((a, b) -> {
-                double winRateA = a.getGamesPlayed() > 0 ? (double) a.getGamesWon() / a.getGamesPlayed() : 0;
-                double winRateB = b.getGamesPlayed() > 0 ? (double) b.getGamesWon() / b.getGamesPlayed() : 0;
+                int rankedGamesA = a.getGamesWon() + a.getGamesLost();
+                int rankedGamesB = b.getGamesWon() + b.getGamesLost();
+                double winRateA = rankedGamesA > 0 ? (double) a.getGamesWon() / rankedGamesA : 0;
+                double winRateB = rankedGamesB > 0 ? (double) b.getGamesWon() / rankedGamesB : 0;
                 return Double.compare(winRateA, winRateB);
             });
         }
@@ -191,20 +196,47 @@ public class UserService {
         return convertToLeaderboardUser(user);
     }
 
+    public LeaderboardUser getRankedStatsForUser(UUID userId) {
+        User user = findById(userId);
+        LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
+
+        // Get ranked-only statistics
+        Integer rankedGamesWon = gameRepository.countRankedGamesWonByUser(userId);
+        Integer rankedGamesLost = gameRepository.countRankedGamesLostByUser(userId);
+
+        rankedGamesWon = rankedGamesWon != null ? rankedGamesWon : 0;
+        rankedGamesLost = rankedGamesLost != null ? rankedGamesLost : 0;
+        Integer rankedGamesPlayed = rankedGamesWon + rankedGamesLost;
+
+        leaderboardUser.setGamesPlayed(rankedGamesPlayed);
+        leaderboardUser.setGamesWon(rankedGamesWon);
+        leaderboardUser.setGamesLost(rankedGamesLost);
+
+        return leaderboardUser;
+    }
+
+    public Integer getTotalGamesPlayedForUser(UUID userId) {
+        Integer totalGamesPlayed = gameRepository.countGamesPlayedByUser(userId);
+        return totalGamesPlayed != null ? totalGamesPlayed : 0;
+    }
+
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 
-        Integer gamesPlayed = gameRepository.countGamesPlayedByUser(user.getId());
-        Integer gamesWon = gameRepository.countGamesWonByUser(user.getId());
-        Integer gamesLost = gameRepository.countGamesLostByUser(user.getId());
+        // Get total games played (all modes)
+        Integer totalGamesPlayed = gameRepository.countGamesPlayedByUser(user.getId());
+        
+        // Get ranked-only statistics for winrate calculation
+        Integer rankedGamesWon = gameRepository.countRankedGamesWonByUser(user.getId());
+        Integer rankedGamesLost = gameRepository.countRankedGamesLostByUser(user.getId());
 
-        gamesPlayed = gamesPlayed != null ? gamesPlayed : 0;
-        gamesWon = gamesWon != null ? gamesWon : 0;
-        gamesLost = gamesLost != null ? gamesLost : 0;
+        totalGamesPlayed = totalGamesPlayed != null ? totalGamesPlayed : 0;
+        rankedGamesWon = rankedGamesWon != null ? rankedGamesWon : 0;
+        rankedGamesLost = rankedGamesLost != null ? rankedGamesLost : 0;
 
-        leaderboardUser.setGamesPlayed(gamesPlayed);
-        leaderboardUser.setGamesWon(gamesWon);
-        leaderboardUser.setGamesLost(gamesLost);
+        leaderboardUser.setGamesPlayed(totalGamesPlayed);
+        leaderboardUser.setGamesWon(rankedGamesWon);
+        leaderboardUser.setGamesLost(rankedGamesLost);
 
         return leaderboardUser;
     }

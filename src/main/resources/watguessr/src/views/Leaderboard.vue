@@ -144,7 +144,7 @@
 
           <button
             @click="nextPage"
-            :disabled="!limitedLeaderboard || limitedLeaderboard.length < 50"
+            :disabled="!limitedLeaderboard || limitedLeaderboard.length < 5"
             class="pagination-button"
           >
             Next
@@ -187,7 +187,7 @@ export default {
     }),
     limitedLeaderboard() {
       if (!this.leaderboard) return []
-      return this.leaderboard.slice(0, 50)
+      return this.leaderboard.slice(0, 5)
     }
   },
 
@@ -212,7 +212,7 @@ export default {
         ...this.currentQuery,
         searchTerm: this.searchTerm,
         offset: 0,
-        limit: 50
+        limit: 5
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -223,7 +223,7 @@ export default {
         ...this.currentQuery,
         sortBy: this.sortBy,
         offset: 0, // Reset to first page when sorting
-        limit: 50
+        limit: 5
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -235,7 +235,7 @@ export default {
     },
 
     previousPage() {
-      const pageSize = 50
+      const pageSize = 5
       const newOffset = Math.max(0, (this.currentPage - 2) * pageSize)
       const query = {
         ...this.currentQuery,
@@ -247,7 +247,7 @@ export default {
     },
 
     nextPage() {
-      const pageSize = 50
+      const pageSize = 5
       const newOffset = this.currentPage * pageSize
       const query = {
         ...this.currentQuery,
@@ -264,7 +264,7 @@ export default {
     },
 
     getRank(index) {
-      const pageSize = 50
+      const pageSize = 5
       return (this.currentPage - 1) * pageSize + index + 1
     },
 
@@ -278,8 +278,8 @@ export default {
 
 
     getWinRate(player) {
-      if (!player || player.gamesPlayed === 0) return 0
-      return Math.round((player.gamesWon / player.gamesPlayed) * 100)
+      if (!player || (player.gamesWon + player.gamesLost) === 0) return 0
+      return Math.round((player.gamesWon / (player.gamesWon + player.gamesLost)) * 100)
     }
   },
 
