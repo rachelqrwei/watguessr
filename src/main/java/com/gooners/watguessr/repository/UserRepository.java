@@ -1,6 +1,7 @@
 package com.gooners.watguessr.repository;
 
 import com.gooners.watguessr.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,7 +28,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "CASE WHEN :sortBy = 'createdAtDesc' THEN u.createdAt END DESC, " +
             "CASE WHEN :sortBy = 'streakDesc' THEN u.streak END DESC, " +
             "CASE WHEN :sortBy IS NULL OR :sortBy = '' OR :sortBy = 'elo' THEN u.elo END DESC")
-    List<User> findSorted(@Param("keyword") String keyword,
+    Page<User> findSorted(@Param("keyword") String keyword,
             @Param("sortBy") String sortBy,
             Pageable pageable);
 
