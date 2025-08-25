@@ -18,7 +18,7 @@ export const mutations = {
     state.currentQuery = {
       searchTerm: '',
       sortBy: 'elo',
-      limit: 50,
+      limit: 5,
       offset: 0,
     };
   },
