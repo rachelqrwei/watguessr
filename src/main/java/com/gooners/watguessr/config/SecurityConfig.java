@@ -92,6 +92,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/*/leaderboard").permitAll()
                         .requestMatchers("/api/user/*/match-history").permitAll()
                         .requestMatchers("/api/game/lobby/public").permitAll()
+                        .requestMatchers("api/round/by-game-with-guesses").permitAll()
                         .requestMatchers("/ws-game/**", "/ws-matchmaking/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
