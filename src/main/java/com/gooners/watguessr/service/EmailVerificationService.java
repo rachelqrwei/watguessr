@@ -78,7 +78,7 @@ public class EmailVerificationService {
                      "This code will expire in 5 minutes.\n\n" +
                      "\n\n" +
                      "If you accidentally close the verification modal, you can always resend it with the following link:\n" +
-                     redirectUrl;
+                     redirectUrl + "\n\n";
 
         sendEmail(to, subject, body);
     }
@@ -110,21 +110,15 @@ public class EmailVerificationService {
         
         // Create the OTP redirect URL using the provided username
         String redirectUrl = frontendBaseUrl + "/?email=" + to + "&username=" + username + "&action=send-otp";
-        
-        String subject = "Verify Your WatGuessr Account - OTP Code";
-        String body = "Hello " + username + ",\n\n" +
-                "Thank you for signing up for WatGuessr! To complete your account verification, please use the following verification code:\n\n" +
-                "🔐 Verification Code: " + otp + "\n\n" +
-                "⏰ This code will expire in 5 minutes.\n\n" +
-                "📱 Quick Verification:\n" +
-                "Click the link below to verify your account:\n" +
-                redirectUrl + "\n\n" +
-                "🔗 Manual Verification:\n" +
-                "If the link doesn't work, copy and paste it into your browser:\n" +
-                redirectUrl + "\n\n" +
-                "🪿 gauk-guak! Your journey through campus magic is just beginning!\n" +
-                "Step right into the fun world of WatGuessr," + "\n\n" +
-                "The WatGuessr Team";
+
+        String subject = "Verify Your WatGuessr Account";
+        String body = "Hi " + username + ",\n\n" +
+                "Thanks for signing up for WatGuessr! To complete your account verification, please use the following verification code:\n\n" +
+                "VERIFICATION CODE: " + otp + "\n\n" +
+                "This code will expire in 5 minutes.\n\n" +
+                "\n\n" +
+                "If you accidentally close the verification modal, you can always resend it with the following link:\n" +
+                redirectUrl + "\n\n";
 
         sendEmail(to, subject, body);
     }
