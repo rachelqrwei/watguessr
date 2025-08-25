@@ -79,11 +79,6 @@ public class GoogleAuthController {
         res.sendRedirect(authUrl);
     }
 
-    @PostMapping("/start")
-    public void startPost(HttpServletResponse res, HttpSession session) throws IOException {
-        // Reuse the same logic as GET endpoint
-        start(res, session);
-    }
 
     @GetMapping("/callback")
     public void callback(
