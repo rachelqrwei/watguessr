@@ -52,6 +52,9 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     
+    # Content Security Policy for Google OAuth
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.mapbox.com https://accounts.google.com https://www.gstatic.com https://www.googleapis.com; style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.mapbox.com https://accounts.google.com https://www.googleapis.com https://oauth2.googleapis.com; frame-src 'self' https://accounts.google.com; base-uri 'self';" always;
+    
     # Cache static assets
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
