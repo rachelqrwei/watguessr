@@ -61,6 +61,7 @@ public class SecurityConfig {
                         
                         // Public data endpoints (leaderboards, stats)
                         .requestMatchers("/api/user/leaderboard/**").permitAll()
+                        .requestMatchers("/api/round/by-game-with-guesses").permitAll()
                         .requestMatchers("/api/user/*/leaderboard").permitAll()
                         .requestMatchers("/api/user/*/match-history").permitAll()
                         
