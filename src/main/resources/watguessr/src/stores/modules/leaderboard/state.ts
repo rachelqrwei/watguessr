@@ -1,7 +1,7 @@
 // src/store/modules/leaderboard/state.ts
 import type { LeaderboardState } from './types';
 
-export const state = (): LeaderboardState => ({
+export const state: LeaderboardState = {
   leaderboardData: null,
   loading: false,
   error: null,
@@ -9,6 +9,6 @@ export const state = (): LeaderboardState => ({
     searchTerm: '',
     sortBy: 'elo',
     limit: 50,
-    offset: 0,
-  },
-});
+    offset: 0
+  }
+}
