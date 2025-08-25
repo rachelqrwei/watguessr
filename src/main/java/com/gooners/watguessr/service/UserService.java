@@ -162,14 +162,14 @@ public class UserService {
         List<LeaderboardUser> leaderboardUsers = results.stream()
                 .map(result -> {
                     User user = (User) result[0];
-                    Integer gamesWon = (Integer) result[1];
-                    Integer gamesLost = (Integer) result[2];
-                    Integer gamesPlayed = (Integer) result[3];
+                    Long gamesWon = (Long) result[1];
+                    Long gamesLost = (Long) result[2];
+                    Long gamesPlayed = (Long) result[3];
                     
                     LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
-                    leaderboardUser.setGamesWon(gamesWon != null ? gamesWon : 0);
-                    leaderboardUser.setGamesLost(gamesLost != null ? gamesLost : 0);
-                    leaderboardUser.setGamesPlayed(gamesPlayed != null ? gamesPlayed : 0);
+                    leaderboardUser.setGamesWon(gamesWon != null ? gamesWon.intValue() : 0);
+                    leaderboardUser.setGamesLost(gamesLost != null ? gamesLost.intValue() : 0);
+                    leaderboardUser.setGamesPlayed(gamesPlayed != null ? gamesPlayed.intValue() : 0);
                     
                     return leaderboardUser;
                 })
