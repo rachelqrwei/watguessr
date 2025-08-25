@@ -77,6 +77,7 @@ public class GoogleAuthController {
                 .queryParam("scope", encodedScope)
                 .queryParam("state", state)
                 .queryParam("nonce", nonce)
+                .queryParam("prompt", "select_account")
                 .build(true).toUriString();
 
         res.sendRedirect(authUrl);
