@@ -186,27 +186,7 @@ public class UserService {
         return convertToLeaderboardUser(user);
     }
 
-    public LeaderboardUser getRankedStatsForUser(UUID userId) {
-        User user = findById(userId);
-        LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 
-        // Get total games played (all modes)
-        Integer totalGamesPlayed = gameRepository.countGamesPlayedByUser(userId);
-        
-        // Get ranked-only statistics for winrate calculation
-        Integer rankedGamesWon = gameRepository.countRankedGamesWonByUser(userId);
-        Integer rankedGamesLost = gameRepository.countRankedGamesLostByUser(userId);
-
-        totalGamesPlayed = totalGamesPlayed != null ? totalGamesPlayed : 0;
-        rankedGamesWon = rankedGamesWon != null ? rankedGamesWon : 0;
-        rankedGamesLost = rankedGamesLost != null ? rankedGamesLost : 0;
-
-        leaderboardUser.setGamesPlayed(totalGamesPlayed);
-        leaderboardUser.setGamesWon(rankedGamesWon);
-        leaderboardUser.setGamesLost(rankedGamesLost);
-
-        return leaderboardUser;
-    }
 
 
 

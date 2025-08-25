@@ -30,13 +30,10 @@
         >
           <option value="elo">Highest ELO</option>
           <option value="streakDesc">Highest Streak</option>
-          <option value="gamesWonDesc">Most Games Won</option>
           <option value="gamesPlayedDesc">Most Games Played</option>
-          <option value="gamesLostDesc">Most Games Lost</option>
-          <option value="winRateDesc">Highest Win Rate</option>
-          <option value="winRateAsc">Lowest Win Rate</option>
+          <option value="rankedWinsDesc">Most Ranked Wins</option>
+          <option value="rankedLossesDesc">Most Ranked Losses</option>
           <option value="createdAtAsc">Oldest Players</option>
-          <option value="createdAtDesc">Newest Players</option>
         </select>
       </div>
     </div>

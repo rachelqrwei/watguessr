@@ -50,24 +50,6 @@ public class UserController {
         this.mailSender = mailSender;
     }
 
-    @PostMapping(value = "/register")
-    @RateLimit(requests = 3, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many registration attempts.")
-    public void register(@RequestBody @Valid User user) {
-        this.userService.create(user);
-    }
-
-    @GetMapping(value = "/{id}")
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many user fetch requests.")
-    public UserDto getUser(@PathVariable UUID id) {
-        return this.userMapper.toDto(this.userService.findById(id));
-    }
-
-    @GetMapping(value = "/all")
-    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many user list requests.")
-    public List<UserDto> getSorted(String keyword, String sortBy, int page, int pageSize) {
-        return this.userService.findSorted(keyword, sortBy, page, pageSize).stream().map(userMapper::toDto).toList();
-    }
-
     @GetMapping(value = "/leaderboard")
     public ResponseEntity<QueryResults<LeaderboardUser>> getLeaderboard(
             @RequestParam(required = false) String searchTerm,
@@ -76,18 +58,6 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "5") Integer limit) {
 
         return ResponseEntity.ok(userService.getLeaderboard(searchTerm, sortBy, limit, offset));
-    }
-
-    @PostMapping("/verify-otp")
-    @RateLimit(requests = 10, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OTP verification attempts.")
-    public ResponseEntity<Void> verifyOtp(@RequestParam String email, @RequestParam String submittedOtp) {
-        var success = emailVerificationService.verify(email, submittedOtp); // checks + side effects. String email,
-                                                                            // String submittedCode
-        if (success) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(400).build();
-        }
     }
 
     @GetMapping(value = "/{id}/match-history")
@@ -106,19 +76,11 @@ public class UserController {
         return userService.getLeaderboardUserById(id);
     }
 
-    @GetMapping(value = "/{id}/ranked-stats") // for ranked-only statistics
-    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many ranked stats requests.")
-    public LeaderboardUser getRankedStatsForUser(@PathVariable UUID id) {
-        return userService.getRankedStatsForUser(id);
-    }
-
-
 
     @PostMapping("/report-bug")
     @RateLimit(requests = 5, timeWindow = 5, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many bug reports. Please wait before submitting another.")
     public ResponseEntity<String> reportBug(@RequestBody BugReportRequest request) {
         try {
-            // Create email message
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo("watguessr@gmail.com");
             message.setSubject(request.getSubject());

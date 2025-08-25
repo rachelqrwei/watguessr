@@ -57,16 +57,15 @@
             </div>
             <div class="donut-chart-container">
               <svg class="donut-chart" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="8" />
+                <!-- Background circle (red for losses) -->
+                <circle cx="50" cy="50" r="35" fill="none" 
+                  :stroke="rankedLossRate > 0 ? '#FF7F7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8" />
+                <!-- Win rate circle (green, covers the red background) -->
                 <circle cx="50" cy="50" r="35" fill="none"
                   :stroke="rankedWinRate > 0 ? '#B6FF7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
-                  :stroke-dasharray="`${rankedWinRate * 2.199} ${(100 - rankedWinRate) * 2.199}`" stroke-dashoffset="54.975"
+                  :stroke-dasharray="`${winRateCircumference} ${totalCircumference}`" 
+                  stroke-dashoffset="220"
                   stroke-linecap="round" transform="rotate(-90 50 50)" />
-                <circle cx="50" cy="50" r="35" fill="none"
-                  :stroke="rankedLossRate > 0 ? '#FF7F7F' : 'rgba(255, 255, 255, 0.1)'" stroke-width="8"
-                  :stroke-dasharray="`${rankedLossRate * 2.199} ${(100 - rankedLossRate) * 2.199}`"
-                  :stroke-dashoffset="`${54.975 - (rankedWinRate * 2.199)}`" stroke-linecap="round"
-                  transform="rotate(-90 50 50)" />
               </svg>
               <div class="donut-center">
                 <div class="win-percentage">{{ rankedWinRate }}%</div>
@@ -126,6 +125,16 @@ export default {
     rankedLossRate() {
       if (this.rankedGamesPlayed === 0) return 0
       return Math.round((this.leaderboardUser.gamesLost / this.rankedGamesPlayed) * 100)
+    },
+
+    // Donut chart circumference calculations
+    totalCircumference() {
+      const radius = 35
+      return 2 * Math.PI * radius
+    },
+
+    winRateCircumference() {
+      return (this.rankedWinRate / 100) * this.totalCircumference
     }
   },
 
@@ -133,7 +142,7 @@ export default {
     getProfileUserId: {
       handler(newUserId) {
         if (newUserId) {
-          this.fetchRankedStats()
+          this.fetchUserStats()
         } else {
           this.leaderboardUser = null
           this.errorMessage = 'No user selected.'
@@ -146,7 +155,7 @@ export default {
   methods: {
     ...mapActions('user', ['fetchLeaderboardForUserId']),
 
-    async fetchRankedStats() {
+    async fetchUserStats() {
       if (!this.getProfileUserId) return
       
       this.isLoading = true
@@ -156,11 +165,9 @@ export default {
       try {
         const id = this.getProfileUserId
         if (id) {
-          // Use the ranked stats endpoint which now includes total games played
-          const response = await fetch(`/api/users/${id}/ranked-stats`)
-          if (response.ok) {
-            this.leaderboardUser = await response.json()
-          } else {
+          // Use the existing leaderboard endpoint which has all the same data
+          this.leaderboardUser = await this.fetchLeaderboardForUserId(id)
+          if (!this.leaderboardUser) {
             throw new Error('Failed to fetch user stats')
           }
         } else {
