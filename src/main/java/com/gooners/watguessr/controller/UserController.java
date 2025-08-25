@@ -73,7 +73,7 @@ public class UserController {
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "50") Integer limit) {
+            @RequestParam(required = false, defaultValue = "5") Integer limit) {
 
         return ResponseEntity.ok(userService.getLeaderboard(searchTerm, sortBy, limit, offset));
     }
