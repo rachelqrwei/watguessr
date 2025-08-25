@@ -12,7 +12,10 @@ export function joinRankedQueue(userId: string) {
     };
     stompClient.send('/app/matchmaking/join', {}, JSON.stringify(message));
   } else {
-    console.warn('⚠️ WebSocket not connected, cannot join queue');
+    console.warn('⚠️ WebSocket not connected, cannot join queue', {
+      stompClient: !!stompClient,
+      connected: stompClient?.connected || false
+    });
   }
 }
 
@@ -33,11 +36,14 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
   onMatchFound?: (matchInfo: any) => void;
   onQueueTimeout?: (message: string) => void;
   onError?: (error: string) => void;
+  onConnected?: () => void; // Add callback for when connection is ready
 } = {}) {
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-matchmaking`);
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, () => {
+    console.log('✅ Matchmaking WebSocket connected');
+
     // Subscribe to matchmaking updates
     stompClient!.subscribe(`/topic/matchmaking/${userId}`, (message) => {
       const data = JSON.parse(message.body);
@@ -58,6 +64,9 @@ export function connectToMatchmakingWebSocket(userId: string, callbacks: {
           break;
       }
     });
+
+    // Notify that connection is ready
+    callbacks.onConnected?.();
 
   }, (error: any) => {
     console.error('❌ WebSocket connection error:', error);
