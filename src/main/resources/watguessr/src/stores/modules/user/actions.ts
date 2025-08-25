@@ -248,33 +248,8 @@ export const actions = {
       commit('SET_LOADING', false);
     }
   },
-
-  async startGoogleAuth() {
-    try {
-      // Make explicit GET request to start Google OAuth
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-      
-      if (response.redirected) {
-        // If the server redirects, follow the redirect
-        window.location.href = response.url;
-      } else {
-        // If no redirect, try to get the redirect URL from response
-        const redirectUrl = response.headers.get('Location');
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          throw new Error('No redirect URL received from server');
-        }
-      }
-    } catch (err) {
-      console.error('Failed to start Google auth:', err);
-      // Fallback to direct redirect
-      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
-      throw err;
-    }
+  startGoogleAuth() {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
   },
   // Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {

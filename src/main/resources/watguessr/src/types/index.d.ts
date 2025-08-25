@@ -23,3 +23,22 @@ export interface UserDto {
   elo?: number;
   streak?: number;
 }
+
+export interface LeaderboardUser {
+  id: string
+  username: string
+  elo: number
+  streak: number
+  gamesPlayed: number
+  gamesWon: number
+  gamesLost: number
+  rankedGamesPlayed: number
+  rankedGamesWon: number
+  rankedGamesLost: number
+  createdAt: string
+}
+
+export interface QueryResults<T> {
+  results: T[]
+  totalCount: number
+}

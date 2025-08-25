@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,7 @@ public class UserService {
                 .orElse(null);
     }
 
-    public List<User> findSorted(String keyword, String sortBy, int page, int pageSize) {
+    public Page<User> findSorted(String keyword, String sortBy, int page, int pageSize) {
         return userRepository.findSorted(keyword, sortBy, PageRequest.of(page, pageSize));
     }
 
@@ -150,15 +151,15 @@ public class UserService {
 
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
-        int requestedLimit = limit != null ? limit : 20;
+        int requestedLimit = limit != null ? limit : 20; 
         int actualLimit = Math.min(Math.max(requestedLimit, 1), 50); // enforce 1..50
         int actualOffset = offset != null ? offset : 0;
 
         int page = actualOffset / actualLimit;
 
-        List<User> users = userRepository.findSorted(searchTerm, actualSortBy, PageRequest.of(page, actualLimit));
+        Page<User> userPage = userRepository.findSorted(searchTerm, actualSortBy, PageRequest.of(page, actualLimit));
 
-        List<LeaderboardUser> leaderboardUsers = users.stream()
+        List<LeaderboardUser> leaderboardUsers = userPage.getContent().stream()
                 .map(this::convertToLeaderboardUser)
                 .collect(Collectors.toList());
 
@@ -180,9 +181,7 @@ public class UserService {
             });
         }
 
-        QueryResults<LeaderboardUser> queryResults = new QueryResults<>();
-        queryResults.setResults(leaderboardUsers);
-
+        QueryResults<LeaderboardUser> queryResults = new QueryResults<>(leaderboardUsers, userPage.getTotalElements());
         return queryResults;
     }
 
@@ -198,13 +197,24 @@ public class UserService {
         Integer gamesWon = gameRepository.countGamesWonByUser(user.getId());
         Integer gamesLost = gameRepository.countGamesLostByUser(user.getId());
 
+        Integer rankedGamesPlayed = gameRepository.countRankedGamesPlayedByUser(user.getId());
+        Integer rankedGamesWon = gameRepository.countRankedGamesWonByUser(user.getId());
+        Integer rankedGamesLost = gameRepository.countRankedGamesLostByUser(user.getId());
+
         gamesPlayed = gamesPlayed != null ? gamesPlayed : 0;
         gamesWon = gamesWon != null ? gamesWon : 0;
         gamesLost = gamesLost != null ? gamesLost : 0;
 
+        rankedGamesPlayed = rankedGamesPlayed != null ? rankedGamesPlayed : 0;
+        rankedGamesWon = rankedGamesWon != null ? rankedGamesWon : 0;
+        rankedGamesLost = rankedGamesLost != null ? rankedGamesLost : 0;
+
         leaderboardUser.setGamesPlayed(gamesPlayed);
         leaderboardUser.setGamesWon(gamesWon);
         leaderboardUser.setGamesLost(gamesLost);
+        leaderboardUser.setRankedGamesPlayed(rankedGamesPlayed);
+        leaderboardUser.setRankedGamesWon(rankedGamesWon);
+        leaderboardUser.setRankedGamesLost(rankedGamesLost);
 
         return leaderboardUser;
     }
