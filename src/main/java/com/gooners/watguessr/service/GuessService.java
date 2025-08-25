@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -33,6 +34,21 @@ public class GuessService {
         // check if guess can be instantiated
         if (guess.getPoints() != null) {
             throw new RuntimeException("points can't be set");
+        }
+
+        // Check for existing guess for this user and round to prevent duplicates
+        if (guess.getUser() != null && guess.getUser().getId() != null && 
+            guess.getRound() != null && guess.getRound().getId() != null) {
+            
+            Optional<Guess> existingGuess = guessRepository.findFirstByRoundIdAndUserId(
+                guess.getRound().getId(), 
+                guess.getUser().getId()
+            );
+            
+            if (existingGuess.isPresent()) {
+                // Return existing guess instead of creating a duplicate
+                return existingGuess.get();
+            }
         }
 
         // object instantiation
@@ -70,6 +86,10 @@ public class GuessService {
 
     public List<Guess> findAll() {
         return guessRepository.findAll();
+    }
+
+    public Optional<Guess> findByRoundIdAndUserId(UUID roundId, UUID userId) {
+        return guessRepository.findFirstByRoundIdAndUserId(roundId, userId);
     }
 
 

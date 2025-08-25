@@ -320,7 +320,7 @@ public class RankedGameStateService {
 				.put(userId, Instant.now());
 	}
 
-	@Scheduled(fixedRate = 30000) // every 30 seconds
+	@Scheduled(fixedRate = 10000) // every 30 seconds
 	public void cleanupInactiveUsers() {
 		if (gameStates.isEmpty()) {
 			return;

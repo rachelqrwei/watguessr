@@ -33,7 +33,7 @@ export default {
     ...mapGetters('gameInfo', ['getGameMode']),
     ...mapGetters('singleplayerGame', ['singleplayerGame_getTimer']),
     ...mapGetters('multiplayerGame', ['multiplayerGame_getTimer']),
-    ...mapGetters('guess', ['getGuessTime']),
+    ...mapGetters('guess', ['getGuessTime', 'getIsSubmitting', 'getHasSubmitted']),
     ...mapGetters('rankedGame', ['rankedGame_getTimer']),
     totalTime() {
       if (this.getGameMode == 'singleplayer') {
@@ -99,6 +99,12 @@ export default {
           // Time limit reached
           this.clearTimer();
 
+          // Check if already submitting or has already submitted
+          if (this.getIsSubmitting || this.getHasSubmitted) {
+            console.log('Guess submission already in progress or completed');
+            return;
+          }
+
           // Set default values for timeout submission
           // This ensures the backend receives valid data for default guess fallback
           if (!this.$store.state.guess.building || this.$store.state.guess.guessX === null) {
@@ -111,6 +117,7 @@ export default {
           }
 
           // Use the same flow as manual submission so scoring/ending logic is consistent
+          // The submitGuess action will handle submission state checks internally
           await this.submitGuess();
         }
       }, 100); // Update every 100ms

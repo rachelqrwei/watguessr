@@ -165,7 +165,9 @@ export default {
       'getGuessX',
       'getGuessY',
       'getGuessBuilding',
-      'getGuessFloor'
+      'getGuessFloor',
+      'getIsSubmitting',
+      'getHasSubmitted'
     ]),
     ...mapGetters('building', [
       'getBuildingsMap'
@@ -388,6 +390,17 @@ export default {
     },
 
     async handleSubmit() {
+      // Check if already submitting or has already submitted
+      if (this.getIsSubmitting) {
+        console.log('Guess submission already in progress');
+        return;
+      }
+
+      if (this.getHasSubmitted) {
+        console.log('Guess has already been submitted for this round');
+        return;
+      }
+
       // Check if the building exists in our database
       const buildingExists = this.getBuildingsMap && this.getBuildingsMap[this.getGuessBuilding];
       if (!buildingExists) {
