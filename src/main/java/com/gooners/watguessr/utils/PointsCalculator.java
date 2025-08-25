@@ -92,11 +92,11 @@ public class PointsCalculator {
         } else if ("Ranked".equals(mode)) {
             totalMs = 20_000L;
         } else if ("Multiplayer".equals(mode)) {
-            Integer configuredSeconds = game.getMultiplayerTimer();
-            if (configuredSeconds == null || configuredSeconds <= 0) {
-                configuredSeconds = 60; // sensible default
+            Integer configuredMs = game.getMultiplayerTimer();
+            if (configuredMs == null || configuredMs <= 0) {
+                configuredMs = 30000; // sensible default (30 seconds in milliseconds)
             }
-            totalMs = configuredSeconds.longValue() * 1000L;
+            totalMs = configuredMs.longValue();
         } else {
             totalMs = 60_000L;
         }

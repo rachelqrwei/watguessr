@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/guess")
@@ -42,7 +43,6 @@ public class GuessController {
     @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto) {
-        // TODO: Make sure only one guess per round per user is allowed.
         // Fetch managed entities from database
         Round round = roundService.findById(createDto.getRoundId());
         User user = userService.findById(createDto.getUserId());
@@ -68,7 +68,21 @@ public class GuessController {
     @MessageMapping("/guess") // client sends to /app/guess
     @SendTo("/topic/guesses")
     public Guess processGuessInMultiplayerGame(Guess guess) {
-        // TODO: Make sure only one guess per round per user is allowed.
+        // Check for existing guess to prevent duplicates in multiplayer
+        if (guess.getUser() != null && guess.getUser().getId() != null && 
+            guess.getRound() != null && guess.getRound().getId() != null) {
+            
+            Optional<Guess> existingGuess = guessService.findByRoundIdAndUserId(
+                guess.getRound().getId(), 
+                guess.getUser().getId()
+            );
+            
+            if (existingGuess.isPresent()) {
+                // Return existing guess instead of processing duplicate
+                return existingGuess.get();
+            }
+        }
+        
         return guess;
     }
 

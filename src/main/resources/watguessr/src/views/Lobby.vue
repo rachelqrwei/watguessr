@@ -269,7 +269,7 @@ export default {
             isPrivate: this.$route.query.lobbyCode ? true : false,
             lobbyCode: this.$route.query.lobbyCode,
             multiplayerRoundCount: 5, // Default values
-            multiplayerTimer: 60,
+            multiplayerTimer: 30000,
             maxPlayers: 8
           };
         }
@@ -337,7 +337,7 @@ export default {
 
               // Set game settings from lobby info
               this.$store.commit('multiplayerGame/MG_SET_MAX_ROUNDS', this.lobbyInfo?.multiplayerRoundCount || 5);
-              this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 60);
+              this.$store.commit('multiplayerGame/MG_SET_TIMER', this.lobbyInfo?.multiplayerTimer || 30000);
 
               // Initialize players in game state
               const players = {};
