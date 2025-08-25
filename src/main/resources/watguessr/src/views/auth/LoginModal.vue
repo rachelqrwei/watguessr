@@ -82,9 +82,31 @@ export default {
         this.error = err instanceof Error ? err.message : 'Login failed';
       }
     },
-    redirectGoogle() {
-      // Start the Google OAuth flow
-              window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+    async redirectGoogle() {
+      try {
+        // Make explicit GET request to start Google OAuth
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (response.redirected) {
+          // If the server redirects, follow the redirect
+          window.location.href = response.url;
+        } else {
+          // If no redirect, try to get the redirect URL from response
+          const redirectUrl = response.headers.get('Location');
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+          } else {
+            throw new Error('No redirect URL received from server');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to start Google OAuth:', error);
+        // Fallback to direct redirect
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+      }
     }
   },
 
