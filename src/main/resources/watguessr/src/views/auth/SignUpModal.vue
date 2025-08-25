@@ -185,7 +185,7 @@ export default {
     async handleGoogleSignIn() {
       try {
         this.loading = true;
-        await this.startGoogleAuth();
+        this.startGoogleAuth();
       } catch (err) {
         this.error = 'Failed to start Google authentication';
         this.loading = false;
