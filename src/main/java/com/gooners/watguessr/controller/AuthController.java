@@ -9,13 +9,13 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
@@ -29,7 +29,7 @@ import com.gooners.watguessr.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-@Controller
+@RestController
 @RequestMapping("api/auth")
 public class AuthController {
 
@@ -132,6 +132,14 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/csp-report")
+    public ResponseEntity<Void> cspReport(@RequestBody String report) {
+        // Log CSP violations for monitoring
+        // In production, you might want to send this to a logging service
+        System.err.println("CSP Violation Report: " + report);
+        return ResponseEntity.ok().build();
     }
 
 }
