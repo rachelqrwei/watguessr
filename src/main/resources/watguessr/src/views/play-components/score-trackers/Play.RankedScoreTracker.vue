@@ -7,7 +7,7 @@
         <span class="player-points">{{ player1Score }} PTS</span>
         <span v-if="player1Status === 'ended'" class="player-status completed">✓</span>
         <span v-else-if="player1Status === 'playing'" class="player-status playing">●</span>
-        <span v-else-if="player1Status === 'ready'" class="player-status ready">⏳</span>
+        <span v-else-if="player1Status === 'ready'" class="player-status ready">➡</span>
         <span v-else-if="player1Status === 'disconnected'" class="player-status disconnected">❌</span>
       </div>
       <div class="player-score-progress-container">
