@@ -1,13 +1,13 @@
 <template>
-  <Header />
+  <Header v-if="!isGoogleOAuthRoute" />
 
   <!-- global page logo for Play, Leaderboard, and Profile pages -->
-  <div v-if="showPageLogo" class="page-logo" @click="handleLogoClick">
+  <div v-if="showPageLogo && !isGoogleOAuthRoute" class="page-logo" @click="handleLogoClick">
     <font-awesome-icon icon="map-marker-alt" class="logo-icon" />
     <span class="logo-text">WATGUESSR.IO</span>
   </div>
 
-  <div class="layout" :class="{ 'layout-with-sidebar': showHeader }">
+  <div v-if="!isGoogleOAuthRoute" class="layout" :class="{ 'layout-with-sidebar': showHeader }">
     <div
       class="sidebar-trigger"
       @mouseenter="isHoveringHeader = true"
@@ -75,6 +75,7 @@
     </main>
 
     <AuthModalManager
+      v-if="!isGoogleOAuthRoute"
       :showLogin="uiShowLogin"
       :showSignUp="uiShowSignUp"
       @closeLogin="closeLogin"
@@ -94,6 +95,15 @@
       @click="isHoveringHeader = false"
     />
   </div>
+
+  <!-- Show a simple loading message when on Google OAuth route -->
+  <div v-if="isGoogleOAuthRoute" class="oauth-loading">
+    <div class="oauth-loading-content">
+      <font-awesome-icon icon="map-marker-alt" class="oauth-logo" />
+      <h2>Redirecting to Google...</h2>
+      <p>Please wait while we redirect you to Google's login page.</p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -112,6 +122,7 @@ const showReportBug = ref(false);
 
 const isHomePage = computed(() => route.path === '/')
 const isPlayPage = computed(() => route.path === '/play')
+const isGoogleOAuthRoute = computed(() => route.path === '/api/auth/google/start')
 const showHeader = computed(() => (isHomePage.value || isHoveringHeader.value) && !isPlayPage.value)
 const getCurrentUser = computed(() => store.getters['user/getCurrentUser'])
 const uiShowLogin = computed(() => store.getters['user/showLogin'])
@@ -639,5 +650,57 @@ onMounted(() => {
 .site-footer .heart {
   display: inline-block;
   margin: 0 4px;
+}
+
+/* OAuth Loading Screen */
+.oauth-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a1c 0%, #2a2a2c 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.oauth-loading-content {
+  text-align: center;
+  color: var(--white);
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.oauth-logo {
+  font-size: 3rem;
+  color: var(--yellow);
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+.oauth-loading-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--white);
+}
+
+.oauth-loading-content p {
+  font-size: 1rem;
+  color: var(--light-grey);
+  line-height: 1.5;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
 }
 </style>
