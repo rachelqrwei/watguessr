@@ -241,8 +241,7 @@ public class UserService {
         // Create user with Google credentials (no password needed for OAuth)
         User user = new User();
         user.setEmailAddress(email);
-        user.setUsername(username);
-        user.setUsername(name);
+        user.setUsername(username);  // Use the generated unique username
         user.setProfilePictureUrl(picture);
         user.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));

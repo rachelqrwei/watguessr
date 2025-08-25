@@ -26,6 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gooners.watguessr.config.RateLimit;
+import com.gooners.watguessr.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -42,6 +43,7 @@ public class GoogleAuthController {
     private final ObjectMapper objectMapper;
     private final UserService userService;
     private final AuthenticationService authenticationService;
+    private final UserRepository userRepository;
 
     public GoogleAuthController(
             @Value("${oauth.google.client-id}") String clientId,
@@ -49,7 +51,8 @@ public class GoogleAuthController {
             @Value("${oauth.google.redirect-uri}") String redirectUri,
             @Value("${frontend.base-url}") String frontendBaseUrl,
             UserService userService,
-            AuthenticationService authenticationService) {
+            AuthenticationService authenticationService,
+            UserRepository userRepository) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUri = redirectUri;
@@ -58,6 +61,7 @@ public class GoogleAuthController {
         this.objectMapper = new ObjectMapper();
         this.userService = userService;
         this.authenticationService = authenticationService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/start")
@@ -116,16 +120,21 @@ public class GoogleAuthController {
             String name = userInfo.get("name").asText();
             String picture = userInfo.has("picture") ? userInfo.get("picture").asText() : null;
 
+            // Check if user already exists before creating/getting
+            boolean isNewUser = !userRepository.existsByEmailAddress(email);
+            
             // Persist / authenticate user
             User user = userService.createOrGetUserFromGoogle(email, name, picture);
             authenticationService.authenticateGoogleUser(user, response);
 
-            // Redirect frontend
+            // Redirect frontend with appropriate parameters
+            String loginParam = isNewUser ? "signup" : "success";
             String redirectParams = String.format(
-                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
+                    "?google_auth=true&email=%s&name=%s&picture=%s&login=%s",
                     URLEncoder.encode(email, StandardCharsets.UTF_8),
                     URLEncoder.encode(name, StandardCharsets.UTF_8),
-                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "");
+                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "",
+                    loginParam);
 
             response.sendRedirect(frontendBaseUrl + redirectParams);
 

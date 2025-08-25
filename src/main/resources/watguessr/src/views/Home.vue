@@ -114,13 +114,13 @@ export default {
           const email = urlParams.get('email')
           const name = urlParams.get('name')
           const picture = urlParams.get('picture')
-          const isLogin = urlParams.get('login') === 'success'
+          const loginParam = urlParams.get('login')
 
           if (email && name) {
-            if (isLogin) {
-              // User is already authenticated via OAuth flow, just refresh auth state
+            if (loginParam === 'success') {
+              // Existing user login - just refresh auth state
               await this.$store.dispatch('user/initializeAuth')
-            } else {
+            } else if (loginParam === 'signup') {
               // New user signup
               await this.$store.dispatch('user/signUpWithGoogle', {
                 email,

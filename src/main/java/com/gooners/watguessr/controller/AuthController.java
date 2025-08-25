@@ -28,6 +28,7 @@ import com.gooners.watguessr.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import com.gooners.watguessr.utils.CustomException;
 
 @Controller
 @RequestMapping("api/auth")
@@ -130,7 +131,16 @@ public class AuthController {
 
             return ResponseEntity.ok(userDto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            // Log the actual error for debugging
+            System.err.println("Google signup failed: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Return more specific error response
+            if (e instanceof CustomException) {
+                return ResponseEntity.badRequest().body(null);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
         }
     }
 
