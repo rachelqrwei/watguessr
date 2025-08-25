@@ -135,10 +135,12 @@ public class AuthController {
     }
 
     @PostMapping("/csp-report")
-    public ResponseEntity<Void> cspReport(@RequestBody String report) {
+    public ResponseEntity<Void> cspReport(@RequestBody(required = false) String report) {
         // Log CSP violations for monitoring
         // In production, you might want to send this to a logging service
-        System.err.println("CSP Violation Report: " + report);
+        if (report != null && !report.trim().isEmpty()) {
+            System.err.println("CSP Violation Report: " + report);
+        }
         return ResponseEntity.ok().build();
     }
 

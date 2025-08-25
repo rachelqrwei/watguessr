@@ -123,10 +123,9 @@ export const actions = {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {
-      // Use the auth endpoint instead of user endpoint for login
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: 'PUT',
-        credentials: 'include', // Essential for cross-site cookies
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -138,11 +137,8 @@ export const actions = {
       }
 
       const authResponse = await response.json();
-
-      // Extract token and user from the response
       const user = authResponse;
 
-      // Store token and user in state
       commit('SET_CURRENT_USER', user);
       commit('SET_AUTHENTICATED', true);
 
@@ -167,6 +163,7 @@ export const actions = {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${payload.id}`, {
         method: 'PUT',
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload.updates)
       });
       if (!response.ok) throw new Error('Failed to update user');
@@ -218,53 +215,26 @@ export const actions = {
     }
   },
 
-  async signUpWithGoogle({ commit }: { state: UserState; commit: any }, payload: { email: string; name: string; picture?: string }) {
-    commit('SET_LOADING', true);
-    commit('SET_ERROR', null);
+  // FIXED: Removed problematic signUpWithGoogle action - use server-side flow instead
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google-signup`, {
-        method: 'GET',
-        credentials: "include",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const message = errorData.message || errorData.error || 'Google signup failed';
-        throw new Error(message);
-      }
-
-      const user = await response.json();
-      commit('SET_CURRENT_USER', user);
-      commit('SET_AUTHENTICATED', true);
-      return user;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Google signup failed';
-      commit('SET_ERROR', message);
-      throw new Error(message);
-    } finally {
-      commit('SET_LOADING', false);
-    }
-  },
+  // FIXED: Proper server-side Google OAuth initiation
   startGoogleAuth() {
+    // This will redirect to your backend which handles the OAuth flow
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
   },
+
   // Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
         method: "GET",
-        credentials: "include" // send HttpOnly cookie
+        credentials: "include"
       });
 
       if (res.status === 204) {
-        // No content means not authenticated
         commit('SET_AUTHENTICATED', false);
         commit('SET_CURRENT_USER', null);
       } else if (res.ok) {
-        // Safely parse JSON if present
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
           const userData = await res.json();
@@ -275,7 +245,6 @@ export const actions = {
           commit('SET_CURRENT_USER', null);
         }
       } else {
-        // Non-OK response
         commit('SET_AUTHENTICATED', false);
         commit('SET_CURRENT_USER', null);
       }
@@ -284,14 +253,12 @@ export const actions = {
       commit('SET_AUTHENTICATED', false);
       commit('SET_CURRENT_USER', null);
     }
-    //
-    // commit('INITIALIZE_AUTH');
   },
-  // Get stored token (useful for other parts of the app)
+
   getToken({ state }: { state: UserState }) {
     return state.token;
   },
-  // Check if user is authenticated
+
   isAuthenticated({ state }: { state: UserState }) {
     return state.isAuthenticated;
   },
@@ -302,10 +269,16 @@ export const actions = {
 
     try {
       const { emailAddress, newPassword } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword} `, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${encodeURIComponent(emailAddress)}&newPassword=${encodeURIComponent(newPassword)}`, {
         method: "PUT",
-        credentials: "include" // send HttpOnly cookie
+        credentials: "include"
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to change password');
+      }
+
+      return await response.text();
     } catch (err) {
       commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
@@ -320,10 +293,16 @@ export const actions = {
 
     try {
       const { emailAddress, newUsername } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername} `, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${encodeURIComponent(emailAddress)}&newUsername=${encodeURIComponent(newUsername)}`, {
         method: "PUT",
-        credentials: "include" // send HttpOnly cookie
+        credentials: "include"
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to change username');
+      }
+
+      return await response.text();
     } catch (err) {
       commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
@@ -337,11 +316,17 @@ export const actions = {
     commit('SET_ERROR', null);
 
     try {
-      const { emailAddress} = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-user?emailAddress=${emailAddress}`, {
+      const { emailAddress } = payload;
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-user?emailAddress=${encodeURIComponent(emailAddress)}`, {
         method: "DELETE",
-        credentials: "include" // send HttpOnly cookie
+        credentials: "include"
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      return await response.text();
     } catch (err) {
       commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
       return null;
@@ -352,15 +337,11 @@ export const actions = {
 
   async sendOtpAndRedirect({ commit }: { state: UserState; commit: any }, payload: { email: string; username: string }) {
     try {
-      // Send OTP first by calling the sendOtp action directly
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/auth/send-otp?to=${encodeURIComponent(payload.email)}`;
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to send OTP');
 
-      // Create redirect URL to home with OTP parameters
       const otpUrl = `${window.location.origin}/?email=${encodeURIComponent(payload.email)}&username=${encodeURIComponent(payload.username)}&action=send-otp`;
-
-      // Redirect to home with OTP parameters
       window.location.href = otpUrl;
 
       return { success: true };
