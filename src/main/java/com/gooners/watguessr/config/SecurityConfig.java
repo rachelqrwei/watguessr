@@ -3,6 +3,7 @@ package com.gooners.watguessr.config;
 import jakarta.servlet.http.Cookie;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,33 +51,67 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Add CORS configuration
+    @Order(1)
+    public SecurityFilterChain oauthSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/api/auth/**")
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // allow sessions for OAuth
-                .authorizeHttpRequests(authorize -> authorize
-                        // Authentication endpoints (must be public)
-                        .requestMatchers("/api/auth/**").permitAll()
-                        
-                        // Public data endpoints (leaderboards, stats)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll())
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "script-src 'self' https://accounts.google.com https://www.gstatic.com; " +
+                                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                                        "font-src 'self' https://fonts.gstatic.com; " +
+                                        "img-src 'self' data: https:; " +
+                                        "frame-src 'self' https://accounts.google.com; " +
+                                        "connect-src 'self' https://accounts.google.com https://www.googleapis.com https://oauth2.googleapis.com; " +
+                                        "base-uri 'self' https://accounts.google.com; " +
+                                        "form-action 'self' https://accounts.google.com;")
+                        )
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .xssProtection(xss -> xss.disable())
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(request -> !request.getRequestURI().startsWith("/api/auth/"))
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/user/leaderboard/**").permitAll()
                         .requestMatchers("/api/user/*/leaderboard").permitAll()
                         .requestMatchers("/api/user/*/match-history").permitAll()
-                        
-                        // Public lobby browsing (but not joining/creating)
                         .requestMatchers("/api/game/lobby/public").permitAll()
-                        
-                        // WebSocket handshake endpoints (authentication happens after handshake)
-                        .requestMatchers("/ws-game/**").permitAll()
-                        .requestMatchers("/ws-matchmaking/**").permitAll()
-                        
-                        // All other endpoints require authentication
+                        .requestMatchers("/ws-game/**", "/ws-matchmaking/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(bearerTokenResolver())
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
-        ;
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                )
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "script-src 'self'; " +
+                                        "style-src 'self' 'unsafe-inline'; " +
+                                        "img-src 'self' data: https:; " +
+                                        "frame-src 'self'; " +
+                                        "connect-src 'self'; " +
+                                        "base-uri 'self'; " +
+                                        "form-action 'self';")
+                        )
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .xssProtection(xss -> xss.disable())
+                );
 
         return http.build();
     }
