@@ -215,7 +215,7 @@ export default {
         ...this.currentQuery,
         searchTerm: this.searchTerm,
         offset: 0,
-        limit: 50
+        limit: 5
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)
@@ -226,7 +226,7 @@ export default {
         ...this.currentQuery,
         sortBy: this.sortBy,
         offset: 0, // Reset to first page when sorting
-        limit: 50
+        limit: 5
       }
       this.updateQuery(query)
       this.fetchLeaderboard(query)

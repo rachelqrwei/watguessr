@@ -1,5 +1,5 @@
 // src/store/modules/leaderboard/state.ts
-import type { LeaderboardState } from './types';
+import type {LeaderboardState} from './types';
 
 export const state: LeaderboardState = {
   leaderboardData: null,
@@ -8,7 +8,7 @@ export const state: LeaderboardState = {
   currentQuery: {
     searchTerm: '',
     sortBy: 'elo',
-    limit: 50,
+    limit: 5,
     offset: 0
   }
 }
