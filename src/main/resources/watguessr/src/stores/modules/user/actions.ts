@@ -224,7 +224,7 @@ export const actions = {
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/google-signup`, {
-        method: 'POST',
+        method: 'GET',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
