@@ -57,7 +57,7 @@ public class GoogleAuthController {
         this.authenticationService = authenticationService;
     }
 
-    @PostMapping("/start")
+    @GetMapping("/start")
     public void start(HttpServletResponse res, HttpSession session) throws IOException {
         var state = randomUrlSafe();
         var nonce = randomUrlSafe();

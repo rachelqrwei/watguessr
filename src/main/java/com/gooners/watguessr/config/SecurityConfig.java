@@ -54,7 +54,7 @@ public class SecurityConfig {
         http.csrf().disable()
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Add CORS configuration
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // allow sessions for OAuth
                 .authorizeHttpRequests(authorize -> authorize
                         // Authentication endpoints (must be public)
                         .requestMatchers("/api/auth/**").permitAll()
