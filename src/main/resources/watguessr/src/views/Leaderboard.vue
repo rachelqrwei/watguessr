@@ -66,7 +66,7 @@
           <div class="player-col">Player</div>
           <div class="elo-col">ELO</div>
           <div class="streak-col">Streak</div>
-          <div class="games-col">Games</div>
+          <div class="games-col">Ranked </div>
           <div class="winrate-col">Win Rate</div>
         </div>
 
@@ -104,11 +104,11 @@
 
           <div class="games-col">
             <div class="games-stats">
-              <div class="games-played">{{ player.gamesPlayed }} played</div>
+<!--              <div class="games-played">{{ player.rankedGamesPlayed }} ranked</div>-->
               <div class="games-record">
-                <span class="wins">{{ player.gamesWon }}W</span>
+                <span class="wins">{{ player.rankedGamesWon }}W</span>
                 /
-                <span class="losses">{{ player.gamesLost }}L</span>
+                <span class="losses">{{ player.rankedGamesLost }}L</span>
               </div>
             </div>
           </div>
@@ -144,7 +144,7 @@
 
           <button
             @click="nextPage"
-            :disabled="!limitedLeaderboard || limitedLeaderboard.length < 50"
+            :disabled="!hasNextPage"
             class="pagination-button"
           >
             Next
@@ -183,19 +183,22 @@ export default {
       hasError: 'leaderboard/hasError',
       error: 'leaderboard/error',
       currentQuery: 'leaderboard/currentQuery',
-      currentPage: 'leaderboard/currentPage'
+      currentPage: 'leaderboard/currentPage',
+      hasNextPage: 'leaderboard/hasNextPage'
     }),
     limitedLeaderboard() {
       if (!this.leaderboard) return []
       return this.leaderboard.slice(0, 50)
-    }
+    },
   },
 
   methods: {
     ...mapActions({
       updateQuery: 'leaderboard/updateQuery',
       fetchLeaderboard: 'leaderboard/fetchLeaderboard',
-      clearError: 'leaderboard/clearError'
+      clearError: 'leaderboard/clearError',
+      nextPage: 'leaderboard/nextPage',
+      previousPage: 'leaderboard/previousPage'
     }),
 
     handleInput() {
@@ -234,30 +237,6 @@ export default {
       this.fetchLeaderboard(this.currentQuery)
     },
 
-    previousPage() {
-      const pageSize = 50
-      const newOffset = Math.max(0, (this.currentPage - 2) * pageSize)
-      const query = {
-        ...this.currentQuery,
-        offset: newOffset,
-        limit: pageSize
-      }
-      this.updateQuery(query)
-      this.fetchLeaderboard(query)
-    },
-
-    nextPage() {
-      const pageSize = 50
-      const newOffset = this.currentPage * pageSize
-      const query = {
-        ...this.currentQuery,
-        offset: newOffset,
-        limit: pageSize
-      }
-      this.updateQuery(query)
-      this.fetchLeaderboard(query)
-    },
-
     goToProfile(userId) {
       if (!userId) return
       this.router.push({ name: 'profile', params: { userId } })
@@ -275,12 +254,10 @@ export default {
       return ''
     },
 
-
-
     getWinRate(player) {
-      if (!player || player.gamesPlayed === 0) return 0
-      return Math.round((player.gamesWon / player.gamesPlayed) * 100)
-    }
+      if (!player || player.rankedGamesPlayed === 0) return 0
+      return Math.round((player.rankedGamesWon / player.rankedGamesPlayed) * 100)
+    },
   },
 
   mounted() {
@@ -717,100 +694,100 @@ export default {
     padding: 40px 20px;
     margin-top: 0;
   }
-  
+
   .leaderboard-header h1 {
     font-size: 1.8rem;
     letter-spacing: 1px;
   }
-  
+
   .leaderboard-controls {
     flex-direction: row;
     align-items: center;
     gap: 20px;
     margin-bottom: 30px;
   }
-  
+
   .search-section {
     max-width: 400px;
   }
-  
+
   .sort-section {
     justify-content: flex-end;
     gap: 10px;
   }
-  
+
   .sort-section label {
     font-size: 1rem;
   }
-  
+
   .sort-select {
     padding: 12px 40px 12px 15px;
     font-size: 1rem;
   }
-  
+
   .table-header {
     gap: 12px;
     padding: 16px 12px 20px 12px;
     font-size: 0.85rem;
     letter-spacing: 1px;
   }
-  
+
   .table-row {
     gap: 12px;
     padding: 12px;
   }
-  
+
   .rank-badge {
     width: 28px;
     height: 28px;
     font-size: 0.85rem;
     margin-left: 8px;
   }
-  
+
   .player-name {
     font-size: 1rem;
   }
-  
+
   .elo-value {
     font-size: 1.1rem;
   }
-  
+
   .streak-value {
     font-size: 1rem;
   }
-  
+
   .streak-icon {
     height: 16px;
     width: 14px;
   }
-  
+
   .games-record {
     gap: 8px;
     font-size: 0.9rem;
   }
-  
+
   .winrate-value {
     font-size: 1rem;
   }
-  
+
   .winrate-bar {
     width: 100%;
     height: 4px;
   }
-  
+
   .pagination {
     flex-direction: row;
     gap: 20px;
     margin-top: 12px;
   }
-  
+
   .pagination-button {
     padding: 12px 20px;
     font-size: 1rem;
     min-width: auto;
     height: auto;
   }
-  
+
   .page-info {
     font-size: 1rem;
     order: 0;
@@ -954,11 +931,11 @@ export default {
     padding: 12px 8px 16px 8px;
     width: fit-content;
   }
-  
+
   .table-row {
     width: fit-content;
   }
-  
+
   .rank-badge {
     width: 24px;
     height: 24px;
@@ -991,12 +968,12 @@ export default {
     .winrate-value {
     font-size: 0.9rem;
   }
-  
+
   .winrate-bar {
     width: 60%;
     height: 3px;
   }
-  
+
   .pagination {
     gap: 16px;
     margin-top: 16px;
@@ -1061,11 +1038,11 @@ export default {
     padding: 10px 6px 12px 6px;
     width: fit-content;
   }
-  
+
   .table-row {
     width: fit-content;
   }
-  
+
   .rank-badge {
     width: 22px;
     height: 22px;
@@ -1098,12 +1075,12 @@ export default {
     .winrate-value {
     font-size: 0.85rem;
   }
-  
+
   .winrate-bar {
     width: 60%;
     height: 3px;
   }
-  
+
   .pagination {
     gap: 12px;
     margin-top: 12px;
@@ -1180,11 +1157,11 @@ export default {
     padding: 8px 4px 10px 4px;
     width: fit-content;
   }
-  
+
   .table-row {
     width: fit-content;
   }
-  
+
   .rank-badge {
     width: 20px;
     height: 20px;
@@ -1217,12 +1194,12 @@ export default {
     .winrate-value {
     font-size: 0.8rem;
   }
-  
+
   .winrate-bar {
     width: 60%;
     height: 2px;
   }
-  
+
   .pagination {
     flex-direction: row;
     gap: 12px;
@@ -1281,11 +1258,11 @@ export default {
     padding: 6px 3px 8px 3px;
     width: fit-content;
   }
-  
+
   .table-row {
     width: fit-content;
   }
-  
+
   .rank-badge {
     width: 18px;
     height: 18px;
@@ -1316,12 +1293,12 @@ export default {
     .winrate-value {
     font-size: 0.75rem;
   }
-  
+
   .winrate-bar {
     width: 60%;
     height: 2px;
   }
-  
+
   .pagination-button {
     padding: 8px 12px;
     font-size: 0.75rem;

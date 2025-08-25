@@ -42,14 +42,14 @@
                 <div class="legend-item">
                   <div class="legend-color wins-color"></div>
                   <div class="legend-text">
-                    <span class="legend-value">{{ rankedGamesWon }}</span>
+                    <span class="legend-value">{{ leaderboardUser.rankedGamesWon }}</span>
                     <span class="legend-label">wins</span>
                   </div>
                 </div>
                 <div class="legend-item">
                   <div class="legend-color losses-color"></div>
                   <div class="legend-text">
-                    <span class="legend-value">{{ rankedGamesLost }}</span>
+                    <span class="legend-value">{{ leaderboardUser.rankedGamesLost }}</span>
                     <span class="legend-label">losses</span>
                   </div>
                 </div>
@@ -103,10 +103,7 @@ export default {
     return {
       leaderboardUser: null,
       isLoading: false,
-      errorMessage: null,
-      rankedGamesWon: 0,
-      rankedGamesLost: 0,
-      rankedGamesPlayed: 0
+      errorMessage: null
     }
   },
   computed: {
@@ -118,13 +115,13 @@ export default {
     },
 
     rankedWinRate() {
-      if (this.rankedGamesPlayed === 0) return 0
-      return Math.round((this.rankedGamesWon / this.rankedGamesPlayed) * 100)
+      if (!this.leaderboardUser || this.leaderboardUser.rankedGamesPlayed === 0) return 0
+      return Math.round((this.leaderboardUser.rankedGamesWon / this.leaderboardUser.rankedGamesPlayed) * 100)
     },
 
     rankedLossRate() {
-      if (this.rankedGamesPlayed === 0) return 0
-      return Math.round((this.rankedGamesLost / this.rankedGamesPlayed) * 100)
+      if (!this.leaderboardUser || this.leaderboardUser.rankedGamesPlayed === 0) return 0
+      return Math.round((this.leaderboardUser.rankedGamesLost / this.leaderboardUser.rankedGamesPlayed) * 100)
     }
   },
 
@@ -133,11 +130,9 @@ export default {
       handler(newUserId) {
         if (newUserId) {
           this.fetchLeaderboardData()
-          this.fetchRankedStats()
         } else {
           this.leaderboardUser = null
           this.errorMessage = 'No user selected.'
-          this.resetRankedStats()
         }
       },
       immediate: true
@@ -145,7 +140,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('user', ['fetchLeaderboardForUserId', 'fetchUserMatchHistory']),
+    ...mapActions('user', ['fetchLeaderboardForUserId']),
 
     async fetchLeaderboardData() {
       this.isLoading = true
@@ -165,38 +160,6 @@ export default {
       } finally {
         this.isLoading = false
       }
-    },
-
-    async fetchRankedStats() {
-      if (!this.getProfileUserId) return
-      
-      try {
-        // Fetch a large number of matches to get comprehensive ranked stats
-        const { results } = await this.fetchUserMatchHistory({
-          userId: this.getProfileUserId,
-          offset: 0,
-          limit: 100 // Get up to 100 matches to calculate ranked stats
-        })
-
-        // Filter for ranked games only and calculate stats
-        const rankedGames = results.filter(match => 
-          match.gameMode === 'Ranked' && match.finished
-        )
-
-        this.rankedGamesPlayed = rankedGames.length
-        this.rankedGamesWon = rankedGames.filter(match => match.won === true).length
-        this.rankedGamesLost = rankedGames.filter(match => match.won === false).length
-      } catch (err) {
-        console.error('Failed to fetch ranked stats:', err)
-        // Don't show error for ranked stats, just use 0 values
-        this.resetRankedStats()
-      }
-    },
-
-    resetRankedStats() {
-      this.rankedGamesWon = 0
-      this.rankedGamesLost = 0
-      this.rankedGamesPlayed = 0
     }
   }
 }

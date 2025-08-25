@@ -11,6 +11,9 @@ public class LeaderboardUser {
     private int gamesPlayed;
     private int gamesWon;
     private int gamesLost;
+    private int rankedGamesPlayed;
+    private int rankedGamesWon;
+    private int rankedGamesLost;
 
     public UUID getId() {
         return id;
@@ -68,4 +71,27 @@ public class LeaderboardUser {
         this.gamesLost = gamesLost;
     }
 
+    public int getRankedGamesPlayed() {
+        return rankedGamesPlayed;
+    }
+
+    public void setRankedGamesPlayed(int rankedGamesPlayed) {
+        this.rankedGamesPlayed = rankedGamesPlayed;
+    }
+
+    public int getRankedGamesWon() {
+        return rankedGamesWon;
+    }
+
+    public void setRankedGamesWon(int rankedGamesWon) {
+        this.rankedGamesWon = rankedGamesWon;
+    }
+
+    public int getRankedGamesLost() {
+        return rankedGamesLost;
+    }
+
+    public void setRankedGamesLost(int rankedGamesLost) {
+        this.rankedGamesLost = rankedGamesLost;
+    }
 }

@@ -65,7 +65,7 @@ public class UserController {
     @GetMapping(value = "/all")
     @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many user list requests.")
     public List<UserDto> getSorted(String keyword, String sortBy, int page, int pageSize) {
-        return this.userService.findSorted(keyword, sortBy, page, pageSize).stream().map(userMapper::toDto).toList();
+        return this.userService.findSorted(keyword, sortBy, page, pageSize).getContent().stream().map(userMapper::toDto).toList();
     }
 
     @GetMapping(value = "/leaderboard")
