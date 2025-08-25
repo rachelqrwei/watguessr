@@ -9,13 +9,13 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.gooners.watguessr.dto.UserDto;
 import com.gooners.watguessr.dto.UserLoginDto;
@@ -29,7 +29,7 @@ import com.gooners.watguessr.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-@RestController
+@Controller
 @RequestMapping("api/auth")
 public class AuthController {
 
@@ -68,23 +68,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        try {
-            String username = jwt.getSubject(); // same as jwt.getClaim("sub")
-            
-            if (username == null || username.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+        String username = jwt.getSubject(); // same as jwt.getClaim("sub")
 
-            User user = userService.findByUsername(username);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            
-            UserDto userDto = userMapper.toDto(user);
-            return ResponseEntity.ok(userDto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        User user = userService.findByUsername(username);
+        UserDto userDto = userMapper.toDto(user);
+        return ResponseEntity.ok(userDto);
     }
 
     @PostMapping("/signup")
@@ -99,10 +87,10 @@ public class AuthController {
         // Overwrite the HttpOnly cookie with empty value and immediate expiration
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(false) // set to false for local development, true for production
+                .secure(true) // set true for HTTPS
                 .path("/")
                 .maxAge(0) // expire immediately
-                .sameSite("Lax") // Use Lax for better compatibility
+                .sameSite("None") // Allow cross-site requests for CORS
                 .build();
 
         return ResponseEntity.ok()
@@ -144,16 +132,6 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    @PostMapping("/csp-report")
-    public ResponseEntity<Void> cspReport(@RequestBody(required = false) String report) {
-        // Log CSP violations for monitoring
-        // In production, you might want to send this to a logging service
-        if (report != null && !report.trim().isEmpty()) {
-            System.err.println("CSP Violation Report: " + report);
-        }
-        return ResponseEntity.ok().build();
     }
 
 }
