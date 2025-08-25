@@ -22,7 +22,10 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
     Integer countRankedGamesWonByUser(@Param("userId") UUID userId);
 
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +
-            "WHERE g.winner IS NOT NULL AND g.winner.id != :userId AND g.gameMode = 'Ranked'")
+           "JOIN Round r ON r.game.id = g.id " +
+           "JOIN Guess guess ON guess.round.id = r.id " +
+           "WHERE g.winner IS NOT NULL AND g.winner.id != :userId AND g.gameMode = 'Ranked' " +
+           "AND guess.user.id = :userId")
     Integer countRankedGamesLostByUser(@Param("userId") UUID userId);
 
     @Query("SELECT COUNT(DISTINCT g.id) FROM Game g " +

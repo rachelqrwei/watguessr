@@ -112,11 +112,7 @@ public class UserController {
         return userService.getRankedStatsForUser(id);
     }
 
-    @GetMapping(value = "/{id}/total-games") // for total games played
-    @RateLimit(requests = 100, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many total games requests.")
-    public Integer getTotalGamesPlayedForUser(@PathVariable UUID id) {
-        return userService.getTotalGamesPlayedForUser(id);
-    }
+
 
     @PostMapping("/report-bug")
     @RateLimit(requests = 5, timeWindow = 5, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many bug reports. Please wait before submitting another.")

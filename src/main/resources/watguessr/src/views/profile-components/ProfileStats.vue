@@ -28,7 +28,7 @@
 
             <div class="card">
               <div class="card-label">All Games Played</div>
-              <div class="card-value">{{ totalGamesPlayed }}</div>
+              <div class="card-value">{{ leaderboardUser?.gamesPlayed || 0 }}</div>
             </div>
           </div>
         </div>
@@ -102,7 +102,6 @@ export default {
   data() {
     return {
       leaderboardUser: null,
-      totalGamesPlayed: 0,
       isLoading: false,
       errorMessage: null
     }
@@ -153,20 +152,14 @@ export default {
       this.isLoading = true
       this.errorMessage = null
       this.leaderboardUser = null
-      this.totalGamesPlayed = 0
       
       try {
         const id = this.getProfileUserId
         if (id) {
-          // Fetch both ranked stats and total games played
-          const [rankedResponse, totalGamesResponse] = await Promise.all([
-            fetch(`/api/users/${id}/ranked-stats`),
-            fetch(`/api/users/${id}/total-games`)
-          ])
-          
-          if (rankedResponse.ok && totalGamesResponse.ok) {
-            this.leaderboardUser = await rankedResponse.json()
-            this.totalGamesPlayed = await totalGamesResponse.json()
+          // Use the ranked stats endpoint which now includes total games played
+          const response = await fetch(`/api/users/${id}/ranked-stats`)
+          if (response.ok) {
+            this.leaderboardUser = await response.json()
           } else {
             throw new Error('Failed to fetch user stats')
           }

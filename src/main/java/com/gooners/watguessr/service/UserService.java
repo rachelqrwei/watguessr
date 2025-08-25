@@ -152,38 +152,28 @@ public class UserService {
 
     public QueryResults<LeaderboardUser> getLeaderboard(String searchTerm, String sortBy, Integer limit, Integer offset) {
         String actualSortBy = sortBy != null ? sortBy : "elo";
-        int actualLimit = 5;
+        int actualLimit = limit != null ? limit : 5;
         int actualOffset = offset != null ? offset : 0;
 
         int page = actualOffset / actualLimit;
 
-        List<User> users = userRepository.findSorted(searchTerm, actualSortBy, PageRequest.of(page, actualLimit));
+        List<Object[]> results = userRepository.findSortedWithGameStats(searchTerm, actualSortBy, PageRequest.of(page, actualLimit));
 
-        List<LeaderboardUser> leaderboardUsers = users.stream()
-                .map(this::convertToLeaderboardUser)
+        List<LeaderboardUser> leaderboardUsers = results.stream()
+                .map(result -> {
+                    User user = (User) result[0];
+                    Integer gamesWon = (Integer) result[1];
+                    Integer gamesLost = (Integer) result[2];
+                    Integer gamesPlayed = (Integer) result[3];
+                    
+                    LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
+                    leaderboardUser.setGamesWon(gamesWon != null ? gamesWon : 0);
+                    leaderboardUser.setGamesLost(gamesLost != null ? gamesLost : 0);
+                    leaderboardUser.setGamesPlayed(gamesPlayed != null ? gamesPlayed : 0);
+                    
+                    return leaderboardUser;
+                })
                 .collect(Collectors.toList());
-
-        switch (actualSortBy) {
-            case "gamesWonDesc" -> leaderboardUsers.sort((a, b) -> Integer.compare(b.getGamesWon(), a.getGamesWon()));
-            case "gamesPlayedDesc" ->
-                    leaderboardUsers.sort((a, b) -> Integer.compare(b.getGamesPlayed(), a.getGamesPlayed()));
-            case "gamesLostDesc" ->
-                    leaderboardUsers.sort((a, b) -> Integer.compare(b.getGamesLost(), a.getGamesLost()));
-            case "winRateDesc" -> leaderboardUsers.sort((a, b) -> {
-                int rankedGamesA = a.getGamesWon() + a.getGamesLost();
-                int rankedGamesB = b.getGamesWon() + b.getGamesLost();
-                double winRateA = rankedGamesA > 0 ? (double) a.getGamesWon() / rankedGamesA : 0;
-                double winRateB = rankedGamesB > 0 ? (double) b.getGamesWon() / rankedGamesB : 0;
-                return Double.compare(winRateB, winRateA);
-            });
-            case "winRateAsc" -> leaderboardUsers.sort((a, b) -> {
-                int rankedGamesA = a.getGamesWon() + a.getGamesLost();
-                int rankedGamesB = b.getGamesWon() + b.getGamesLost();
-                double winRateA = rankedGamesA > 0 ? (double) a.getGamesWon() / rankedGamesA : 0;
-                double winRateB = rankedGamesB > 0 ? (double) b.getGamesWon() / rankedGamesB : 0;
-                return Double.compare(winRateA, winRateB);
-            });
-        }
 
         QueryResults<LeaderboardUser> queryResults = new QueryResults<>();
         queryResults.setResults(leaderboardUsers);
@@ -200,25 +190,25 @@ public class UserService {
         User user = findById(userId);
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
 
-        // Get ranked-only statistics
+        // Get total games played (all modes)
+        Integer totalGamesPlayed = gameRepository.countGamesPlayedByUser(userId);
+        
+        // Get ranked-only statistics for winrate calculation
         Integer rankedGamesWon = gameRepository.countRankedGamesWonByUser(userId);
         Integer rankedGamesLost = gameRepository.countRankedGamesLostByUser(userId);
 
+        totalGamesPlayed = totalGamesPlayed != null ? totalGamesPlayed : 0;
         rankedGamesWon = rankedGamesWon != null ? rankedGamesWon : 0;
         rankedGamesLost = rankedGamesLost != null ? rankedGamesLost : 0;
-        Integer rankedGamesPlayed = rankedGamesWon + rankedGamesLost;
 
-        leaderboardUser.setGamesPlayed(rankedGamesPlayed);
+        leaderboardUser.setGamesPlayed(totalGamesPlayed);
         leaderboardUser.setGamesWon(rankedGamesWon);
         leaderboardUser.setGamesLost(rankedGamesLost);
 
         return leaderboardUser;
     }
 
-    public Integer getTotalGamesPlayedForUser(UUID userId) {
-        Integer totalGamesPlayed = gameRepository.countGamesPlayedByUser(userId);
-        return totalGamesPlayed != null ? totalGamesPlayed : 0;
-    }
+
 
     private LeaderboardUser convertToLeaderboardUser(User user) {
         LeaderboardUser leaderboardUser = leaderboardMapper.toLeaderboardUser(user);
