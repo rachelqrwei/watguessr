@@ -27,12 +27,26 @@
       <form @submit.prevent="submitSignUp" class="login-form">
 
         <div class="form-group floating-label">
-          <input type="email" id="email" v-model="email" placeholder=" " required/>
+          <input 
+            type="email" 
+            id="email" 
+            v-model="email" 
+            placeholder=" " 
+            required
+            @keydown.enter.prevent
+          />
           <label for="email">EMAIL</label>
         </div>
 
         <div class="form-group floating-label">
-          <input type="text" id="username" v-model="username" placeholder="" required/>
+          <input 
+            type="text" 
+            id="username" 
+            v-model="username" 
+            placeholder="" 
+            required
+            @keydown.enter.prevent
+          />
           <label for="username">USERNAME</label>
         </div>
         <p v-if="username.length < 3" class="input-error">Username has to be more than 3 characters</p>
@@ -44,6 +58,7 @@
             v-model="password"
             placeholder=" "
             required
+            @keydown.enter.prevent
           />
           <label for="password">PASSWORD</label>
 
@@ -65,7 +80,14 @@
         </div>
 
         <div class="confirm-password floating-label">
-          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="" required/>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            v-model="confirmPassword" 
+            placeholder="" 
+            required
+            @keydown.enter.prevent
+          />
           <label for="confirmPassword">CONFIRM PASSWORD</label>
         </div>
 
