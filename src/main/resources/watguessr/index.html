@@ -5,32 +5,42 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Content Security Policy - Fixed for server-side OAuth -->
+    <!-- Content Security Policy - Fixed for Google OAuth -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval'
         https://api.mapbox.com
         https://www.gstatic.com
-        https://ssl.gstatic.com;
+        https://ssl.gstatic.com
+        https://accounts.google.com;
       style-src 'self' 'unsafe-inline'
         https://api.mapbox.com
         https://fonts.googleapis.com
-        https://www.gstatic.com;
+        https://www.gstatic.com
+        https://accounts.google.com;
       font-src 'self'
         https://fonts.gstatic.com
         https://www.gstatic.com;
       img-src 'self' data: https:;
       connect-src 'self'
         https://api.mapbox.com
-        https://overpass-api.de;
-      frame-src 'none';
-      child-src 'none';
+        https://overpass-api.de
+        https://accounts.google.com
+        https://www.googleapis.com
+        https://oauth2.googleapis.com;
+      frame-src 'self'
+        https://accounts.google.com
+        https://www.google.com;
+      child-src 'self'
+        https://accounts.google.com
+        https://www.google.com;
       worker-src 'self'
         https://www.gstatic.com;
       manifest-src 'self';
       base-uri 'self';
       object-src 'none';
-      form-action 'self';
+      form-action 'self'
+        https://accounts.google.com;
       report-uri /api/csp-report;
     ">
     <title>WatGuessr.io</title>
