@@ -156,7 +156,7 @@ export default {
       };
     },
     googleOAuthUrl() {
-      return `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+      return `${import.meta.env.VITE_API_URL_OAUTH}/api/auth/google/start`;
     }
   },
   methods: {

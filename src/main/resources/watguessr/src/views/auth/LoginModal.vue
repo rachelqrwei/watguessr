@@ -90,7 +90,7 @@ export default {
 
   computed: {
     googleOAuthUrl() {
-      return `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
+      return `${import.meta.env.VITE_API_URL_OAUTH || import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
     }
   },
 
