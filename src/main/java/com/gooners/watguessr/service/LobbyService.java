@@ -1,6 +1,7 @@
 package com.gooners.watguessr.service;
 
 import com.gooners.watguessr.dto.LobbyDto;
+import com.gooners.watguessr.dto.MultiplayerGameStateDto;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.GameRepository;
@@ -8,8 +9,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Optional;
@@ -18,6 +21,8 @@ import java.util.Optional;
 public class LobbyService {
 
 	private final Map<UUID, List<LobbyPlayerDto>> lobbies = new ConcurrentHashMap<>();
+	private final Map<UUID, Map<String, Instant>> lobbyUserLastSeen = new ConcurrentHashMap<>();
+
 	private final GameRepository gameRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
@@ -35,7 +40,9 @@ public class LobbyService {
 
 	public void joinLobby(UUID lobbyId, User user) {
 		lobbies.computeIfAbsent(lobbyId, k -> new ArrayList<>());
+
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		Map<String, Instant> userLastSeen = new ConcurrentHashMap<>();
 
 		// Get max players from the game
 		Integer maxPlayers = gameRepository.findById(lobbyId)
@@ -46,6 +53,7 @@ public class LobbyService {
 		if (players.stream().noneMatch(p -> p.getUserId().equals(user.getId().toString())) && players.size() < maxPlayers) {
 			LobbyPlayerDto player = new LobbyPlayerDto(user.getId().toString(), user.getUsername(), false);
 			players.add(player);
+			userLastSeen.put(user.getId().toString(), Instant.now());
 
 			// Update the game entity with current player count
 			updateGamePlayerCount(lobbyId, players.size());
@@ -87,6 +95,8 @@ public class LobbyService {
 	}
 
 	public void setPlayerReady(UUID lobbyId, String userId, boolean ready) {
+		updateLastSeen(lobbyId, userId);
+
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
 		if (players != null) {
 			Optional<LobbyPlayerDto> playerOpt = players.stream()
@@ -241,6 +251,61 @@ public class LobbyService {
 		
 		int deleted = before - lobbies.size();
 		return deleted;
+	}
+
+	public void updateLastSeen(UUID lobbyId, String userId) {
+		lobbyUserLastSeen
+				.computeIfAbsent(lobbyId, id -> new ConcurrentHashMap<>())
+				.put(userId, Instant.now());
+	}
+
+	@Scheduled(fixedRate = 10000) // every 10 seconds
+	public void cleanupInactiveUsers() {
+		Instant cutoff = Instant.now().minusSeconds(30); // inactive for 90s
+
+		for (var lobbyEntry : lobbyUserLastSeen.entrySet()) {
+			UUID lobbyId = lobbyEntry.getKey();
+			Map<String, Instant> userMap = lobbyEntry.getValue();
+
+			for (var userEntry : new HashMap<>(userMap).entrySet()) {
+				String userId = userEntry.getKey();
+				Instant lastSeen = userEntry.getValue();
+
+				if (lastSeen.isBefore(cutoff)) {
+					forceLeaveUser(lobbyId, userId);
+				}
+			}
+		}
+	}
+
+	private void forceLeaveUser(UUID lobbyId, String userId) {
+		// Remove from last seen map
+		Map<String, Instant> userMap = lobbyUserLastSeen.get(lobbyId);
+		if (userMap != null) userMap.remove(userId);
+
+		// Remove from lobby players
+		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
+		if (players != null) {
+			players.removeIf(p -> p.getUserId().equals(userId));
+
+			// Broadcast updated lobby state
+			broadcastLobbyUpdate(lobbyId);
+
+			// If lobby is empty, clean up
+			if (players.isEmpty()) {
+				lobbies.remove(lobbyId);
+				lobbyUserLastSeen.remove(lobbyId);
+
+				try {
+					gameRepository.deleteById(lobbyId);
+				} catch (Exception e) {
+					System.err.println("Failed to delete empty lobby: " + lobbyId + " - " + e.getMessage());
+				}
+			}
+		}
+
+		// Broadcast public lobby update
+		broadcastPublicLobbyUpdate();
 	}
 
 	public boolean cleanupStaleLobby(String lobbyId) {
