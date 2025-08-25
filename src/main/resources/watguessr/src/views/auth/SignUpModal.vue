@@ -135,7 +135,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions('user', ['signUpUser', 'sendOtp', 'startGoogleAuth']),
+    ...mapActions('user', ['signUpUser', 'sendOtp']),
 
     async submitSignUp() {
       this.error = '';
@@ -185,7 +185,8 @@ export default {
     async handleGoogleSignIn() {
       try {
         this.loading = true;
-        this.startGoogleAuth();
+        // force a GET redirect to backend OAuth entrypoint
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
       } catch (err) {
         this.error = 'Failed to start Google authentication';
         this.loading = false;

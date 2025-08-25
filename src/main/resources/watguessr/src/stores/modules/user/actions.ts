@@ -215,15 +215,7 @@ export const actions = {
     }
   },
 
-  // FIXED: Removed problematic signUpWithGoogle action - use server-side flow instead
-
-  // FIXED: Proper server-side Google OAuth initiation
-  startGoogleAuth() {
-    // This will redirect to your backend which handles the OAuth flow
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/start`;
-  },
-
-  // Initialize authentication state on app startup
+// Initialize authentication state on app startup
   async initializeAuth({ commit }: { state: UserState; commit: any }) {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
