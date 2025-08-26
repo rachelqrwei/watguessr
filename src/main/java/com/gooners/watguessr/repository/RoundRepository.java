@@ -36,6 +36,6 @@ public interface RoundRepository extends JpaRepository<Round, UUID> {
     @Query("SELECT r FROM Round r " +
            "WHERE r.game.winner IS NOT NULL " +
            "AND r.game.createdAt < :cutoffTime " +
-           "AND r.guesses IS NOT EMPTY")
+           "AND r.guesses IS EMPTY")
     List<Round> findEmptyRoundsFromFinishedGamesOlderThan(@Param("cutoffTime") OffsetDateTime cutoffTime);
 }
