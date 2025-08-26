@@ -155,8 +155,7 @@ export default {
 
         // call OTP Modal
         this.userEmail = email;
-        await this.sendOtp(email);
-
+        // OTP is automatically sent by backend after signup, no need to send again
         this.showOtpModal = true;
 
       } catch (err) {
