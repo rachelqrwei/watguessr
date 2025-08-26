@@ -3,8 +3,6 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GuessRepository;
-import com.gooners.watguessr.dto.GuessDto;
-import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.repository.RoundRepository;
 import com.gooners.watguessr.utils.CustomException;
 import com.gooners.watguessr.utils.PointsCalculator;
@@ -32,42 +30,45 @@ public class GuessService {
         this.roundRepository = roundRepository;
         this.multiplayerGameStateService = multiplayerGameStateService;
     }
-
+    public RoundResult createAndEvaluateGuess(Guess guess) {
+        // First create the guess (validates and saves without points)
+        Guess savedGuess = create(guess);
+        
+        // Then evaluate it (calculates points and updates the saved guess)
+        return evaluateGuess(savedGuess.getRound(), savedGuess);
+    }
+    
     public Guess create(Guess guess) {
+        if (guess.getUser() == null) throw new RuntimeException("Guess must have a valid user");
+        if (guess.getRound() == null) throw new RuntimeException("Guess must have a valid round");
+        if (guess.getBuilding() == null) throw new RuntimeException("Guess must have a building");
+        if (guess.getFloor() == null) throw new RuntimeException("Guess must have a floor");
+        if (guess.getTime() == null) throw new RuntimeException("Guess must have time");
+        if (guess.getPoints() != null) throw new RuntimeException("Points can't be set during creation");
+
         Game game = guess.getRound().getGame();
         if (game.getWinner() != null) {
             throw new CustomException("Cannot create guesses for completed games");
         }
 
-        // Check if user has already made a guess for this round
-        if (guess.getUser() != null && guess.getUser().getId() != null && guess.getRound() != null && guess.getRound().getId() != null) {
-            Optional<Guess> existingGuess = guessRepository.findFirstByRoundIdAndUserId(guess.getRound().getId(), guess.getUser().getId());
-            if (existingGuess.isPresent()) {
-                throw new CustomException("User has already made a guess for this round");
-            }
+        Optional<Guess> existingGuess = guessRepository.findFirstByRoundIdAndUserId(
+            guess.getRound().getId(), 
+            guess.getUser().getId()
+        );
+        if (existingGuess.isPresent()) {
+            throw new CustomException("User has already made a guess for this round");
         }
 
-        if (guess.getPoints() != null) {
-            throw new RuntimeException("points can't be set");
-        }
-
-        // object instantiation
         Guess newGuess = new Guess();
         newGuess.setPoints(null);
         newGuess.setGuessX(guess.getGuessX());
         newGuess.setGuessY(guess.getGuessY());
-        if (guess.getBuilding() != null ) {
-            newGuess.setBuilding(guess.getBuilding());
-            newGuess.setFloor(guess.getFloor());
-        }
+        newGuess.setBuilding(guess.getBuilding());
+        newGuess.setFloor(guess.getFloor());
         newGuess.setRound(guess.getRound());
         newGuess.setTime(guess.getTime());
         newGuess.setUser(guess.getUser());
-
-        if (newGuess.getUser() != null && newGuess.getUser().getId() != null) {
-            userService.findById(newGuess.getUser().getId());
-        }
-
+        
         return this.guessRepository.save(newGuess);
     }
 
@@ -91,23 +92,7 @@ public class GuessService {
 
     public RoundResult evaluateGuess(Round round, Guess guess) {
         guess.setRound(round);
-
-        // fill minimal required fields if null to satisfy schema during timeouts BEFORE calculations
-        if (guess.getTime() == null) guess.setTime(60000);
-        if (guess.getGuessX() == null) guess.setGuessX(0.0);
-        if (guess.getGuessY() == null) guess.setGuessY(0.0);
-        if (guess.getBuilding() == null) guess.setBuilding("NO_GUESS");
-        if (guess.getFloor() == null) {
-            String defaultFloor = null;
-            Scene scene = round.getScene();
-            Building building = scene != null ? scene.getBuilding() : null;
-            if (building != null && building.getFloors() != null && !building.getFloors().isEmpty()) {
-                defaultFloor = building.getFloors().get(0);
-            }
-            if (defaultFloor == null) defaultFloor = "UNKNOWN";
-            guess.setFloor(defaultFloor);
-        }
-
+        
         // calculate distance for UI feedback using centralized calculator
         Scene scene = round.getScene();
         double distance = PointsCalculator.calculateDistance(
@@ -116,14 +101,9 @@ public class GuessService {
         );
 
         int points = PointsCalculator.calculatePoints(guess, roundRepository);
-        if (guess.getPoints() == null) {guess.setPoints(points);}
+        if (guess.getPoints() != null) {guess.setPoints(points);}
 
         try {
-            // ensure user exists if provided
-            if (guess.getUser() != null && guess.getUser().getId() != null) {
-                userService.findById(guess.getUser().getId());
-            }
-
             // Update multiplayer game state if this is a multiplayer game
             UUID gameId = round.getGame().getId();
             String gameMode = round.getGame().getGameMode();
@@ -152,20 +132,13 @@ public class GuessService {
                             // persist update
                             guessRepository.save(existing);
                         });
-                // If none existed, save as new
-                if (!guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId()).isPresent()) {
-                    guessRepository.save(guess);
-                }
-            } else {
-                // If no user or round id, fallback to save incoming guess
-                guessRepository.save(guess);
             }
         } catch (Exception ignored) {
         }
-
         // for singleplayer, PointsCalculator returns negative penalties; UI can display positive lost points
         int uiPoints = Math.abs(points);
         return new RoundResult(uiPoints, distance);
     }
+
 
 }

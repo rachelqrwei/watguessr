@@ -112,9 +112,7 @@ export default {
       markers: [],
       currentUser: null,
       isAggregatedGuesses: false,
-      guessUpdateSubscription: null,
       gameStateSubscription: null,
-      refreshInterval: null,
       markerMap: new Map(), // Track markers by unique key to prevent duplicates
       lastCorrectAnswer: null, // Track last correct answer to detect changes
       completedRoundId: null // Store the round ID for the completed round
@@ -160,7 +158,7 @@ export default {
       return this.points;
     },
     isLiveUpdatesActive() {
-      return this.guessUpdateSubscription !== null || this.gameStateSubscription !== null;
+      return this.gameStateSubscription !== null;
     },
   },
   async mounted() {
@@ -180,9 +178,6 @@ export default {
 
     // Subscribe to live updates for new guesses
     this.subscribeToLiveUpdates();
-
-    // Set up periodic refresh as backup
-    this.setupPeriodicRefresh();
   },
 
   beforeUnmount() {
@@ -260,17 +255,7 @@ export default {
     // Subscribe to guess updates for the completed round
     subscribeToGuessUpdates(gameId) {
       if (window.stompClient && window.stompClient.connected) {
-        // Subscribe to round updates for the completed round
-        if (this.completedRoundId) {
-          this.guessUpdateSubscription = window.stompClient.subscribe(
-            `/topic/round/${this.completedRoundId}/guesses`,
-            (message) => {
-              this.handleLiveGuessUpdate(JSON.parse(message.body));
-            }
-          );
-        }
-
-        // Also subscribe to game state updates to catch new guesses
+        // Subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
           `/topic/multiplayer-game/${gameId}/state`,
           (message) => {
@@ -279,20 +264,6 @@ export default {
           }
         );
       }
-    },
-
-    // Handle live guess updates
-    handleLiveGuessUpdate(newGuess) {
-      // Add the new guess to our list
-      this.allGuesses.push(newGuess);
-      // Add the new marker to the map
-      this.addGuessMarker(newGuess, this.allGuesses.length - 1);
-
-      // Refit map to show all markers
-      this.fitMapToMarkers();
-
-      // Show notification
-      this.showNewGuessNotification(newGuess);
     },
 
     // Show notification for new guess
@@ -317,12 +288,6 @@ export default {
           }
         }, 3000);
       }
-    },
-    // Set up periodic refresh as backup
-    setupPeriodicRefresh() {
-      this.refreshInterval = setInterval(() => {
-        this.refreshGuesses();
-      }, 2000); // Refresh every 2 seconds
     },
 
     // Refresh guesses from the backend
@@ -352,19 +317,9 @@ export default {
 
     // Clean up live updates
     cleanupLiveUpdates() {
-      if (this.guessUpdateSubscription) {
-        this.guessUpdateSubscription.unsubscribe();
-        this.guessUpdateSubscription = null;
-      }
-
       if (this.gameStateSubscription) {
         this.gameStateSubscription.unsubscribe();
         this.gameStateSubscription = null;
-      }
-
-      if (this.refreshInterval) {
-        clearInterval(this.refreshInterval);
-        this.refreshInterval = null;
       }
     },
     renderMap() {

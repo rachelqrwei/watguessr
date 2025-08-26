@@ -93,24 +93,22 @@ export default {
 
       this.interval = setInterval(async () => {
         if (this.getGuessTime < this.totalTime) {
-          // Increment by 100ms (0.1 seconds)
           this.SET_TIME(this.getGuessTime + 100);
         } else {
           // Time limit reached
           this.clearTimer();
-
           // Set default values for timeout submission
           // This ensures the backend receives valid data for default guess fallback
           if (!this.$store.state.guess.building || this.$store.state.guess.guessX === null) {
-            this.$store.commit('guess/SET_BUILDING_AND_LOCATIONS', { building: 'NO_GUESS', guessX: 0.0, guessY: 0.0 });
+            this.$store.commit('guess/SET_BUILDING_AND_LOCATIONS', { building: 'NO_GUESS', guessX: null, guessY: null });
           }
           if (!this.$store.state.guess.floor) {
-            // For timeout submissions, set a default floor
-            // The backend will handle this appropriately in the evaluateGuess method
             this.$store.commit('guess/SET_FLOOR', 'UNKNOWN');
           }
+          if (!this.$store.state.guess.time) {
+            this.$store.commit('guess/SET_TIME', this.totalTime);
+          }
 
-          // Use the same flow as manual submission so scoring/ending logic is consistent
           await this.submitGuess();
         }
       }, 100); // Update every 100ms

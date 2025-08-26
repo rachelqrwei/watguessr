@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,15 +38,13 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserService userService;
-    private final UserMapper userMapper;
-    private final EmailVerificationService emailVerificationService;
+    private final UserMapper userMapper;;
     private final GameService gameService;
     private final JavaMailSender mailSender;
 
     public UserController(UserService userService, UserMapper userMapper, EmailVerificationService emailVerificationService, GameService gameService, JavaMailSender mailSender) {
         this.userService = userService;
         this.userMapper = userMapper;
-        this.emailVerificationService = emailVerificationService;
         this.gameService = gameService;
         this.mailSender = mailSender;
     }
@@ -104,9 +102,9 @@ public class UserController {
 
     @GetMapping(value = "/{id}/settings")
     @RateLimit(requests = 50, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many settings requests.")
-    public ResponseEntity<UserSettingsDto> getUserSettings(@PathVariable UUID id, Authentication authentication) {
+    public ResponseEntity<UserSettingsDto> getUserSettings(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         var user = userService.findById(id);
-        var requesterUsername = authentication != null ? authentication.getName() : null;
+        var requesterUsername = jwt.getSubject();
 
         if (requesterUsername == null || !user.getUsername().equals(requesterUsername)) {
             return ResponseEntity.status(403).build();
@@ -118,9 +116,9 @@ public class UserController {
 
     @PutMapping("/change-password")
     @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many password change attempts.")
-    public ResponseEntity<String> changePassword(@RequestParam String emailAddress, @RequestParam String newPassword, Authentication authentication) {
+    public ResponseEntity<String> changePassword(@RequestParam String emailAddress, @RequestParam String newPassword, @AuthenticationPrincipal Jwt jwt) {
         // Verify the authenticated user is changing their own password
-        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        String authenticatedUserEmail = getAuthenticatedUserEmail(jwt);
         if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
             return ResponseEntity.status(403).body("You can only change your own password");
         }
@@ -131,9 +129,9 @@ public class UserController {
 
     @PutMapping("/change-username")
     @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many username change attempts.")
-    public ResponseEntity<String> changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername, Authentication authentication) {
+    public ResponseEntity<String> changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername, @AuthenticationPrincipal Jwt jwt) {
         // Verify the authenticated user is changing their own username
-        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        String authenticatedUserEmail = getAuthenticatedUserEmail(jwt);
         if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
             return ResponseEntity.status(403).body("You can only change your own username");
         }
@@ -144,9 +142,9 @@ public class UserController {
 
     @DeleteMapping("/delete-user")
     @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
-    public ResponseEntity<String> deleteUser(@RequestParam String emailAddress, Authentication authentication) {
+    public ResponseEntity<String> deleteUser(@RequestParam String emailAddress, @AuthenticationPrincipal Jwt jwt) {
         // Verify the authenticated user is deleting their own account
-        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        String authenticatedUserEmail = getAuthenticatedUserEmail(jwt);
         if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
             return ResponseEntity.status(403).body("You can only delete your own account");
         }
@@ -155,26 +153,29 @@ public class UserController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    private String getAuthenticatedUserEmail(Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof Jwt) {
-            Jwt jwt = (Jwt) authentication.getPrincipal();
-            // try to get email from JWT claims first
-            String email = jwt.getClaim("email");
-            if (email != null) {
-                return email;
-            }
-            // else get username and find user to get email
-            String username = jwt.getSubject();
-            if (username != null) {
-                try {
-                    User user = userService.findByUsername(username);
-                    return user.getEmailAddress();
-                } catch (Exception e) {
-                    // user not found or other error
-                    return null;
-                }
+    private String getAuthenticatedUserEmail(Jwt jwt) {
+        if (jwt == null) {
+            return null;
+        }
+        
+        // try to get email from JWT claims first
+        String email = jwt.getClaim("email");
+        if (email != null) {
+            return email;
+        }
+        
+        // else get username and find user to get email
+        String username = jwt.getSubject();
+        if (username != null) {
+            try {
+                User user = userService.findByUsername(username);
+                return user.getEmailAddress();
+            } catch (Exception e) {
+                // user not found or other error
+                return null;
             }
         }
+        
         return null;
     }
 }
