@@ -389,4 +389,126 @@ export default {
   white-space: nowrap;
 }
 
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90vw;
+    max-width: 320px;
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .google-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .google-btn-text {
+    font-size: 0.85rem;
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .floating-label input {
+    padding: 1rem 0.6rem 0.3rem;
+    height: 2.8rem;
+    font-size: 0.95rem;
+  }
+
+  .floating-label label {
+    font-size: 0.95rem;
+  }
+
+  .login-btn {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+
+  .divider {
+    margin: 1.25rem 0;
+  }
+
+  .divider span {
+    font-size: 0.8rem;
+    padding: 0 1rem;
+  }
+
+  .checkbox-wrapper {
+    font-size: 0.8rem;
+  }
+
+  .sign-up {
+    font-size: 0.8rem;
+  }
+
+  .info-message,
+  .error-message {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95vw;
+    max-width: 300px;
+    padding: 1.5rem 1.25rem;
+    margin: 0.5rem;
+  }
+
+  .google-btn {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .google-btn-text {
+    font-size: 0.8rem;
+  }
+
+  .google-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .floating-label input {
+    padding: 0.9rem 0.6rem 0.2rem;
+    height: 2.6rem;
+    font-size: 0.9rem;
+  }
+
+  .floating-label label {
+    font-size: 0.9rem;
+  }
+
+  .login-btn {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+  }
+
+  .divider {
+    margin: 1rem 0;
+  }
+
+  .divider span {
+    font-size: 0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  .checkbox-wrapper {
+    font-size: 0.75rem;
+  }
+
+  .sign-up {
+    font-size: 0.75rem;
+  }
+
+  .info-message,
+  .error-message {
+    font-size: 0.75rem;
+  }
+}
+
 </style>
