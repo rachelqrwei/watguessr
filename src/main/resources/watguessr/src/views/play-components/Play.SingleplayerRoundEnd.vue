@@ -11,8 +11,8 @@
           <span class="stat-value">{{ displayTimeTaken }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">POINTS</span>
-          <span class="stat-value">{{ displayPoints }}</span>
+          <span class="stat-label">POINTS LOST</span>
+          <span class="stat-value">-{{ displayPoints }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">DISTANCE</span>
