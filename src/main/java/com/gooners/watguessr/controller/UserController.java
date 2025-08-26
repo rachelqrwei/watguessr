@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +78,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}/leaderboard") // for the profile stats section
-    @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many leaderboard user requests.")
+    @RateLimit(requests = 50, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many leaderboard user requests.")
     public LeaderboardUser getLeaderboardUserById(@PathVariable UUID id) {
         return userService.getLeaderboardUserById(id);
     }
@@ -116,23 +117,64 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
-    @RateLimit(requests = 5, timeWindow = 5, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many password change attempts.")
-    public void changePassword(@RequestParam String emailAddress, @RequestParam String newPassword) {
+    @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many password change attempts.")
+    public ResponseEntity<String> changePassword(@RequestParam String emailAddress, @RequestParam String newPassword, Authentication authentication) {
+        // Verify the authenticated user is changing their own password
+        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
+            return ResponseEntity.status(403).body("You can only change your own password");
+        }
+        
         userService.changePassword(emailAddress, newPassword);
+        return ResponseEntity.ok("Password changed successfully");
     }
 
     @PutMapping("/change-username")
     @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many username change attempts.")
-    public ResponseEntity<String> changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername) {
+    public ResponseEntity<String> changeUsername(@RequestParam String emailAddress, @RequestParam String newUsername, Authentication authentication) {
+        // Verify the authenticated user is changing their own username
+        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
+            return ResponseEntity.status(403).body("You can only change your own username");
+        }
+        
         userService.changeUsername(emailAddress, newUsername);
         return ResponseEntity.ok("Username changed successfully");
     }
 
     @DeleteMapping("/delete-user")
-    @RateLimit(requests = 2, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
-    public ResponseEntity<String> deleteUser(@RequestParam String emailAddress) {
+    @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
+    public ResponseEntity<String> deleteUser(@RequestParam String emailAddress, Authentication authentication) {
+        // Verify the authenticated user is deleting their own account
+        String authenticatedUserEmail = getAuthenticatedUserEmail(authentication);
+        if (authenticatedUserEmail == null || !authenticatedUserEmail.equals(emailAddress)) {
+            return ResponseEntity.status(403).body("You can only delete your own account");
+        }
+        
         userService.deleteUser(emailAddress);
         return ResponseEntity.ok("User deleted successfully");
     }
-    
+
+    private String getAuthenticatedUserEmail(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt) {
+            Jwt jwt = (Jwt) authentication.getPrincipal();
+            // try to get email from JWT claims first
+            String email = jwt.getClaim("email");
+            if (email != null) {
+                return email;
+            }
+            // else get username and find user to get email
+            String username = jwt.getSubject();
+            if (username != null) {
+                try {
+                    User user = userService.findByUsername(username);
+                    return user.getEmailAddress();
+                } catch (Exception e) {
+                    // user not found or other error
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
 }

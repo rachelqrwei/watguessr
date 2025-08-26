@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,4 +32,10 @@ public interface RoundRepository extends JpaRepository<Round, UUID> {
             "JOIN g.round r " +
             "WHERE r.game.id = :gameId AND g.user.id = :userId")
     Integer getUserPointsForGameAndUser(@Param("gameId") UUID gameId, @Param("userId") UUID userId);
+
+    @Query("SELECT r FROM Round r " +
+           "WHERE r.game.winner IS NOT NULL " +
+           "AND r.game.createdAt < :cutoffTime " +
+           "AND r.guesses IS NOT EMPTY")
+    List<Round> findEmptyRoundsFromFinishedGamesOlderThan(@Param("cutoffTime") OffsetDateTime cutoffTime);
 }

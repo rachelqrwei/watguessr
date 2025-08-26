@@ -6,10 +6,11 @@ import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.GuessRepository;
 import com.gooners.watguessr.repository.RoundRepository;
+import com.gooners.watguessr.utils.CustomException;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +35,9 @@ public class RoundService {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found with id: " + gameId));
 
+        if (game.getWinner() != null) {
+            throw new CustomException("Cannot create rounds for completed games");
+        }
         Round newRound = new Round();
         newRound.setScene(sceneService.getRandom());
         newRound.setGame(game);
@@ -60,14 +64,20 @@ public class RoundService {
         return roundRepository.getRoundCountForGame(gameId);
     }
 
-    /**
-     * Find a guess for a specific user and round
-     * 
-     * @param userId  The ID of the user
-     * @param roundId The ID of the round
-     * @return Optional containing the guess if found, empty Optional otherwise
-     */
     public Optional<Guess> findGuessForUserAndRound(UUID userId, UUID roundId) {
         return guessRepository.findFirstByRoundIdAndUserId(roundId, userId);
     }
+
+    public int cleanupEmptyRoundsFromFinishedGames() {
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 2 hours before now
+        List<Round> emptyRounds = roundRepository.findEmptyRoundsFromFinishedGamesOlderThan(cutoff);
+        
+        if (!emptyRounds.isEmpty()) {
+            roundRepository.deleteAll(emptyRounds);
+            System.out.println("Cleaned up " + emptyRounds.size() + " empty rounds from finished games");
+        }
+
+        return emptyRounds.size();
+    }
+
 }

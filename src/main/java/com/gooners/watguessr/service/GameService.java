@@ -226,12 +226,6 @@ public class GameService {
         return rankedGameResultDto;
     }
 
-    /**
-     * Returns a paginated match history for the given user.
-     * For Singleplayer games, roundsSurvived is set (and won is null).
-     * For Multiplayer/Ranked games, won is set based on the game's winner (and
-     * roundsSurvived is null).
-     */
     public List<MatchHistoryItem> getUserMatchHistory(UUID userId, Integer limit, Integer offset) {
         int actualLimit = limit != null ? limit : 20;
         int actualOffset = offset != null ? offset : 0;
@@ -299,15 +293,9 @@ public class GameService {
         return userEloChanges;
     }
 
-    /**
-     * Calculates ELO changes for a game that has already been resolved
-     * This method doesn't update the database, just calculates the changes
-     * 
-     * @param userPoints HashMap containing user IDs and their scores
-     * @param winnerId The ID of the winner
-     * @param averageElo The average ELO of all players in the match
-     * @return HashMap containing user IDs and their ELO changes
-     */
+
+//     Calculates ELO changes for a game that has already been resolved
+//     This method doesn't update the database, just calculates the changes
     private HashMap<UUID, Integer> calculateEloChangesForResolvedGame(HashMap<UUID, Integer> userPoints, UUID winnerId, Integer averageElo) {
         Integer winnerScore = userPoints.get(winnerId);
         HashMap<UUID, Integer> userEloChanges = new HashMap<>();
@@ -387,34 +375,8 @@ public class GameService {
                 .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
     }
 
-    /**
-     * Gets all player IDs for a specific game
-     * 
-     * @param gameId The ID of the game
-     * @return List of player UUIDs
-     */
-    public List<UUID> getPlayerIdsForGame(UUID gameId) {
-        String gameMode = findById(gameId).getGameMode();
-
-        if ("singleplayer".equalsIgnoreCase(gameMode)) {
-            // For singleplayer, we only have one player who made guesses
-            List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
-            return userPointsData.stream()
-                    .map(row -> (UUID) row[0])
-                    .collect(Collectors.toList());
-        } else if ("multiplayer".equalsIgnoreCase(gameMode) || "ranked".equalsIgnoreCase(gameMode)) {
-            // For multiplayer/ranked, get all players from the lobby service or user points
-            List<Object[]> userPointsData = roundService.getUserPointsForGame(gameId);
-            return userPointsData.stream()
-                    .map(row -> (UUID) row[0])
-                    .collect(Collectors.toList());
-        }
-
-        return new ArrayList<UUID>();
-    }
-
     public int cleanupExpiredGames() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 2 hour before now
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(2); // 2 hours before now
         List<Game> oldGames = gameRepository.findByWinnerIsNullAndCreatedAtBefore(cutoff);
         
         List<Game> gamesToDelete = new ArrayList<>();

@@ -3,12 +3,16 @@ package com.gooners.watguessr.service;
 import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.*;
 import com.gooners.watguessr.repository.GuessRepository;
+import com.gooners.watguessr.dto.GuessDto;
+import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.repository.RoundRepository;
+import com.gooners.watguessr.utils.CustomException;
 import com.gooners.watguessr.utils.PointsCalculator;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,7 +34,19 @@ public class GuessService {
     }
 
     public Guess create(Guess guess) {
-        // check if guess can be instantiated
+        Game game = guess.getRound().getGame();
+        if (game.getWinner() != null) {
+            throw new CustomException("Cannot create guesses for completed games");
+        }
+
+        // Check if user has already made a guess for this round
+        if (guess.getUser() != null && guess.getUser().getId() != null && guess.getRound() != null && guess.getRound().getId() != null) {
+            Optional<Guess> existingGuess = guessRepository.findFirstByRoundIdAndUserId(guess.getRound().getId(), guess.getUser().getId());
+            if (existingGuess.isPresent()) {
+                throw new CustomException("User has already made a guess for this round");
+            }
+        }
+
         if (guess.getPoints() != null) {
             throw new RuntimeException("points can't be set");
         }
@@ -100,7 +116,7 @@ public class GuessService {
         );
 
         int points = PointsCalculator.calculatePoints(guess, roundRepository);
-        guess.setPoints(points);
+        if (guess.getPoints() == null) {guess.setPoints(points);}
 
         try {
             // ensure user exists if provided

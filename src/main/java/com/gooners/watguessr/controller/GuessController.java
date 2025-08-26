@@ -4,6 +4,7 @@ import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.dto.GuessCreateDto;
 import com.gooners.watguessr.dto.GuessDto;
 import com.gooners.watguessr.dto.RoundResult;
+import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.GuessMapper;
@@ -11,6 +12,7 @@ import com.gooners.watguessr.entity.Guess;
 import com.gooners.watguessr.service.GuessService;
 import com.gooners.watguessr.service.RoundService;
 import com.gooners.watguessr.service.UserService;
+import com.gooners.watguessr.utils.CustomException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -42,7 +45,6 @@ public class GuessController {
     @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
     public ResponseEntity<GuessDto> createGuess(
             @RequestBody @Valid GuessCreateDto createDto) {
-        // TODO: Make sure only one guess per round per user is allowed.
         // Fetch managed entities from database
         Round round = roundService.findById(createDto.getRoundId());
         User user = userService.findById(createDto.getUserId());
@@ -65,12 +67,6 @@ public class GuessController {
                 .body(result);
     }
 
-    @MessageMapping("/guess") // client sends to /app/guess
-    @SendTo("/topic/guesses")
-    public Guess processGuessInMultiplayerGame(Guess guess) {
-        // TODO: Make sure only one guess per round per user is allowed.
-        return guess;
-    }
 
     @PostMapping("/evaluate-guess")
     @RateLimit(requests = 60, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many evaluation requests.")
