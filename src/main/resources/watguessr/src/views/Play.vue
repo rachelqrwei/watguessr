@@ -98,6 +98,8 @@ import PlayRankedRoundEnd from '@/views/play-components/Play.RankedRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
 import CountdownTimer from '@/components/CountdownTimer.vue'
+import { connectToMultiplayerGame, cleanupMultiplayerGameOnUnmount } from '@/services/multiplayerGameWebSocket';
+import { connectToRankedGame, cleanupRankedGameOnUnmount } from '@/services/rankedGameWebSocket';
 
 
 export default {
@@ -599,7 +601,6 @@ export default {
       }
     },
 
-
   },
   mounted() {
     this.fetchAllBuildings();
@@ -627,6 +628,13 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
+
+    // Call WebSocket service cleanup methods
+    if (this.getGameMode === 'multiplayer') {
+      cleanupMultiplayerGameOnUnmount();
+    } else if (this.getGameMode === 'ranked') {
+      cleanupRankedGameOnUnmount();
+    }
   }
 }
 </script>

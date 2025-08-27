@@ -6,10 +6,8 @@ import store from '../stores';
 let stompClient: Client | null = null;
 let heartbeatInterval: number | null = null;
 let hasLeftGame = false; // module/global or component state
-let currentGameId: string | null = null;
-let sessionToken: string | null = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 3;
+let cleanupCalled = false;
+let unwatchRoute: (() => void) | null = null;
 
 export interface MultiplayerGameStateDto {
   gameId: string;
@@ -34,17 +32,10 @@ export interface PlayerStateDto {
 }
 
 export function connectToMultiplayerGame(gameId: string) {
-  currentGameId = gameId;
-  // Store in localStorage for potential reconnection
-  localStorage.setItem('currentGame', JSON.stringify({
-    gameId: gameId,
-    gameType: 'multiplayer',
-    timestamp: Date.now()
-  }));
-  
   const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-game`);
   stompClient = Stomp.over(socket);
   hasLeftGame = false; // module/global or component state
+  cleanupCalled = false;
 
   stompClient.connect({}, () => {
     startHeartbeat(gameId);
@@ -70,19 +61,8 @@ export function connectToMultiplayerGame(gameId: string) {
     // Request current round state to catch up on missed events
     requestCurrentRoundState(gameId);
 
-    // Check if we need to reconnect to a game
-    const storedGame = localStorage.getItem('currentGame');
-    if (storedGame) {
-      const gameInfo = JSON.parse(storedGame);
-      if (Date.now() - gameInfo.timestamp < 20000) {
-        // Attempt reconnection
-        reconnectToGame().then(success => {
-          if (!success) {
-            localStorage.removeItem('currentGame');
-          }
-        });
-      }
-    }
+    // Setup immediate leaving functionality
+    setupImmediateLeaving();
 
   }, (error: any) => {
     console.error('WebSocket connection error:', error);
@@ -90,75 +70,11 @@ export function connectToMultiplayerGame(gameId: string) {
     // Stop heartbeat on disconnect/error
     stopHeartbeat();
 
-    // Attempt reconnection on error
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      reconnectAttempts++;
-      setTimeout(() => {
-        if (currentGameId) {
-          connectToMultiplayerGame(currentGameId);
-        }
-      }, 3000);
-    }
+    // Retry connection after 3 seconds
+    setTimeout(() => {
+      connectToMultiplayerGame(gameId);
+    }, 3000);
   });
-}
-
-// Add reconnection function
-export async function reconnectToGame(): Promise<boolean> {
-  const storedGame = localStorage.getItem('currentGame');
-  if (!storedGame || !stompClient) return false;
-  
-  const gameInfo = JSON.parse(storedGame);
-  const currentUser = store.getters['user/getCurrentUser'];
-  
-  if (Date.now() - gameInfo.timestamp > 20000) {
-    // More than 20 seconds have passed, can't reconnect
-    localStorage.removeItem('currentGame');
-    return false;
-  }
-  
-  try {
-    // Get JWT token from cookies
-    const jwtToken = getJwtTokenFromCookies();
-    
-    // Try to reconnect via WebSocket
-    const reconnectData = {
-      gameId: gameInfo.gameId,
-      sessionToken: sessionToken,
-      jwtToken: jwtToken
-    };
-    
-    stompClient.send("/app/multiplayer-game/reconnect", {}, JSON.stringify(reconnectData));
-    
-    // Wait for reconnection confirmation
-    return await new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(false), 5000);
-      
-      // Listen for reconnection success
-      const subscription = stompClient?.subscribe(`/topic/multiplayer-game/${gameInfo.gameId}/reconnect`, (message) => {
-        const success = JSON.parse(message.body);
-        if (success) {
-          clearTimeout(timeout);
-          subscription?.unsubscribe();
-          resolve(true);
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Reconnection failed:', error);
-    return false;
-  }
-}
-
-// Helper function to get JWT token from cookies
-function getJwtTokenFromCookies(): string | null {
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'jwt') {
-      return value;
-    }
-  }
-  return null;
 }
 
 export function disconnectFromMultiplayerGame() {
@@ -170,6 +86,74 @@ export function disconnectFromMultiplayerGame() {
     });
     stompClient = null;
   }
+
+  // Cleanup immediate leaving functionality
+  cleanupImmediateLeaving();
+}
+
+// Setup immediate leaving functionality
+function setupImmediateLeaving() {
+  // Add beforeunload event listener for immediate leaving
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  // Watch for route changes to leave game if navigating away
+  if (typeof window !== 'undefined' && window.location) {
+    // Simple route change detection - check if we're leaving the play route
+    const checkRouteChange = () => {
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('play') && !currentPath.includes('game-end')) {
+        // We've left the game routes, cleanup
+        handleImmediateLeave();
+      }
+    };
+
+    // Check route changes periodically (since we don't have Vue router access here)
+    const routeCheckInterval = setInterval(checkRouteChange, 1000);
+
+    // Store the interval for cleanup
+    (window as any).__multiplayerRouteCheckInterval = routeCheckInterval;
+  }
+}
+
+// Cleanup immediate leaving functionality
+function cleanupImmediateLeaving() {
+  // Remove beforeunload event listener
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+
+  // Clear route check interval
+  if ((window as any).__multiplayerRouteCheckInterval) {
+    clearInterval((window as any).__multiplayerRouteCheckInterval);
+    delete (window as any).__multiplayerRouteCheckInterval;
+  }
+
+  // Cleanup route watcher if exists
+  if (unwatchRoute) {
+    unwatchRoute();
+    unwatchRoute = null;
+  }
+}
+
+// Handle beforeunload event
+function handleBeforeUnload() {
+  if (!cleanupCalled) {
+    cleanupCalled = true;
+    console.log('Page unloading - disconnecting from multiplayer game');
+    disconnectFromMultiplayerGame();
+  }
+}
+
+// Handle immediate leave (called when route changes or component unmounts)
+function handleImmediateLeave() {
+  if (!cleanupCalled) {
+    cleanupCalled = true;
+    console.log('Route changed - disconnecting from multiplayer game');
+    disconnectFromMultiplayerGame();
+  }
+}
+
+// Public method for components to call when they unmount
+export function cleanupMultiplayerGameOnUnmount() {
+  handleImmediateLeave();
 }
 
 // Send player progress update
