@@ -21,6 +21,7 @@ export interface UserState {
   isAuthInitialized: boolean;
   isAuthInitializing: boolean;
   logoutReason: string | null;
+  showWelcomeModal: boolean;
 }
 
 export const state = (): UserState => ({
@@ -34,5 +35,6 @@ export const state = (): UserState => ({
   showSignUp: false,
   isAuthInitialized: false,
   isAuthInitializing: false,
-  logoutReason: null
+  logoutReason: null,
+  showWelcomeModal: false
 });

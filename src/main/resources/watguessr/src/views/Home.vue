@@ -39,7 +39,7 @@ export default {
       otpEmail: '',
       otpUsername: '',
       showLoginModal: false,
-      showWelcomeModal: false,
+
     }
   },
 
@@ -127,7 +127,7 @@ export default {
               
               // Show welcome modal for new Google users
               if (isNewUser) {
-                this.showWelcomeModal = true
+                this.$store.commit('user/SHOW_WELCOME_MODAL');
               }
             } else {
               // New user signup (this path might not be used now)
@@ -201,7 +201,7 @@ export default {
     },
 
     closeWelcomeModal() {
-      this.showWelcomeModal = false
+      this.$store.commit('user/CLOSE_WELCOME_MODAL');
     }
   },
 
@@ -301,7 +301,7 @@ export default {
     />
 
     <WelcomeModal
-      :visible="showWelcomeModal"
+      :visible="$store.state.user.showWelcomeModal"
       @close="closeWelcomeModal"
     />
 

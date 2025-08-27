@@ -94,12 +94,10 @@
         @close="showOtpModal = false"
         @verified="handleOtpVerified"
         @resend="resendOtp"
+
       />
 
-      <WelcomeModal
-        :visible="showWelcomeModal"
-        @close="handleWelcomeClose"
-      />
+
 
     </div>
   </div>
@@ -108,12 +106,10 @@
 <script lang="ts">
 import { mapGetters, mapActions } from 'vuex';
 import OtpModal from "@/views/auth/OtpModal.vue";
-import WelcomeModal from "@/components/WelcomeModal.vue";
 
 export default {
   props: ['visible'],
   components: {
-    WelcomeModal,
     OtpModal
   },
   data() {
@@ -188,6 +184,8 @@ export default {
       // Close the signup modal and emit close to parent
       this.$emit('close');
     },
+
+
     async resendOtp() {
       await this.sendOtp(this.userEmail);
     },

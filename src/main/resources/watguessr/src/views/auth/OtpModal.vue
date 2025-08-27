@@ -32,10 +32,6 @@
           <button class="link-btn" :disabled="cooldown > 0" @click="$emit('resend')">
             {{ cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code' }}
           </button>
-          <!-- Temporary test button -->
-          <button class="link-btn" @click="testWelcomeModal" style="margin-left: 10px;">
-            Test Welcome Modal
-          </button>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
@@ -43,22 +39,14 @@
   </div>
   </Transition>
 
-  <!-- Welcome Modal -->
-  <WelcomeModal 
-    :visible="showWelcomeModal" 
-    @close="handleWelcomeClose" 
-  />
+
 </template>
 
 <script>
 import { mapActions } from 'vuex';
-import WelcomeModal from '@/components/WelcomeModal.vue';
 
 export default {
   name: 'OtpModal',
-  components: {
-    WelcomeModal
-  },
   props: {
     visible: { type: Boolean, default: false },
     email: { type: String, required: true },
@@ -76,7 +64,6 @@ export default {
       _iv: null,
       _redirectIv: null,
       showSuccess: '',
-      showWelcomeModal: false,
     };
   },
   methods: {
@@ -94,15 +81,16 @@ export default {
           // success message
           this.showSuccess = true;
 
-          // login in user
+                    // login in user
           const resLogin = await this.login({username: this.username, password: this.password});
 
-          this.$emit('verified');
-          
-          // Show welcome modal after successful login
+          // Show welcome modal for successful new user signup
           if (resLogin) {
-            this.showWelcomeModal = true;
+            // Use store to trigger welcome modal on home page
+            this.$store.commit('user/SHOW_WELCOME_MODAL');
           }
+
+          this.$emit('verified');
         } else {
           this.error = res || 'Verification failed.';
         }
@@ -123,16 +111,6 @@ export default {
           this.$emit('close');
         }
       }, 1000);
-    },
-
-    handleWelcomeClose() {
-      this.showWelcomeModal = false;
-      this.$emit('close'); // Close the OTP modal as well
-    },
-
-    // For testing purposes
-    testWelcomeModal() {
-      this.showWelcomeModal = true;
     }
   },
   mounted() {

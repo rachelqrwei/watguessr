@@ -7,7 +7,8 @@
   <SignUpModal
     :visible="showSignUp"
     @close="$emit('closeSignUp')"
-    @openLogin="$emit('closeSignUp'); $emit('openLogin')" />
+    @openLogin="$emit('closeSignUp'); $emit('openLogin')"
+ />
 </template>
 
 <script>

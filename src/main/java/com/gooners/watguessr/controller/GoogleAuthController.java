@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.gooners.watguessr.dto.UserDto;
+import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.service.AuthenticationService;
+import com.gooners.watguessr.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,9 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooners.watguessr.entity.User;
-import com.gooners.watguessr.service.AuthenticationService;
-import com.gooners.watguessr.service.UserService;
+import com.gooners.watguessr.config.RateLimit;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -124,11 +126,10 @@ public class GoogleAuthController {
 
             // Redirect frontend with new_user flag
             String redirectParams = String.format(
-                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success&new_user=%s",
+                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
                     URLEncoder.encode(email, StandardCharsets.UTF_8),
                     URLEncoder.encode(name, StandardCharsets.UTF_8),
-                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "",
-                    isNewUser ? "true" : "false");
+                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "");
 
             response.sendRedirect(frontendBaseUrl + redirectParams);
 
