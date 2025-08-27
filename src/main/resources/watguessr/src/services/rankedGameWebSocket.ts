@@ -362,6 +362,21 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
 
   // Store pre-game ELOs for all players if we don't have them yet
   const currentPreGameElos = store.getters['rankedGame/rankedGame_getPreGameElos'] || {};
+
+  // Emit custom event for round-end components to listen to
+  // Only emit minimal data needed for round-end updates
+  const roundEndData = {
+    gameId: gameState.gameId,
+    currentRound: gameState.currentRound,
+    playersWithEndedStatus: Object.keys(gameState.players).filter(
+      playerId => gameState.players[playerId].status === 'ended'
+    ).length
+  };
+  
+  const gameStateEvent = new CustomEvent('rankedGameStateUpdate', {
+    detail: roundEndData
+  });
+  window.dispatchEvent(gameStateEvent);
 }
 
 // Handle round start events

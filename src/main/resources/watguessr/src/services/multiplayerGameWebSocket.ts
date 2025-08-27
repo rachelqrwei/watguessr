@@ -233,6 +233,21 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
   if (gameState.shouldEnd) {
     store.commit('multiplayerGame/MG_SET_SHOULD_END', true);
   }
+
+  // Emit custom event for round-end components to listen to
+  // Only emit minimal data needed for round-end updates
+  const roundEndData = {
+    gameId: gameState.gameId,
+    currentRound: gameState.currentRound,
+    playersWithEndedStatus: Object.keys(gameState.players).filter(
+      playerId => gameState.players[playerId].status === 'ended'
+    ).length
+  };
+  
+  const gameStateEvent = new CustomEvent('multiplayerGameStateUpdate', {
+    detail: roundEndData
+  });
+  window.dispatchEvent(gameStateEvent);
 }
 
 // Handle round start events

@@ -112,7 +112,7 @@ export default {
       markers: [],
       currentUser: null,
       isAggregatedGuesses: false,
-      gameStateSubscription: null,
+      gameStateListener: null,
       markerMap: new Map(), // Track markers by unique key to prevent duplicates
       lastCorrectAnswer: null, // Track last correct answer to detect changes
       completedRoundId: null // Store the round ID for the completed round
@@ -158,7 +158,7 @@ export default {
       return this.points;
     },
     isLiveUpdatesActive() {
-      return this.gameStateSubscription !== null;
+      return this.gameStateListener !== null;
     },
   },
   async mounted() {
@@ -233,58 +233,18 @@ export default {
 
     // Subscribe to live updates for new guesses
     subscribeToLiveUpdates() {
-      const gameId = this.multiplayerGame_getGameId;
-      if (!gameId) return;
-
-      // Check if we're already connected to the WebSocket
-      if (window.stompClient && window.stompClient.connected) {
-        console.log('✅ WebSocket already connected, subscribing immediately');
-        this.subscribeToGuessUpdates(gameId);
-        return;
-      }
-      
-      console.log('⏳ WebSocket not connected, waiting for connection...');
-      
-      // Import and connect to the WebSocket
-      import('@/services/multiplayerGameWebSocket').then(({ connectToMultiplayerGame }) => {
-        connectToMultiplayerGame(gameId);
+      // Listen to the custom event emitted by the main WebSocket handler
+      this.gameStateListener = (event) => {
+        const roundEndData = event.detail;
         
-        // Wait for connection to establish with a more robust approach
-        const connectInterval = setInterval(() => {
-          if (window.stompClient && window.stompClient.connected) {
-            console.log('✅ WebSocket connected, now subscribing');
-            clearInterval(connectInterval);
-            this.subscribeToGuessUpdates(gameId);
-          }
-        }, 100);
-        
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          clearInterval(connectInterval);
-          console.warn('⚠️ WebSocket connection timeout');
-        }, 5000);
-      }).catch(error => {
-        console.error('Failed to load WebSocket service:', error);
-      });
-    },
-
-    // Subscribe to guess updates for the completed round
-    subscribeToGuessUpdates(gameId) {
-      if (window.stompClient && window.stompClient.connected) {
-        console.log(`🔔 Subscribing to /topic/multiplayer-game/${gameId}/state`);
-        // Subscribe to game state updates to catch new guesses
-        this.gameStateSubscription = window.stompClient.subscribe(
-          `/topic/multiplayer-game/${gameId}/state`,
-          (message) => {
-            console.log('📡 WebSocket message received in round-end component');
-            // Refresh guesses when game state updates
-            this.refreshGuesses();
-          }
-        );
-        console.log('✅ Successfully subscribed to game state updates');
-      } else {
-        console.error('❌ Cannot subscribe - WebSocket not connected');
-      }
+        // Validate that this event is for our game and has new guesses
+        if (roundEndData.gameId === this.multiplayerGame_getGameId && 
+            roundEndData.playersWithEndedStatus > 0) {
+          this.refreshGuesses();
+        }
+      };
+      
+      window.addEventListener('multiplayerGameStateUpdate', this.gameStateListener);
     },
 
     // Show notification for new guess
@@ -337,9 +297,9 @@ export default {
 
     // Clean up live updates
     cleanupLiveUpdates() {
-      if (this.gameStateSubscription) {
-        this.gameStateSubscription.unsubscribe();
-        this.gameStateSubscription = null;
+      if (this.gameStateListener) {
+        window.removeEventListener('multiplayerGameStateUpdate', this.gameStateListener);
+        this.gameStateListener = null;
       }
     },
     renderMap() {

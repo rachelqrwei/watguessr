@@ -117,7 +117,8 @@ export default {
       gameStateSubscription: null,
       markerMap: new Map(), // Track markers by unique key to prevent duplicates
       lastCorrectAnswer: null, // Track last correct answer to detect changes
-      completedRoundId: null // Store the round ID for the completed round
+      completedRoundId: null, // Store the round ID for the completed round
+      refreshInterval: null
     };
   },
   computed: {
@@ -180,11 +181,19 @@ export default {
 
     // Subscribe to live updates for new guesses
     this.subscribeToLiveUpdates();
+    
+    // Set up periodic refresh as a fallback (every 2 seconds)
+    this.refreshInterval = setInterval(() => {
+      this.refreshGuesses();
+    }, 2000);
   },
 
   beforeUnmount() {
     // Clean up subscriptions and intervals
     this.cleanupLiveUpdates();
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
     
     // Clean up markers
     this.markers.forEach(marker => marker.remove());
@@ -235,54 +244,21 @@ export default {
 
     // Subscribe to live updates for new guesses
     subscribeToLiveUpdates() {
-      const gameId = this.rankedGame_getGameId;
-      if (!gameId) return;
-
-      // Check if we're already connected to the WebSocket
-      if (window.stompClient && window.stompClient.connected) {
-        console.log('✅ WebSocket already connected, subscribing immediately');
-        this.subscribeToGuessUpdates(gameId);
-        return;
-      }
-      
-      console.log('⏳ WebSocket not connected, waiting for connection...');
-      
-      // Import and connect to the WebSocket
-      import('@/services/rankedGameWebSocket').then(({ connectToRankedGame }) => {
-        connectToRankedGame(gameId);
+      // Listen to the custom event emitted by the main WebSocket handler
+      this.gameStateListener = (event) => {
+        const roundEndData = event.detail;
         
-        // Wait for connection to establish with a more robust approach
-        const connectInterval = setInterval(() => {
-          if (window.stompClient && window.stompClient.connected) {
-            console.log('✅ WebSocket connected, now subscribing');
-            clearInterval(connectInterval);
-            this.subscribeToGuessUpdates(gameId);
-          }
-        }, 100);
-        
-        // Timeout after 5 seconds
-        setTimeout(() => {
-          clearInterval(connectInterval);
-          console.warn('⚠️ WebSocket connection timeout');
-        }, 5000);
-      }).catch(error => {
-        console.error('Failed to load WebSocket service:', error);
-      });
+        // Validate that this event is for our game and has new guesses
+        if (roundEndData.gameId === this.rankedGame_getGameId && 
+            roundEndData.playersWithEndedStatus > 0) {
+          this.refreshGuesses();
+        }
+      };
+      
+      window.addEventListener('rankedGameStateUpdate', this.gameStateListener);
     },
 
-    // Subscribe to guess updates for the completed round
-    subscribeToGuessUpdates(gameId) {
-      if (window.stompClient && window.stompClient.connected) {
-        // Subscribe to game state updates to catch new guesses
-        this.gameStateSubscription = window.stompClient.subscribe(
-          `/topic/ranked-game/${gameId}/state`,
-          (message) => {
-            // Refresh guesses when game state updates
-            this.refreshGuesses();
-          }
-        );
-      }
-    },
+
 
     // Show notification for new guess
     showNewGuessNotification(guess) {
