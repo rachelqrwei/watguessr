@@ -26,9 +26,9 @@ export const mutations = {
     localStorage.removeItem('user_data');
 
     // Call backend logout to clear HTTP-only cookie
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, { 
-      method: 'POST', 
-      credentials: 'include' 
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include'
     }).catch(() => {
       // Ignore errors on logout - cookie might already be cleared
     });
@@ -90,13 +90,11 @@ export const mutations = {
   CLOSE_SIGNUP(state: UserState) {
     state.showSignUp = false;
   },
-
-  SHOW_WELCOME_MODAL(state: UserState) {
-    state.showWelcomeModal = true;
+  OPEN_WELCOME(state: UserState) {
+    state.showWelcome = true;
   },
-
-  CLOSE_WELCOME_MODAL(state: UserState) {
-    state.showWelcomeModal = false;
+  CLOSE_WELCOME(state: UserState) {
+    state.showWelcome = false;
   }
 };
 

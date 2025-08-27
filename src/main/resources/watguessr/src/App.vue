@@ -81,6 +81,7 @@
       @closeSignUp="closeSignUp"
       @openLogin="openLogin"
       @openSignUp="openSignUp"
+      @openWelcome="openWelcome"
     />
 
     <ReportBugModal
@@ -120,6 +121,7 @@ const openLogin = () => store.commit('user/OPEN_LOGIN')
 const closeLogin = () => store.commit('user/CLOSE_LOGIN')
 const openSignUp = () => store.commit('user/OPEN_SIGNUP')
 const closeSignUp = () => store.commit('user/CLOSE_SIGNUP')
+const openWelcome = () => store.commit('user/OPEN_WELCOME')
 
 // Show top-left logo only on Play, Leaderboard, Profile, Settings, and Lobby pages
 const windowWidth = ref(window.innerWidth)

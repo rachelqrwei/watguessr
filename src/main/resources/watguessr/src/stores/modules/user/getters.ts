@@ -11,5 +11,6 @@ export const getters = {
     state.users.find(user => user.id === id),
   showLogin: (state: UserState) => state.showLogin,
   showSignUp: (state: UserState) => state.showSignUp,
+  showWelcome: (state: UserState) => state.showWelcome,
   logoutReason: (state: UserState) => state.logoutReason
 };

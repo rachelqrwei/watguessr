@@ -94,10 +94,7 @@
         @close="showOtpModal = false"
         @verified="handleOtpVerified"
         @resend="resendOtp"
-
       />
-
-
 
     </div>
   </div>
@@ -112,6 +109,7 @@ export default {
   components: {
     OtpModal
   },
+  emits: ['close', 'openLogin', 'openWelcome'],
   data() {
     return {
       email: '',
@@ -183,9 +181,9 @@ export default {
       this.showOtpModal = false;
       // Close the signup modal and emit close to parent
       this.$emit('close');
+      // Open welcome modal
+      this.$emit('openWelcome');
     },
-
-
     async resendOtp() {
       await this.sendOtp(this.userEmail);
     },

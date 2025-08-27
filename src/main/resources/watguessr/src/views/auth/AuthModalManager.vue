@@ -8,7 +8,7 @@
     :visible="showSignUp"
     @close="$emit('closeSignUp')"
     @openLogin="$emit('closeSignUp'); $emit('openLogin')"
- />
+    @openWelcome="$emit('closeSignUp'); $emit('openWelcome')" />
 </template>
 
 <script>
@@ -18,7 +18,7 @@ import SignUpModal from './SignUpModal.vue'
 export default {
   components: { LoginModal, SignUpModal },
   props: ["showLogin", "showSignUp"],
-  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp']
+  emits: ['closeLogin', 'closeSignUp', 'openLogin', 'openSignUp', 'openWelcome']
 };
 </script>
 

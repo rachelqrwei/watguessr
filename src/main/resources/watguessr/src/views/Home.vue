@@ -39,7 +39,12 @@ export default {
       otpEmail: '',
       otpUsername: '',
       showLoginModal: false,
+    }
+  },
 
+  computed: {
+    showWelcomeModal() {
+      return this.$store.getters['user/showWelcome'];
     }
   },
 
@@ -124,10 +129,10 @@ export default {
             if (isLogin) {
               // User is already authenticated via OAuth flow, just refresh auth state
               await this.$store.dispatch('user/initializeAuth')
-              
+
               // Show welcome modal for new Google users
               if (isNewUser) {
-                this.$store.commit('user/SHOW_WELCOME_MODAL');
+                this.$store.commit('user/OPEN_WELCOME');
               }
             } else {
               // New user signup (this path might not be used now)
@@ -201,7 +206,7 @@ export default {
     },
 
     closeWelcomeModal() {
-      this.$store.commit('user/CLOSE_WELCOME_MODAL');
+      this.$store.commit('user/CLOSE_WELCOME');
     }
   },
 
@@ -301,7 +306,7 @@ export default {
     />
 
     <WelcomeModal
-      :visible="$store.state.user.showWelcomeModal"
+      :visible="showWelcomeModal"
       @close="closeWelcomeModal"
     />
 
