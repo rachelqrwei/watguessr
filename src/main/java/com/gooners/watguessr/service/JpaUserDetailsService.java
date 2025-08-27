@@ -45,7 +45,8 @@ public class JpaUserDetailsService implements UserDetailsService {
                             .accountLocked(false)
                             .credentialsExpired(false)
                             .disabled(false)
-                            .build(); // the above false are necessary to build
+                            .build();// the above false are necessary to build
+
                 })
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User with username [%s] not found".formatted(username)));
