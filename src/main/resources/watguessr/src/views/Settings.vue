@@ -114,6 +114,19 @@
                         />
                         No spaces allowed
                       </div>
+                      <div
+                        class="validation-item"
+                        :class="{ valid: usernameChecks.canChangeUsername }"
+                      >
+                        <font-awesome-icon
+                          :icon="
+                            usernameChecks.canChangeUsername
+                              ? 'fa-solid fa-check'
+                              : 'fa-solid fa-times'
+                          "
+                        />
+                        7 days have passed since last change
+                      </div>
                     </div>
 
                     <div class="username-warning">
@@ -341,10 +354,21 @@ export default {
     usernameChecks() {
       const validLengths = this.newUsername.length >= 3 && this.newUsername.length <= 24
       const validCombination = !this.newUsername.includes(' ')
+      
+      // Check if 7 days have passed since last username change
+      let canChangeUsername = true
+      if (this.settings?.usernameChangedAt) {
+        const lastChanged = new Date(this.settings.usernameChangedAt)
+        const now = new Date()
+        const daysSinceChange = (now - lastChanged) / (1000 * 60 * 60 * 24)
+        canChangeUsername = daysSinceChange >= 7
+      }
+      
       return {
         validLengths,
         validCombination,
-        allValid: validLengths && validCombination,
+        canChangeUsername,
+        allValid: validLengths && validCombination && canChangeUsername,
       }
     },
     passwordChecks() {
@@ -520,10 +544,42 @@ export default {
     },
   },
   mounted() {
+    // Check if user is already authenticated (in case auth initialization completed before mount)
     if (this.isAuthenticated && this.getCurrentUser) {
       this.loadSettings()
     } else if (!this.isAuthenticated) {
       this.isLoading = false
+    }
+    
+    // Set a timeout to stop loading if auth doesn't initialize within 3 seconds
+    setTimeout(() => {
+      if (!this.isAuthenticated && !this.getCurrentUser && this.isLoading) {
+        this.isLoading = false
+      }
+    }, 3000)
+  },
+  
+  watch: {
+    // Watch for authentication state changes
+    isAuthenticated: {
+      handler(newVal) {
+        if (newVal && this.getCurrentUser && !this.settings) {
+          this.loadSettings()
+        } else if (!newVal) {
+          this.isLoading = false
+        }
+      },
+      immediate: true
+    },
+    
+    // Also watch for user data being loaded
+    getCurrentUser: {
+      handler(newVal) {
+        if (newVal && this.isAuthenticated && !this.settings) {
+          this.loadSettings()
+        }
+      },
+      immediate: true
     }
   },
 }
