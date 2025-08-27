@@ -239,7 +239,27 @@ public class GameService {
             item.setGameMode(game.getGameMode());
             item.setPlayedAt(game.getCreatedAt());
             User winner = game.getWinner();
-            item.setFinished(winner != null);
+            
+            // Determine if game is actually finished based on rounds completed
+            boolean isFinished = false;
+            if ("Singleplayer".equalsIgnoreCase(game.getGameMode())) {
+                // Singleplayer games are finished if they have a winner
+                isFinished = winner != null;
+            } else if ("Multiplayer".equalsIgnoreCase(game.getGameMode())) {
+                // Multiplayer games are finished if they have a winner AND completed all intended rounds
+                Integer currentRounds = roundService.getRoundCountForGame(game.getId());
+                Integer intendedRounds = game.getMultiplayerRoundCount();
+                isFinished = winner != null && intendedRounds != null && currentRounds >= intendedRounds;
+            } else if ("Ranked".equalsIgnoreCase(game.getGameMode())) {
+                // Ranked games are finished if they have a winner AND completed all 5 rounds
+                Integer currentRounds = roundService.getRoundCountForGame(game.getId());
+                isFinished = winner != null && currentRounds >= 5;
+            } else {
+                // Default: finished if has winner
+                isFinished = winner != null;
+            }
+            
+            item.setFinished(isFinished);
 
             if ("Singleplayer".equalsIgnoreCase(game.getGameMode())) {
                 Integer rounds = roundService.getRoundCountForGame(game.getId());

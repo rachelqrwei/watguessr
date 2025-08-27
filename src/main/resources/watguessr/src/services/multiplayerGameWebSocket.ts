@@ -212,11 +212,10 @@ function handleGameStateUpdate(gameState: MultiplayerGameStateDto) {
     }
   });
 
-  // ✅ If only one player left and it's me, redirect
+  // ✅ If only one player left and it's me, redirect without finishing the game
   const playerIds = Object.keys(players);
   if (!hasLeftGame && playerIds.length === 1 && playerIds[0] === currentUser.id) {
     hasLeftGame = true; // prevent re-trigger
-    store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
     alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
   }
