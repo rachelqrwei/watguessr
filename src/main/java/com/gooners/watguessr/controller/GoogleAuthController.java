@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import com.gooners.watguessr.dto.UserDto;
-import com.gooners.watguessr.entity.User;
-import com.gooners.watguessr.service.AuthenticationService;
-import com.gooners.watguessr.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +21,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gooners.watguessr.config.RateLimit;
+import com.gooners.watguessr.entity.User;
+import com.gooners.watguessr.service.AuthenticationService;
+import com.gooners.watguessr.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -117,16 +115,20 @@ public class GoogleAuthController {
             String name = userInfo.get("name").asText();
             String picture = userInfo.has("picture") ? userInfo.get("picture").asText() : null;
 
+            // Check if user exists before creating/getting
+            boolean isNewUser = !userService.existsByEmail(email);
+            
             // Persist / authenticate user
             User user = userService.createOrGetUserFromGoogle(email, name, picture);
             authenticationService.authenticateGoogleUser(user, response);
 
-            // Redirect frontend
+            // Redirect frontend with new_user flag
             String redirectParams = String.format(
-                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
+                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success&new_user=%s",
                     URLEncoder.encode(email, StandardCharsets.UTF_8),
                     URLEncoder.encode(name, StandardCharsets.UTF_8),
-                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "");
+                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "",
+                    isNewUser ? "true" : "false");
 
             response.sendRedirect(frontendBaseUrl + redirectParams);
 

@@ -4,16 +4,7 @@
       <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="otp-title">
       <button class="close-btn" @click="$emit('close')" aria-label="Close">×</button>
 
-      <!-- Success State -->
-      <div v-if="success" class="success-state">
-        <div class="success-icon">✓</div>
-        <h2 class="success-title">Account Verified!</h2>
-        <p class="success-message">Your account has been successfully verified. You can now access all features.</p>
-        <div class="success-countdown">Redirecting in {{ redirectCountdown }} seconds...</div>
-      </div>
-
       <!-- OTP Input State -->
-      <div v-else>
         <h2 id="otp-title" class="title">Enter Verification Code</h2>
         <p class="subtitle">We sent a 6‑digit code to <strong>{{ email }}</strong>.</p>
 
@@ -34,27 +25,45 @@
           </button>
         </div>
 
+<!--        Success Message-->
+        <p v-if="showSuccess" class="success-message">Account Verified!</p>
+
         <div class="helper-row">
           <button class="link-btn" :disabled="cooldown > 0" @click="$emit('resend')">
             {{ cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code' }}
           </button>
+          <!-- Temporary test button -->
+          <button class="link-btn" @click="testWelcomeModal" style="margin-left: 10px;">
+            Test Welcome Modal
+          </button>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
-      </div>
     </div>
   </div>
   </Transition>
+
+  <!-- Welcome Modal -->
+  <WelcomeModal 
+    :visible="showWelcomeModal" 
+    @close="handleWelcomeClose" 
+  />
 </template>
 
 <script>
 import { mapActions } from 'vuex';
+import WelcomeModal from '@/components/WelcomeModal.vue';
 
 export default {
   name: 'OtpModal',
+  components: {
+    WelcomeModal
+  },
   props: {
     visible: { type: Boolean, default: false },
-    email: { type: String, required: true }
+    email: { type: String, required: true },
+    username: { type:String, required: true},
+    password: { type:String, required: true}
   },
   data() {
     return {
@@ -65,11 +74,13 @@ export default {
       cooldown: 0,
       redirectCountdown: 3,
       _iv: null,
-      _redirectIv: null
+      _redirectIv: null,
+      showSuccess: '',
+      showWelcomeModal: false,
     };
   },
   methods: {
-    ...mapActions('user', ['verifyOtp']),
+    ...mapActions('user', ['verifyOtp', 'login']),
 
     async submitOtp() {
       if (this.submitting) return;
@@ -80,8 +91,18 @@ export default {
 
         if (res === 'verified') {
           this.success = true;
+          // success message
+          this.showSuccess = true;
+
+          // login in user
+          const resLogin = await this.login({username: this.username, password: this.password});
+
           this.$emit('verified');
-          this.startRedirectCountdown();
+          
+          // Show welcome modal after successful login
+          if (resLogin) {
+            this.showWelcomeModal = true;
+          }
         } else {
           this.error = res || 'Verification failed.';
         }
@@ -93,7 +114,7 @@ export default {
     },
 
     startRedirectCountdown() {
-      this.redirectCountdown = 3;
+      this.redirectCountdown = 1;
       this._redirectIv = setInterval(() => {
         if (this.redirectCountdown > 0) {
           this.redirectCountdown--;
@@ -102,6 +123,16 @@ export default {
           this.$emit('close');
         }
       }, 1000);
+    },
+
+    handleWelcomeClose() {
+      this.showWelcomeModal = false;
+      this.$emit('close'); // Close the OTP modal as well
+    },
+
+    // For testing purposes
+    testWelcomeModal() {
+      this.showWelcomeModal = true;
     }
   },
   mounted() {
@@ -207,37 +238,6 @@ export default {
   padding: 20px 0;
 }
 
-.success-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #4CAF50;
-  color: white;
-  font-size: 48px;
-  line-height: 80px;
-  margin: 0 auto 20px;
-  animation: successPulse 0.6s ease-out;
-}
-
-.success-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #4CAF50;
-  margin: 0 0 12px;
-}
-
-.success-message {
-  color: #ccc;
-  margin: 0 0 20px;
-  line-height: 1.5;
-}
-
-.success-countdown {
-  color: #888;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
 @keyframes successPulse {
   0% {
     transform: scale(0.8);
@@ -251,4 +251,16 @@ export default {
     opacity: 1;
   }
 }
+
+.success-message {
+  background-color: #ffe066; /* soft yellow */
+  color: #333;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-align: center;
+  margin-top: 0.5rem;
+  animation: fadeOut 1s ease-in 1s forwards;
+}
+
 </style>
