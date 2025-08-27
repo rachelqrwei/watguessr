@@ -89,6 +89,14 @@ export const mutations = {
   },
   CLOSE_SIGNUP(state: UserState) {
     state.showSignUp = false;
+  },
+
+  SHOW_WELCOME_MODAL(state: UserState) {
+    state.showWelcomeModal = true;
+  },
+
+  CLOSE_WELCOME_MODAL(state: UserState) {
+    state.showWelcomeModal = false;
   }
 };
 
