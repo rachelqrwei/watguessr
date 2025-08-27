@@ -236,19 +236,35 @@ export default {
       const gameId = this.multiplayerGame_getGameId;
       if (!gameId) return;
 
-      // Import the WebSocket service dynamically to avoid circular dependencies
+      // Check if we're already connected to the WebSocket
+      if (window.stompClient && window.stompClient.connected) {
+        console.log('✅ WebSocket already connected, subscribing immediately');
+        this.subscribeToGuessUpdates(gameId);
+        return;
+      }
+      
+      console.log('⏳ WebSocket not connected, waiting for connection...');
+      
+      // Import and connect to the WebSocket
       import('@/services/multiplayerGameWebSocket').then(({ connectToMultiplayerGame }) => {
-        // Check if we're already connected
-        if (window.stompClient && window.stompClient.connected) {
-          this.subscribeToGuessUpdates(gameId);
-        } else {
-          // If not connected, connect and then subscribe
-          connectToMultiplayerGame(gameId);
-          // Wait a bit for connection to establish
-          setTimeout(() => {
+        connectToMultiplayerGame(gameId);
+        
+        // Wait for connection to establish with a more robust approach
+        const connectInterval = setInterval(() => {
+          if (window.stompClient && window.stompClient.connected) {
+            console.log('✅ WebSocket connected, now subscribing');
+            clearInterval(connectInterval);
             this.subscribeToGuessUpdates(gameId);
-          }, 1000);
-        }
+          }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(connectInterval);
+          console.warn('⚠️ WebSocket connection timeout');
+        }, 5000);
+      }).catch(error => {
+        console.error('Failed to load WebSocket service:', error);
       });
     },
 
@@ -292,18 +308,17 @@ export default {
 
     // Refresh guesses from the backend
     async refreshGuesses() {
+      console.log('🔄 refreshGuesses() called');
       const previousGuessCount = this.allGuesses.length;
-      const previousCorrectAnswer = this.lastCorrectAnswer;
       
       await this.fetchAllGuesses();
       
-      // Only update markers if there are new guesses or correct answer changed
-      const hasNewGuesses = this.allGuesses.length > previousGuessCount;
-      const correctAnswerChanged = JSON.stringify(this.correctAnswer) !== JSON.stringify(previousCorrectAnswer);
+      console.log(`📊 Previous guesses: ${previousGuessCount}, Current guesses: ${this.allGuesses.length}`);
       
-      if (hasNewGuesses || correctAnswerChanged) {
+      // Force update markers if we have guesses (even if count is the same, data might be different)
+      if (this.allGuesses.length > 0) {
+        console.log('🗺️ Updating map markers');
         this.updateMapMarkers();
-        this.lastCorrectAnswer = this.correctAnswer ? { ...this.correctAnswer } : null;
       }
     },
 
