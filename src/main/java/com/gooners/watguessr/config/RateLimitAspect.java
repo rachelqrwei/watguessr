@@ -1,13 +1,12 @@
 package com.gooners.watguessr.config;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,10 +14,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.gooners.watguessr.utils.RateLimitExceededException;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 
 /**
  * AOP Aspect for handling @RateLimit annotations.
@@ -43,12 +44,11 @@ public class RateLimitAspect {
             // Request allowed - proceed with method execution
             return joinPoint.proceed();
         } else {
-            // Rate limit exceeded - return 429 Too Many Requests
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of(
-                            "error", "Rate limit exceeded",
-                            "message", rateLimit.message(),
-                            "retryAfter", "Please try again later"));
+            // Rate limit exceeded - throw exception to be handled by GlobalExceptionHandler
+            throw new RateLimitExceededException(
+                rateLimit.message(),
+                "Please try again later"
+            );
         }
     }
 
