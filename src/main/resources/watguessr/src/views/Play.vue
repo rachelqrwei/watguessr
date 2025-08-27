@@ -125,7 +125,9 @@ export default {
       showCountdown: false,
       countdownShown: false,
       showStopwatch: false,
-      lastRoundSummary: null
+      lastRoundSummary: null,
+      cleanupCalled: false,
+      unwatchRoute: null
     }
   },
   computed: {
@@ -599,11 +601,94 @@ export default {
       }
     },
 
+    // Cleanup method for immediate leaving
+    cleanup() {
+      if (this.cleanupCalled) {
+        return;
+      }
+      this.cleanupCalled = true;
+
+      console.log('Cleaning up game:', { 
+        gameMode: this.getGameMode,
+        hasMultiplayerGameId: !!this.multiplayerGame_getGameId,
+        hasRankedGameId: !!this.rankedGame_getGameId
+      });
+
+      // Remove window event listener
+      window.removeEventListener('beforeunload', this.cleanup);
+
+      if (this.getGameMode === 'multiplayer' && this.multiplayerGame_getGameId) {
+        console.log('Disconnecting from multiplayer game');
+        this.multiplayerGame_disconnect();
+      } else if (this.getGameMode === 'ranked' && this.rankedGame_getGameId) {
+        console.log('Disconnecting from ranked game');
+        this.rankedGame_disconnect();
+      }
+    },
+
+    // Cleanup method for multiplayer games
+    async cleanupMultiplayerGame() {
+      const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      console.log('Cleaning up multiplayer game:', { 
+        gameId: this.multiplayerGame_getGameId, 
+        gameMode: this.getGameMode, 
+        hasUser: !!currentUser 
+      });
+
+      if (this.multiplayerGame_getGameId && this.getGameMode === "multiplayer") {
+        try {
+          if (currentUser) {
+            console.log('Disconnecting from multiplayer game for user:', currentUser.username);
+            this.multiplayerGame_disconnect();
+          } else {
+            console.warn('No current user available for multiplayer game cleanup');
+          }
+          
+          console.log('Multiplayer game cleanup completed successfully');
+        } catch (err) {
+          console.error("❌ Failed to cleanup multiplayer game:", err);
+        }
+      } else {
+        console.log('Skipping multiplayer game cleanup - not in multiplayer mode or no game ID');
+      }
+    },
+
+    // Cleanup method for ranked games
+    async cleanupRankedGame() {
+      const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      console.log('Cleaning up ranked game:', { 
+        gameId: this.rankedGame_getGameId, 
+        gameMode: this.getGameMode, 
+        hasUser: !!currentUser 
+      });
+
+      if (this.rankedGame_getGameId && this.getGameMode === "ranked") {
+        try {
+          if (currentUser) {
+            console.log('Disconnecting from ranked game for user:', currentUser.username);
+            this.rankedGame_disconnect();
+          } else {
+            console.warn('No current user available for ranked game cleanup');
+          }
+          
+          console.log('Ranked game cleanup completed successfully');
+        } catch (err) {
+          console.error("❌ Failed to cleanup ranked game:", err);
+        }
+      } else {
+        console.log('Skipping ranked game cleanup - not in ranked mode or no game ID');
+      }
+    },
 
   },
   mounted() {
     this.fetchAllBuildings();
     window.addEventListener('keydown', this.onGlobalKeyDown);
+
+    // Add beforeunload event listener for immediate leaving
+    window.addEventListener('beforeunload', this.cleanup);
 
     // Show countdown for singleplayer mode
     this.showCountdown = true;
@@ -624,9 +709,44 @@ export default {
       this.SET_CURRENT_VIEW('Image');
       this.rankedGame_updatePlayerStatus({ status: 'playing' });
     }
+
+    // Watch for route changes to leave game if navigating away
+    this.unwatchRoute = this.$watch(
+      () => this.$route.fullPath,
+      (newPath, oldPath) => {
+        if (oldPath.includes("play") && !newPath.includes("play")) {
+          // Leaving play route - call appropriate cleanup
+          if (this.getGameMode === 'multiplayer') {
+            this.cleanupMultiplayerGame();
+          } else if (this.getGameMode === 'ranked') {
+            this.cleanupRankedGame();
+          }
+        }
+      }
+    );
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
+    window.removeEventListener('beforeunload', this.cleanup);
+
+    // Cleanup watcher
+    if (this.unwatchRoute) this.unwatchRoute();
+
+    // Call appropriate cleanup based on game mode
+    if (this.getGameMode === 'multiplayer') {
+      this.cleanupMultiplayerGame();
+    } else if (this.getGameMode === 'ranked') {
+      this.cleanupRankedGame();
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    // Call appropriate cleanup based on game mode
+    if (this.getGameMode === 'multiplayer') {
+      this.cleanupMultiplayerGame();
+    } else if (this.getGameMode === 'ranked') {
+      this.cleanupRankedGame();
+    }
+    next();
   }
 }
 </script>
