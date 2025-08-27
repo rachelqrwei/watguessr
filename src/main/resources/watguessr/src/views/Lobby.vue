@@ -323,6 +323,8 @@ export default {
         // Connect to lobby WebSocket
         connectLobby(
           (lobbyUpdate) => {
+            console.log('Received lobby update:', lobbyUpdate);
+            console.log('Players in lobby:', lobbyUpdate.players);
             this.players = lobbyUpdate.players;
             this.isConnected = true;
           },
@@ -368,20 +370,33 @@ export default {
         joinLobby(currentUser, this.lobbyId);
       }
     },
-    async goHome() {
+    async cleanupLobby() {
       const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      console.log('Cleaning up lobby:', { 
+        lobbyId: this.lobbyId, 
+        gameMode: this.gameModeLabel, 
+        hasUser: !!currentUser 
+      });
 
       if (this.lobbyId && this.gameModeLabel === "multiplayer") {
         try {
-          await leaveLobby(currentUser);
+          if (currentUser) {
+            console.log('Leaving lobby for user:', currentUser.username);
+            await leaveLobby(currentUser);
+          } else {
+            console.warn('No current user available for lobby cleanup');
+          }
+          
+          console.log('Disconnecting from lobby WebSocket');
           await disconnectLobby();
+          console.log('Lobby cleanup completed successfully');
         } catch (err) {
           console.error("❌ Failed to cleanup lobby:", err);
         }
+      } else {
+        console.log('Skipping lobby cleanup - not in multiplayer mode or no lobby ID');
       }
-
-      // Now navigate home
-      this.$router.push({ name: "home" });
     },
     initiateRankedWebSocketConnection() {
       this.rankedQueueState = 'searching';
@@ -510,9 +525,8 @@ export default {
       () => this.$route.fullPath,
       (newPath, oldPath) => {
         if (oldPath.includes("lobby") && !newPath.includes("lobby")) {
-          // Leaving lobby route
-          leaveLobby(currentUser);
-          disconnectLobby();
+          // Leaving lobby route - call cleanupLobby() for proper cleanup
+          this.cleanupLobby();
         }
       }
     );

@@ -82,21 +82,31 @@ export default {
   mounted() {
     this.refreshLobbies();
     this.connectToLobbyUpdates();
+    
+    // Listen for public lobby updates from the main lobby service
+    window.addEventListener('publicLobbyUpdate', this.handlePublicLobbyUpdate);
   },
   beforeUnmount() {
     this.disconnectFromLobbyUpdates();
+    window.removeEventListener('publicLobbyUpdate', this.handlePublicLobbyUpdate);
   },
   methods: {
     async refreshLobbies() {
       try {
         this.isLoading = true;
         this.lobbies = await LobbyManager.getPublicLobbies();
+        console.log('Refreshed public lobbies:', this.lobbies.length, 'lobbies found');
       } catch (error) {
         console.error('Failed to fetch public lobbies:', error);
         this.lobbies = [];
       } finally {
         this.isLoading = false;
       }
+    },
+
+    handlePublicLobbyUpdate(event) {
+      console.log('Received public lobby update event, refreshing lobbies');
+      this.refreshLobbies();
     },
 
     joinLobby(lobby) {
@@ -110,14 +120,16 @@ export default {
         debug: (msg) => console.log(msg),
         reconnectDelay: 5000,
         onConnect: () => {
+          console.log('PublicLobbiesList connected to WebSocket');
           // Subscribe to public lobby updates
           this.stompClient.subscribe("/topic/lobbies/public", (message) => {
+            console.log('PublicLobbiesList received public lobby update:', message.body);
             // Refresh the lobby list when we receive an update
             this.refreshLobbies();
           });
         },
         onStompError: (frame) => {
-          console.error("STOMP error:", frame);
+          console.error("STOMP error in PublicLobbiesList:", frame);
         },
       });
 
@@ -126,6 +138,7 @@ export default {
 
     disconnectFromLobbyUpdates() {
       if (this.stompClient) {
+        console.log('Disconnecting PublicLobbiesList from WebSocket');
         this.stompClient.deactivate();
         this.stompClient = null;
       }
