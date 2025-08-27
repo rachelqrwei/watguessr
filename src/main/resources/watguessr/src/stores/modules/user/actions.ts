@@ -119,7 +119,7 @@ export const actions = {
     }
   },
 
-  async login({ commit }: { state: UserState; commit: any }, payload: { username: string; password: string }) {
+  async login({ commit }: { state: UserState; commit: any }, payload: { username: string; password: string; rememberMe?: boolean }) {
     commit('SET_LOADING', true);
     commit('SET_ERROR', null);
     try {

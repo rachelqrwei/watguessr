@@ -76,7 +76,11 @@ export default {
     async submitLogin() {
       this.error = '';
       try {
-        await this.login({ username: this.username, password: this.password });
+        await this.login({ 
+          username: this.username, 
+          password: this.password, 
+          rememberMe: this.rememberMe 
+        });
         this.$emit('close');
       } catch (err) {
         this.error = err instanceof Error ? err.message : 'Login failed';
