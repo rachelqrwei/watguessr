@@ -37,14 +37,15 @@ public class AuthenticationService {
         var authentication = authenticationManager.authenticate(authToken);
 
         // 3️⃣ Generate JWT token
-        String token = jwtService.generateToken(authentication);
+        String token = jwtService.generateToken(authentication, request.isRememberMe());
 
-        // 4️⃣ Set JWT as HttpOnly cookie
+        // 4️⃣ Set JWT as HttpOnly cookie with appropriate expiration
+        long cookieMaxAge = request.isRememberMe() ? 2592000 : 3600; // 30 days or 1 hour
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
                 .secure(true)           // use true for HTTPS in production
                 .path("/")
-                .maxAge(3600)           // 1 hour
+                .maxAge(cookieMaxAge)   // 30 days if remember me, otherwise 1 hour
                 .sameSite("None")       // Allow cross-site requests for CORS
                 .build();
 

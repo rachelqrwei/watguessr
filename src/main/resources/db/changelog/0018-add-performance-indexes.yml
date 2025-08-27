@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: 18
+      author: kennywu
+      comment: "Add performance indexes organized by query type for optimal performance"
+      changes:
+        # ========================================
+        # 1. BY-GAME-WITH-GUESSES QUERIES
+        # ========================================
+        # Query: RoundController.getRoundsByGameWithGuesses()
+        # Pattern: Game -> Round (fetch all rounds for a specific game)
+        - createIndex:
+            tableName: "round"
+            indexName: "idx_round_game_id"
+            columns:
+              - column:
+                  name: game_id
+        
+        # ========================================
+        # 2. LEADERBOARD QUERIES (Most Complex!)
+        # ========================================
+        # Query: UserRepository.findSortedWithGameStats()
+        # Pattern: Complex JOIN chain with nested subqueries
+        
+        # For the main JOIN: Game -> Round -> Guess
+        - createIndex:
+            tableName: "guess"
+            indexName: "idx_guess_user_id"
+            columns:
+              - column:
+                  name: user_id
+        
+        # For the JOIN: Round -> Guess (most expensive part)
+        - createIndex:
+            tableName: "guess"
+            indexName: "idx_guess_round_id"
+            columns:
+              - column:
+                  name: round_id
+
+        # For counting ranked games won/lost by user
+        - createIndex:
+            tableName: "game"
+            indexName: "idx_game_winner_mode"
+            columns:
+              - column:
+                  name: winner_user_id
+              - column:
+                  name: game_mode
+
+        # For leaderboard sorting (primary sort by elo DESC)
+        - createIndex:
+            tableName: "user"
+            indexName: "idx_user_elo"
+            columns:
+              - column:
+                  name: elo
+
+        # For username search in leaderboard (case-insensitive)
+        - sql: CREATE INDEX idx_user_username_lower ON "user"(LOWER(username));
+
+        # ========================================
+        # 3. MATCH HISTORY QUERIES
+        # ========================================
+        # Query: GameRepository.findGamesByUser()
+        # Pattern: Find all games where user participated, ordered by creation time
+
+        # For ordering match history by creation time
+        - createIndex:
+            tableName: "game"
+            indexName: "idx_game_created_at"
+            columns:
+              - column:
+                  name: created_at
+
+        # ========================================
+        # 4. FREQUENTLY CALLED METHODS
+        # ========================================
+        # Query: RoundService.findGuessForUserAndRound()
+        # Called multiple times per request in RoundController
+
+        - createIndex:
+            tableName: "guess"
+            indexName: "idx_guess_round_user"
+            columns:
+              - column:
+                  name: round_id
+              - column:
+                  name: user_id
