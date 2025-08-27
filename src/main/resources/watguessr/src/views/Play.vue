@@ -98,8 +98,7 @@ import PlayRankedRoundEnd from '@/views/play-components/Play.RankedRoundEnd.vue'
 import PlayFloorPanel from '@/views/play-components/Play.FloorPanel.vue'
 import PlayerDisconnectionAlert from '@/components/PlayerDisconnectionAlert.vue'
 import CountdownTimer from '@/components/CountdownTimer.vue'
-import { connectToMultiplayerGame, cleanupMultiplayerGameOnUnmount } from '@/services/multiplayerGameWebSocket';
-import { connectToRankedGame, cleanupRankedGameOnUnmount } from '@/services/rankedGameWebSocket';
+
 
 
 export default {
@@ -127,7 +126,9 @@ export default {
       showCountdown: false,
       countdownShown: false,
       showStopwatch: false,
-      lastRoundSummary: null
+      lastRoundSummary: null,
+      cleanupCalled: false,
+      unwatchRoute: null
     }
   },
   computed: {
@@ -601,10 +602,45 @@ export default {
       }
     },
 
+    // Handle immediate leaving when user navigates away or closes tab
+    handleImmediateLeave() {
+      if (this.cleanupCalled) {
+        return;
+      }
+      this.cleanupCalled = true;
+
+      console.log('Immediate leave triggered:', {
+        gameMode: this.getGameMode,
+        hasMultiplayerGameId: !!this.multiplayerGame_getGameId,
+        hasRankedGameId: !!this.rankedGame_getGameId
+      });
+
+      // Disconnect based on game mode
+      if (this.getGameMode === 'multiplayer' && this.multiplayerGame_getGameId) {
+        console.log('Disconnecting from multiplayer game');
+        this.multiplayerGame_disconnect();
+      } else if (this.getGameMode === 'ranked' && this.rankedGame_getGameId) {
+        console.log('Disconnecting from ranked game');
+        this.rankedGame_disconnect();
+      }
+    },
+
+    // Handle beforeunload event (tab/window close)
+    handleBeforeUnload() {
+      console.log('Beforeunload event triggered');
+      if (!this.cleanupCalled) {
+        console.log('Page unloading - disconnecting from game');
+        this.handleImmediateLeave();
+      }
+    },
+
   },
   mounted() {
     this.fetchAllBuildings();
     window.addEventListener('keydown', this.onGlobalKeyDown);
+
+    // Add beforeunload event listener for immediate leaving
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
 
     // Show countdown for singleplayer mode
     this.showCountdown = true;
@@ -625,16 +661,47 @@ export default {
       this.SET_CURRENT_VIEW('Image');
       this.rankedGame_updatePlayerStatus({ status: 'playing' });
     }
+
+    // Watch for route changes to leave game if navigating away
+    this.unwatchRoute = this.$watch(
+      () => this.$route.fullPath,
+      (newPath, oldPath) => {
+        console.log('🔍 Route watcher triggered:', { 
+          oldPath, 
+          newPath, 
+          oldIncludesPlay: oldPath.includes("play"),
+          newIncludesPlay: newPath.includes("play"),
+          gameMode: this.getGameMode
+        });
+        
+        if (oldPath.includes("play") && !newPath.includes("play")) {
+          // Leaving play route - call immediate leave
+          console.log('🚪 Left play route, triggering immediate leave');
+          this.handleImmediateLeave();
+        } else {
+          console.log('📍 Route change but not leaving play area');
+        }
+      },
+      { immediate: true } // Log initial route
+    );
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
 
-    // Call WebSocket service cleanup methods
-    if (this.getGameMode === 'multiplayer') {
-      cleanupMultiplayerGameOnUnmount();
-    } else if (this.getGameMode === 'ranked') {
-      cleanupRankedGameOnUnmount();
+    // Cleanup route watcher
+    if (this.unwatchRoute) {
+      this.unwatchRoute();
     }
+
+    // Call immediate leave if not already called
+    this.handleImmediateLeave();
+  },
+  beforeRouteLeave(to, from, next) {
+    console.log('Route leave guard triggered');
+    // Call immediate leave if not already called
+    this.handleImmediateLeave();
+    next();
   }
 }
 </script>
