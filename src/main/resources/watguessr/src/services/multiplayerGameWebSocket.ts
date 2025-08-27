@@ -73,12 +73,33 @@ export function connectToMultiplayerGame(gameId: string) {
 
 export function disconnectFromMultiplayerGame() {
   if (stompClient && stompClient.connected) {
-    stopHeartbeat();
-
-    stompClient.disconnect(() => {
-      store.commit('guess/RESET_GUESS', null);
-    });
-    stompClient = null;
+    // Get current user and game ID for leave message
+    const currentUser = store.getters['user/getCurrentUser'];
+    const gameId = store.getters['multiplayerGame/multiplayerGame_getGameId'];
+    
+    // Send leave message before disconnecting
+    if (currentUser?.id && gameId) {
+      console.log('Sending leave message before disconnecting from multiplayer game');
+      sendLeaveGame(gameId, currentUser.id);
+      
+      // Give a small delay for the leave message to be sent
+      setTimeout(() => {
+        stopHeartbeat();
+        if (stompClient) {
+          stompClient.disconnect(() => {
+            store.commit('guess/RESET_GUESS', null);
+          });
+          stompClient = null;
+        }
+      }, 100);
+    } else {
+      // Fallback if we don't have user or game info
+      stopHeartbeat();
+      stompClient.disconnect(() => {
+        store.commit('guess/RESET_GUESS', null);
+      });
+      stompClient = null;
+    }
   }
 }
 
@@ -144,6 +165,22 @@ export function sendStartRound(gameId: string, sceneId: string) {
   };
 
   stompClient.send('/app/multiplayer-game/start-round', {}, JSON.stringify(startData));
+}
+
+// Send leave game request
+export function sendLeaveGame(gameId: string, userId: string) {
+  if (!stompClient || !stompClient.connected) {
+    console.warn('WebSocket not connected, cannot send leave message');
+    return;
+  }
+
+  const leaveData = {
+    gameId: gameId,
+    userId: userId
+  };
+
+  console.log('Sending leave message for multiplayer game:', leaveData);
+  stompClient.send('/app/multiplayer-game/leave', {}, JSON.stringify(leaveData));
 }
 
 // Handle incoming game state updates

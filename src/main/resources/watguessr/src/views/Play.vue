@@ -666,23 +666,14 @@ export default {
     this.unwatchRoute = this.$watch(
       () => this.$route.fullPath,
       (newPath, oldPath) => {
-        console.log('🔍 Route watcher triggered:', { 
-          oldPath, 
-          newPath, 
-          oldIncludesPlay: oldPath.includes("play"),
-          newIncludesPlay: newPath.includes("play"),
-          gameMode: this.getGameMode
-        });
-        
-        if (oldPath.includes("play") && !newPath.includes("play")) {
+        console.log('Route changed:', { oldPath, newPath });
+        // Check if oldPath exists and both paths are valid
+        if (oldPath && newPath && oldPath.includes("play") && !newPath.includes("play")) {
           // Leaving play route - call immediate leave
-          console.log('🚪 Left play route, triggering immediate leave');
+          console.log('Left play route, triggering immediate leave');
           this.handleImmediateLeave();
-        } else {
-          console.log('📍 Route change but not leaving play area');
         }
-      },
-      { immediate: true } // Log initial route
+      }
     );
   },
   beforeUnmount() {

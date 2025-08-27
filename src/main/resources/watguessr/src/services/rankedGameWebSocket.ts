@@ -83,34 +83,37 @@ export function connectToRankedGame(gameId: string) {
 }
 
 export function disconnectFromRankedGame() {
-  console.log('Disconnecting from ranked game...', {
-    hasStompClient: !!stompClient,
-    isConnected: stompClient?.connected,
-    cleanupCalled
-  });
-
-  if (cleanupCalled) {
-    console.log('Cleanup already called, skipping...');
-    return;
-  }
-
-  cleanupCalled = true;
-
   if (stompClient && stompClient.connected) {
-    console.log('Stopping heartbeat and disconnecting STOMP client...');
-    stopHeartbeat();
-
-    stompClient.disconnect(() => {
-      console.log('STOMP client disconnected successfully');
-      store.commit('guess/RESET_GUESS', null);
-    });
-    stompClient = null;
-  } else {
-    console.log('No STOMP client or not connected');
+    // Get current user and game ID for leave message
+    const currentUser = store.getters['user/getCurrentUser'];
+    const gameId = store.getters['rankedGame/rankedGame_getGameId'];
+    
+    // Send leave message before disconnecting
+    if (currentUser?.id && gameId) {
+      console.log('Sending leave message before disconnecting from ranked game');
+      sendLeaveGame(gameId, currentUser.id);
+      
+      // Give a small delay for the leave message to be sent
+      setTimeout(() => {
+        stopHeartbeat();
+        if (stompClient) {
+          stompClient.disconnect(() => {
+            store.commit('guess/RESET_GUESS', null);
+          });
+          stompClient = null;
+        }
+      }, 100);
+    } else {
+      // Fallback if we don't have user or game info
+      stopHeartbeat();
+      if (stompClient) {
+        stompClient.disconnect(() => {
+          store.commit('guess/RESET_GUESS', null);
+        });
+        stompClient = null;
+      }
+    }
   }
-  
-  // Cleanup immediate leaving functionality
-  cleanupImmediateLeaving();
 }
 
 // Setup immediate leaving functionality
@@ -287,6 +290,22 @@ export function sendStartRound(gameId: string, sceneId: string) {
   };
 
   stompClient.send('/app/ranked-game/start-round', {}, JSON.stringify(startData));
+}
+
+// Send leave game request
+export function sendLeaveGame(gameId: string, userId: string) {
+  if (!stompClient || !stompClient.connected) {
+    console.warn('WebSocket not connected, cannot send leave message');
+    return;
+  }
+
+  const leaveData = {
+    gameId: gameId,
+    userId: userId
+  };
+
+  console.log('Sending leave message for ranked game:', leaveData);
+  stompClient.send('/app/ranked-game/leave', {}, JSON.stringify(leaveData));
 }
 
 // Handle incoming game state updates

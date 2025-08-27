@@ -344,7 +344,7 @@ public class RankedGameStateService {
 		}
 	}
 
-	private void forceLeaveUser(UUID gameId, String userId) {
+	public void forceLeaveUser(UUID gameId, String userId) {
 		// Your existing logic to remove user from game
 		gameUserLastSeen.remove(gameId, userId);
 

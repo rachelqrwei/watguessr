@@ -65,6 +65,13 @@ public class MultiplayerGameStateController {
 		multiplayerGameStateService.updateLastSeen(UUID.fromString(heartbeat.getGameId()), principal.getName());
 	}
 
+	@MessageMapping("/multiplayer-game/leave")
+	public void leaveMultiplayerGame(@Payload LeaveGameRequest request) {
+		UUID gameId = UUID.fromString(request.getGameId());
+		String userId = request.getUserId();
+		multiplayerGameStateService.forceLeaveUser(gameId, userId);
+	}
+
 	/**
 	 * Request DTOs
 	 */
@@ -108,5 +115,16 @@ public class MultiplayerGameStateController {
 
 		public String getSceneId() { return sceneId; }
 		public void setSceneId(String sceneId) { this.sceneId = sceneId; }
+	}
+
+	public static class LeaveGameRequest {
+		private String gameId;
+		private String userId;
+
+		public String getGameId() { return gameId; }
+		public void setGameId(String gameId) { this.gameId = gameId; }
+
+		public String getUserId() { return userId; }
+		public void setUserId(String userId) { this.userId = userId; }
 	}
 }
