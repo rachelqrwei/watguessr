@@ -259,7 +259,29 @@ export const actions = {
     }
   },
   // Initialize authentication state on app startup
-  async initializeAuth({ commit }: { state: UserState; commit: any }) {
+  async initializeAuth({ state, commit }: { state: UserState; commit: any }) {
+    // If already initialized, return immediately
+    if (state.isAuthInitialized) {
+      return;
+    }
+
+    // If already initializing, wait for it to complete
+    if (state.isAuthInitializing) {
+      return new Promise((resolve) => {
+        const checkInitialized = () => {
+          if (state.isAuthInitialized) {
+            resolve(undefined);
+          } else {
+            setTimeout(checkInitialized, 50);
+          }
+        };
+        checkInitialized();
+      });
+    }
+
+    // Set a flag to prevent concurrent calls
+    commit('SET_AUTH_INITIALIZING', true);
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
         method: "GET",
@@ -290,9 +312,10 @@ export const actions = {
       console.error('Failed to initialize auth', err);
       commit('SET_AUTHENTICATED', false);
       commit('SET_CURRENT_USER', null);
+    } finally {
+      commit('SET_AUTH_INITIALIZED', true);
+      commit('SET_AUTH_INITIALIZING', false);
     }
-    //
-    // commit('INITIALIZE_AUTH');
   },
   // Get stored token (useful for other parts of the app)
   getToken({ state }: { state: UserState }) {

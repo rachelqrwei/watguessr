@@ -46,6 +46,14 @@ export const mutations = {
     state.isAuthenticated = authenticated;
   },
 
+  SET_AUTH_INITIALIZED(state: UserState, initialized: boolean) {
+    state.isAuthInitialized = initialized;
+  },
+
+  SET_AUTH_INITIALIZING(state: UserState, initializing: boolean) {
+    state.isAuthInitializing = initializing;
+  },
+
   INITIALIZE_AUTH(state: UserState) {
     // Check localStorage for existing token on app startup
     const token = localStorage.getItem('jwt_token');

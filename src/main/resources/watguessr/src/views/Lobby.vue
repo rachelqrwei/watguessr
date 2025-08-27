@@ -508,7 +508,15 @@ export default {
     }
   },
   async mounted() {
+    // Ensure authentication is initialized first
+    await this.$store.dispatch('user/initializeAuth');
+    
     const currentUser = this.$store.getters["user/getCurrentUser"];
+    if (!currentUser) {
+      // If still no user after auth initialization, redirect to home
+      this.$router.push({ name: 'home' });
+      return;
+    }
     this.myId = currentUser.id;
 
     if (this.gameModeLabel === "multiplayer") {

@@ -18,6 +18,8 @@ export interface UserState {
   error: string | null;
   showLogin: boolean;
   showSignUp: boolean;
+  isAuthInitialized: boolean;
+  isAuthInitializing: boolean;
   logoutReason: string | null;
 }
 
@@ -30,5 +32,7 @@ export const state = (): UserState => ({
   error: null,
   showLogin: false,
   showSignUp: false,
+  isAuthInitialized: false,
+  isAuthInitializing: false,
   logoutReason: null
 });

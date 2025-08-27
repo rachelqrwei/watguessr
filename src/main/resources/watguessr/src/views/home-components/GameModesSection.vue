@@ -69,25 +69,34 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('user', ['isAuthenticated'])
+    ...mapGetters('user', ['isAuthenticated', 'getCurrentUser'])
   },
   methods: {
-    goSolo() {
-      if (!this.isAuthenticated) {
+    async goSolo() {
+      // Ensure authentication is initialized before checking
+      await this.$store.dispatch('user/initializeAuth');
+      
+      if (!this.isAuthenticated || !this.getCurrentUser) {
         this.showError = true;
         return;
       }
       this.$router.push({ name: 'lobby', query: { gameMode: 'singleplayer' } });
     },
-    goRanked() {
-      if (!this.isAuthenticated) {
+    async goRanked() {
+      // Ensure authentication is initialized before checking
+      await this.$store.dispatch('user/initializeAuth');
+      
+      if (!this.isAuthenticated || !this.getCurrentUser) {
         this.showError = true;
         return;
       }
       this.$router.push({ name: 'lobby', query: { gameMode: 'ranked' } });
     },
-    openLobbyBrowser() {
-      if (!this.isAuthenticated) {
+    async openLobbyBrowser() {
+      // Ensure authentication is initialized before checking
+      await this.$store.dispatch('user/initializeAuth');
+      
+      if (!this.isAuthenticated || !this.getCurrentUser) {
         this.showError = true;
         return;
       }
