@@ -108,7 +108,7 @@ function setupImmediateLeaving() {
     };
 
     // Check route changes periodically (since we don't have Vue router access here)
-    const routeCheckInterval = setInterval(checkRouteChange, 1000);
+    const routeCheckInterval = setInterval(checkRouteChange, 2000);
     
     // Store the interval for cleanup
     (window as any).__multiplayerRouteCheckInterval = routeCheckInterval;
@@ -136,17 +136,22 @@ function cleanupImmediateLeaving() {
 // Handle beforeunload event
 function handleBeforeUnload() {
   if (!cleanupCalled) {
+    // Don't call disconnectFromMultiplayerGame here to avoid recursion
+    // Just stop heartbeat and disconnect STOMP client directly
+    if (stompClient && stompClient.connected) {
+      stopHeartbeat();
+      stompClient.disconnect(() => {
+        console.log('STOMP client disconnected in beforeunload');
+      });
+      stompClient = null;
+    }
     cleanupCalled = true;
-    console.log('Page unloading - disconnecting from multiplayer game');
-    disconnectFromMultiplayerGame();
   }
 }
 
 // Handle immediate leave (called when route changes or component unmounts)
 function handleImmediateLeave() {
   if (!cleanupCalled) {
-    cleanupCalled = true;
-    console.log('Route changed - disconnecting from multiplayer game');
     disconnectFromMultiplayerGame();
   }
 }
