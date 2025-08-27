@@ -33,3 +33,5 @@ databaseChangeLog:
       file: db/changelog/0016-add-username_changed_at-in-user.yml
   - include:
       file: db/changelog/0017-add-username-unique-constraint.yml
+  - include:
+      file: db/changelog/0018-add-performance-indexes.yml
