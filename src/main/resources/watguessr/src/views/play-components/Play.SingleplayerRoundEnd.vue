@@ -11,7 +11,7 @@
           <span class="stat-value">{{ displayTimeTaken }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">POINTS LOST</span>
+          <span class="stat-label">HEALTH LOST</span>
           <span class="stat-value">-{{ displayPoints }}</span>
         </div>
         <div class="stat-item">
@@ -134,6 +134,9 @@ export default {
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
     displayDistance() {
+      if (this.distance > 10000) {
+        return "NO GUESS";
+      }
       return `${this.distance.toFixed(2)}m`;
     },
     displayPoints() {

@@ -23,7 +23,7 @@
             <div class="player-1-trapezoid" @click="goSolo">
               <div class="play-option-container">
                 <h3>SOLO</h3>
-                <p>PLAY BY YOURSELF UNTIL YOUR POINTS RUN OUT!</p>
+                <p>PLAY BY YOURSELF UNTIL YOUR HEALTH RUNS OUT!</p>
               </div>
             </div>
 

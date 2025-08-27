@@ -3,7 +3,7 @@
     <div class="player-score-tracker-1">
       <div class="player-score-text-container">
         <span class="player-name">{{ player1Name }}</span>
-        <span class="player-points">{{ displayedPoints }} PTS</span>
+        <span class="player-points">{{ displayedPoints }} HP</span>
       </div>
       <div class="player-score-progress-container">
         <div
@@ -92,12 +92,12 @@ export default {
     height: 35px;
     padding: 10px 10px 12px 20px;
   }
-  
+
   .player-score-text-container {
     padding: 10px 20px 0 20px;
     gap: 20px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 13px;
@@ -110,12 +110,12 @@ export default {
     height: 32px;
     padding: 8px 8px 10px 18px;
   }
-  
+
   .player-score-text-container {
     padding: 8px 18px 0 18px;
     gap: 18px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 12px;
@@ -128,12 +128,12 @@ export default {
     height: 30px;
     padding: 6px 6px 8px 16px;
   }
-  
+
   .player-score-text-container {
     padding: 6px 16px 0 16px;
     gap: 16px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 11px;
@@ -145,18 +145,18 @@ export default {
     bottom: 8%;
     padding: 0 12px;
   }
-  
+
   .player-score-progress-container {
     width: 260px;
     height: 28px;
     padding: 5px 5px 7px 14px;
   }
-  
+
   .player-score-text-container {
     padding: 5px 14px 0 14px;
     gap: 14px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 10px;
@@ -168,18 +168,18 @@ export default {
     bottom: 7%;
     padding: 0 10px;
   }
-  
+
   .player-score-progress-container {
     width: 240px;
     height: 26px;
     padding: 4px 4px 6px 12px;
   }
-  
+
   .player-score-text-container {
     padding: 4px 12px 0 12px;
     gap: 12px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 9px;
@@ -191,18 +191,18 @@ export default {
     bottom: 6%;
     padding: 0 8px;
   }
-  
+
   .player-score-progress-container {
     width: 220px;
     height: 24px;
     padding: 3px 3px 5px 10px;
   }
-  
+
   .player-score-text-container {
     padding: 3px 10px 0 10px;
     gap: 10px;
   }
-  
+
   .player-name,
   .player-points {
     font-size: 8px;

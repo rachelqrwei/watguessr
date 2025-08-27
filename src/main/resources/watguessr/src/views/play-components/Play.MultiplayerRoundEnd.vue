@@ -148,6 +148,9 @@ export default {
       return `${pad(m)}:${pad(s)}.${pad(ms)}`;
     },
     displayDistance() {
+      if (this.distance > 10000) {
+        return "NO GUESS";
+      }
       return `${this.distance.toFixed(2)}m`;
     },
     displayPoints() {
