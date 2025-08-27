@@ -61,8 +61,8 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
-        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", ex.getMessage(), null);
-        return isAdmin() ? ResponseEntity.badRequest().body(response) : ResponseEntity.badRequest().build();
+        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", ex.getMessage(), getStackTrace(ex));
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         
-        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, null);
+        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, getStackTrace(ex));
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -81,14 +81,14 @@ public class GlobalExceptionHandler {
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .collect(Collectors.joining(", "));
         
-        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, null);
+        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, getStackTrace(ex));
         return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String message = "Invalid parameter type for '" + ex.getName() + "'";
-        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, null);
+        ErrorResponse response = createErrorResponse("VALIDATION_ERROR", message, getStackTrace(ex));
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -107,8 +107,7 @@ public class GlobalExceptionHandler {
             userMessage = "Data conflict occurred";
         }
         
-        ErrorResponse response = createErrorResponse("DATA_ERROR", userMessage, 
-            isAdmin() ? ex.getMessage() : null);
+        ErrorResponse response = createErrorResponse("DATA_ERROR", userMessage, getStackTrace(ex));
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -116,9 +115,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        ErrorResponse response = createErrorResponse("AUTH_ERROR", "Access denied", 
-            isAdmin() ? ex.getMessage() : null);
-        if (isAdmin()) return null;
+        ErrorResponse response = createErrorResponse("AUTH_ERROR", "Access denied", getStackTrace(ex));
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
@@ -126,7 +123,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex) {
-        ErrorResponse response = createErrorResponse("RATE_LIMIT_ERROR", ex.getMessage(), null);
+        ErrorResponse response = createErrorResponse("RATE_LIMIT_ERROR", ex.getMessage(), getStackTrace(ex));
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
     }
 
@@ -136,10 +133,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         String userMessage = "Something went wrong, please try again.";
         String adminMessage = ex.getMessage();
-        String stackTrace = isAdmin() ? getStackTrace(ex) : null;
         
-        ErrorResponse response = createErrorResponse("SYSTEM_ERROR", 
-            isAdmin() ? adminMessage : userMessage, stackTrace);
+        ErrorResponse response = createErrorResponse("SYSTEM_ERROR", isAdmin() ? adminMessage : userMessage, getStackTrace(ex));
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
