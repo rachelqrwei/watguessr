@@ -271,14 +271,19 @@ export default {
     // Subscribe to guess updates for the completed round
     subscribeToGuessUpdates(gameId) {
       if (window.stompClient && window.stompClient.connected) {
+        console.log(`🔔 Subscribing to /topic/multiplayer-game/${gameId}/state`);
         // Subscribe to game state updates to catch new guesses
         this.gameStateSubscription = window.stompClient.subscribe(
           `/topic/multiplayer-game/${gameId}/state`,
           (message) => {
+            console.log('📡 WebSocket message received in round-end component');
             // Refresh guesses when game state updates
             this.refreshGuesses();
           }
         );
+        console.log('✅ Successfully subscribed to game state updates');
+      } else {
+        console.error('❌ Cannot subscribe - WebSocket not connected');
       }
     },
 
