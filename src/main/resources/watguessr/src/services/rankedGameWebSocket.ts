@@ -83,13 +83,30 @@ export function connectToRankedGame(gameId: string) {
 }
 
 export function disconnectFromRankedGame() {
+  console.log('Disconnecting from ranked game...', {
+    hasStompClient: !!stompClient,
+    isConnected: stompClient?.connected,
+    cleanupCalled
+  });
+
+  if (cleanupCalled) {
+    console.log('Cleanup already called, skipping...');
+    return;
+  }
+
+  cleanupCalled = true;
+
   if (stompClient && stompClient.connected) {
+    console.log('Stopping heartbeat and disconnecting STOMP client...');
     stopHeartbeat();
 
     stompClient.disconnect(() => {
+      console.log('STOMP client disconnected successfully');
       store.commit('guess/RESET_GUESS', null);
     });
     stompClient = null;
+  } else {
+    console.log('No STOMP client or not connected');
   }
   
   // Cleanup immediate leaving functionality
@@ -98,22 +115,37 @@ export function disconnectFromRankedGame() {
 
 // Setup immediate leaving functionality
 function setupImmediateLeaving() {
+  console.log('Setting up immediate leaving for ranked game...');
+  
   // Add beforeunload event listener for immediate leaving
   window.addEventListener('beforeunload', handleBeforeUnload);
 
+  // Store initial path to detect route changes
+  (window as any).__rankedInitialPath = window.location.pathname;
+  
   // Watch for route changes to leave game if navigating away
   if (typeof window !== 'undefined' && window.location) {
-    // Simple route change detection - check if we're leaving the play route
+    // Use a more reliable route change detection
     const checkRouteChange = () => {
       const currentPath = window.location.pathname;
+      const initialPath = (window as any).__rankedInitialPath;
+      
+      // Only log occasionally to avoid spam
+      if (Math.random() < 0.1) { // 10% chance to log
+        console.log('Route check:', { currentPath, initialPath });
+      }
+      
+      // Check if we've left the game routes
       if (!currentPath.includes('play') && !currentPath.includes('game-end')) {
         // We've left the game routes, cleanup
+        console.log('Left game routes, triggering cleanup...', { currentPath });
         handleImmediateLeave();
+        return; // Stop checking once we've left
       }
     };
 
     // Check route changes periodically (since we don't have Vue router access here)
-    const routeCheckInterval = setInterval(checkRouteChange, 1000);
+    const routeCheckInterval = setInterval(checkRouteChange, 2000); // Check every 2 seconds instead of 1
     
     // Store the interval for cleanup
     (window as any).__rankedRouteCheckInterval = routeCheckInterval;
@@ -122,6 +154,8 @@ function setupImmediateLeaving() {
 
 // Cleanup immediate leaving functionality
 function cleanupImmediateLeaving() {
+  console.log('Cleaning up immediate leaving functionality...');
+  
   // Remove beforeunload event listener
   window.removeEventListener('beforeunload', handleBeforeUnload);
 
@@ -130,6 +164,9 @@ function cleanupImmediateLeaving() {
     clearInterval((window as any).__rankedRouteCheckInterval);
     delete (window as any).__rankedRouteCheckInterval;
   }
+
+  // Clean up stored path
+  delete (window as any).__rankedInitialPath;
 
   // Cleanup route watcher if exists
   if (unwatchRoute) {
@@ -140,17 +177,26 @@ function cleanupImmediateLeaving() {
 
 // Handle beforeunload event
 function handleBeforeUnload() {
+  console.log('Beforeunload event triggered');
   if (!cleanupCalled) {
-    cleanupCalled = true;
     console.log('Page unloading - disconnecting from ranked game');
-    disconnectFromRankedGame();
+    // Don't call disconnectFromRankedGame here to avoid recursion
+    // Just stop heartbeat and disconnect STOMP client directly
+    if (stompClient && stompClient.connected) {
+      stopHeartbeat();
+      stompClient.disconnect(() => {
+        console.log('STOMP client disconnected in beforeunload');
+      });
+      stompClient = null;
+    }
+    cleanupCalled = true;
   }
 }
 
 // Handle immediate leave (called when route changes or component unmounts)
 function handleImmediateLeave() {
+  console.log('Immediate leave triggered');
   if (!cleanupCalled) {
-    cleanupCalled = true;
     console.log('Route changed - disconnecting from ranked game');
     disconnectFromRankedGame();
   }
@@ -158,7 +204,25 @@ function handleImmediateLeave() {
 
 // Public method for components to call when they unmount
 export function cleanupRankedGameOnUnmount() {
+  console.log('Component unmount cleanup called');
   handleImmediateLeave();
+}
+
+// Manual disconnect for testing (can be called from browser console)
+export function manualDisconnectRankedGame() {
+  console.log('Manual disconnect called');
+  disconnectFromRankedGame();
+}
+
+// Check connection status for debugging
+export function getRankedConnectionStatus() {
+  return {
+    hasStompClient: !!stompClient,
+    isConnected: stompClient?.connected,
+    cleanupCalled,
+    hasRouteCheckInterval: !!(window as any).__rankedRouteCheckInterval,
+    currentPath: window.location.pathname
+  };
 }
 
 // Send player progress update
@@ -258,7 +322,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   const playerIds = Object.keys(players);
   if (!hasLeftGame && playerIds.length === 1 && playerIds[0] === currentUser.id) {
     hasLeftGame = true; // prevent re-trigger
-    store.dispatch('multiplayerGame/multiplayerGame_endGame', null);
+    store.dispatch('rankedGame/rankedGame_endGame', null);
     alert("⚠️ I'm the only one left, leaving game...");
     window.location.href = "/";
   }
