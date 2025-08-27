@@ -40,7 +40,11 @@ public class JpaUserDetailsService implements UserDetailsService {
                     return User.builder()
                             .username(username)
                             .password(user.getPassword())
-                            .authorities("ROLE_USER") // Use ROLE_ prefix for proper Spring Security integration
+                            .authorities(
+                                    user.getEmailAddress().equals("watguessr@gmail.com")
+                                            ? "ROLE_ADMIN"
+                                            : "ROLE_USER"
+                            ) // Decide authority inline
                             .accountExpired(false)
                             .accountLocked(false)
                             .credentialsExpired(false)
