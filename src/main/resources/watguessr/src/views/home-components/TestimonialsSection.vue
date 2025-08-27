@@ -5,11 +5,11 @@
       <div class="testimonials-grid">
         <div class="testimonial-card">
           <div class="testimonial-text">
-            "This game made me realize I know way less about campus than I thought! So addictive and fun."
+            "This game saved my cat from a burning building"
           </div>
           <div class="testimonial-author">
-            <div class="author-name">Sarah M.</div>
-            <div class="author-program">Computer Science '25</div>
+            <div class="author-name">Toph C.</div>
+            <div class="author-program">Computer Science '29</div>
           </div>
         </div>
         <div class="testimonial-card">

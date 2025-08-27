@@ -100,7 +100,7 @@ export default {
           // Set default values for timeout submission
           // This ensures the backend receives valid data for default guess fallback
           if (!this.$store.state.guess.building || this.$store.state.guess.guessX === null) {
-            this.$store.commit('guess/SET_BUILDING_AND_LOCATIONS', { building: 'NO_GUESS', guessX: null, guessY: null });
+            this.$store.commit('guess/SET_BUILDING_AND_LOCATIONS', { building: 'NO_GUESS', guessX: 0, guessY: 0 });
           }
           if (!this.$store.state.guess.floor) {
             this.$store.commit('guess/SET_FLOOR', 'UNKNOWN');

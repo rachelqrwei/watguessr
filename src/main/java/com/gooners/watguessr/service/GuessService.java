@@ -62,8 +62,9 @@ public class GuessService {
 
         Guess newGuess = new Guess();
         newGuess.setPoints(null);
-        newGuess.setGuessX(guess.getGuessX());
-        newGuess.setGuessY(guess.getGuessY());
+        // Ensure coordinates are never null - default to 0,0 for timeout/no guess scenarios
+        newGuess.setGuessX(guess.getGuessX() != null ? guess.getGuessX() : 0.0);
+        newGuess.setGuessY(guess.getGuessY() != null ? guess.getGuessY() : 0.0);
         newGuess.setBuilding(guess.getBuilding());
         newGuess.setFloor(guess.getFloor());
         newGuess.setRound(guess.getRound());

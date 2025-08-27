@@ -66,7 +66,7 @@ public class PointsCalculator {
 
     //calculate euclidean distance
     public static double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
-        if (x1 == null || y1 == null || x2 == null || y2 == null) {
+        if (x1 == 0 || y1 == 0 || x2 == 0 || y2 == 0) {
             return Double.MAX_VALUE; 
         }
 
