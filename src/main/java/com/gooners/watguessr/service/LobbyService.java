@@ -28,14 +28,16 @@ public class LobbyService {
 	private final MultiplayerGameStateService multiplayerGameStateService;
 	private final GameService gameService;
 	private final RankedGameStateService rankedGameStateService;
+	private final GameSessionService gameSessionService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService, RankedGameStateService rankedGameStateService) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService, RankedGameStateService rankedGameStateService, GameSessionService gameSessionService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
 		this.gameService = gameService;
 		this.rankedGameStateService = rankedGameStateService;
+		this.gameSessionService = gameSessionService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
@@ -216,6 +218,11 @@ public class LobbyService {
 						return user;
 					})
 					.toList();
+			
+			// Create game sessions for all players
+			for (LobbyPlayerDto player : players) {
+				gameSessionService.createGameSession(player.getUserId(), gameId);
+			}
 			
 			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), usersForMessage));
 			

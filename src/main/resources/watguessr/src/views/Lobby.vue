@@ -316,6 +316,46 @@ export default {
         }
       }
     },
+
+    async reconnectToMultiplayerGame(gameId) {
+      try {
+        // Reconnect to the game WebSocket
+        connectToMultiplayerGame(gameId);
+        
+        // Update store with game ID
+        this.$store.commit('multiplayerGame/MG_SET_GAME_ID', gameId);
+        
+        // Show reconnection message
+        this.$notify({
+          title: 'Reconnecting',
+          message: 'Attempting to reconnect to your game...',
+          type: 'info'
+        });
+      } catch (error) {
+        console.error('Failed to reconnect to multiplayer game:', error);
+        localStorage.removeItem('currentGame');
+      }
+    },
+    
+    async reconnectToRankedGame(gameId) {
+      try {
+        // Reconnect to the game WebSocket
+        connectToRankedGame(gameId);
+        
+        // Update store with game ID
+        this.$store.commit('rankedGame/RG_SET_GAME_ID', gameId);
+        
+        // Show reconnection message
+        this.$notify({
+          title: 'Reconnecting',
+          message: 'Attempting to reconnect to your game...',
+          type: 'info'
+        });
+      } catch (error) {
+        console.error('Failed to reconnect to ranked game:', error);
+        localStorage.removeItem('currentGame');
+      }
+    },
     connectToLobbyWebSocket() {
       if (this.gameModeLabel === 'multiplayer' && this.lobbyId) {
         const currentUser = this.$store.getters["user/getCurrentUser"];
@@ -510,6 +550,24 @@ export default {
   async mounted() {
     const currentUser = this.$store.getters["user/getCurrentUser"];
     this.myId = currentUser.id;
+
+    // Check if we need to reconnect to a game
+    const storedGame = localStorage.getItem('currentGame');
+    if (storedGame) {
+      const gameInfo = JSON.parse(storedGame);
+      if (Date.now() - gameInfo.timestamp < 20000) {
+        // Attempt to reconnect to the game
+        if (gameInfo.gameType === 'multiplayer') {
+          await this.reconnectToMultiplayerGame(gameInfo.gameId);
+        } else if (gameInfo.gameType === 'ranked') {
+          await this.reconnectToRankedGame(gameInfo.gameId);
+        }
+        return;
+      } else {
+        // Clear expired game info
+        localStorage.removeItem('currentGame');
+      }
+    }
 
     if (this.gameModeLabel === "multiplayer") {
       this.fetchLobbyInfo();

@@ -1,7 +1,9 @@
 package com.gooners.watguessr.controller;
 
+import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.dto.RankedGameStateDto;
 import com.gooners.watguessr.entity.HeartbeatMessage;
+import com.gooners.watguessr.service.GameSessionService;
 import com.gooners.watguessr.service.RankedGameStateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -17,9 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RankedGameStateController {
 	private final Map<UUID, List<RankedGameStateDto>> rankedGameStates = new ConcurrentHashMap<>();
 	private final RankedGameStateService rankedGameStateService;
+	private final GameSessionService gameSessionService;
 
-	public RankedGameStateController(RankedGameStateService rankedGameStateService) {
+	public RankedGameStateController(RankedGameStateService rankedGameStateService, GameSessionService gameSessionService) {
 		this.rankedGameStateService = rankedGameStateService;
+		this.gameSessionService = gameSessionService;
 	}
 
 	@MessageMapping("/ranked-game/update-progress")
@@ -59,6 +63,32 @@ public class RankedGameStateController {
 	@MessageMapping("/ranked-game/heartbeat")
 	public void handleHeartbeatForRankedGame(HeartbeatMessage heartbeat, Principal principal) {
 		rankedGameStateService.updateLastSeen(UUID.fromString(heartbeat.getGameId()), principal.getName());
+	}
+
+	@MessageMapping("/ranked-game/reconnect")
+	@RateLimit(requests = 5, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many reconnection attempts. Please wait before trying again.")
+	public boolean handleReconnection(@Payload ReconnectRequest request, Principal principal) {
+		UUID gameId = UUID.fromString(request.getGameId());
+		String userId = principal.getName();
+		
+		// Validate session token and JWT token if provided
+		if (request.getSessionToken() != null) {
+			// Validate session token
+			if (!gameSessionService.validateReconnection(userId, gameId, request.getSessionToken())) {
+				return false;
+			}
+			
+			// Validate JWT token if provided
+			if (request.getJwtToken() != null) {
+				if (!gameSessionService.validateJwtToken(request.getJwtToken(), userId)) {
+					return false;
+				}
+			}
+			
+			return rankedGameStateService.handlePlayerReconnection(gameId, userId);
+		}
+		
+		return false;
 	}
 
 	/**
@@ -103,5 +133,19 @@ public class RankedGameStateController {
 
 		public String getSceneId() { return sceneId; }
 		public void setSceneId(String sceneId) { this.sceneId = sceneId; }
+	}
+
+	public static class ReconnectRequest {
+		private String gameId;
+		private String sessionToken;
+		private String jwtToken;
+		
+		// Getters and setters
+		public String getGameId() { return gameId; }
+		public void setGameId(String gameId) { this.gameId = gameId; }
+		public String getSessionToken() { return sessionToken; }
+		public void setSessionToken(String sessionToken) { this.sessionToken = sessionToken; }
+		public String getJwtToken() { return jwtToken; }
+		public void setJwtToken(String jwtToken) { this.jwtToken = jwtToken; }
 	}
 }
