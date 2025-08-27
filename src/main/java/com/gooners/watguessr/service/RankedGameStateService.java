@@ -229,10 +229,9 @@ public class RankedGameStateService {
 				broadcastGameState(gameId);
 			} else {
 				// This is the final round - no more rounds to advance to
+				// Don't remove the game state yet - wait for all players to complete
 				gameState.setGameStatus("final-round");
 				broadcastGameState(gameId);
-				removeGame(gameId);
-
 			}
 		}
 	}
@@ -305,6 +304,9 @@ public class RankedGameStateService {
 
 					// Broadcast game completion event
 					messagingTemplate.convertAndSend("/topic/ranked-game/" + gameId + "/complete", gameState);
+					
+					// Now that all players have completed, remove the game state
+					removeGame(gameId);
 				} else {
 					System.err.println("❌ Game state is null for game: " + gameId);
 				}
@@ -354,6 +356,12 @@ public class RankedGameStateService {
 			Map<String, PlayerStateDto> players = gameState.getPlayers();
 			if (players != null) {
 				players.remove(userId);
+				
+				// If no players left in the game, remove the game state
+				if (players.isEmpty()) {
+					removeGame(gameId);
+					return; // Don't broadcast since game is removed
+				}
 			}
 		}
 
