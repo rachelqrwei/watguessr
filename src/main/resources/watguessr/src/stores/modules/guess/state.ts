@@ -7,7 +7,8 @@ export interface GuessState {
   building: string | null,
   guessX: number | null,
   guessY: number | null,
-  floor: string | null
+  floor: string | null,
+  isSubmitting: boolean
 }
 
 export const state = (): GuessState => ({
@@ -18,5 +19,6 @@ export const state = (): GuessState => ({
   building: null,
   guessX: null,
   guessY: null,
-  floor: null
+  floor: null,
+  isSubmitting: false
 });

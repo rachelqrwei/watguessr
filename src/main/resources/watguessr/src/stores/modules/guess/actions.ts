@@ -5,19 +5,27 @@ import type { GuessState } from './state';
 
 export const actions: ActionTree<GuessState, RootState> = {
   async submitGuess({ state, rootState, rootGetters, dispatch }) {
-    // set user id from Vuex user module
-    const currentUser = rootGetters['user/getCurrentUser'];
-    const currentUserId = currentUser?.id || null;
-    state.user.id = currentUserId;
-
-    // check if we have a valid roundId
-    const roundId = rootState.round.roundId;
-    if (!roundId) {
-      console.error('Cannot submit guess: No roundId found in store');
-      throw new Error('Round ID is required to submit a guess');
+    // Prevent duplicate submissions
+    if (state.isSubmitting) {
+      console.warn('Guess submission already in progress, ignoring duplicate request');
+      return null;
     }
-
+    
+    state.isSubmitting = true;
+    
     try {
+      // set user id from Vuex user module
+      const currentUser = rootGetters['user/getCurrentUser'];
+      const currentUserId = currentUser?.id || null;
+      state.user.id = currentUserId;
+
+      // check if we have a valid roundId
+      const roundId = rootState.round.roundId;
+      if (!roundId) {
+        console.error('Cannot submit guess: No roundId found in store');
+        throw new Error('Round ID is required to submit a guess');
+      }
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
       const createGuessBody = {
         userId: state.user.id,
@@ -45,8 +53,10 @@ export const actions: ActionTree<GuessState, RootState> = {
 
       return roundResult;
     } catch (error) {
-      console.error('Error submitting guess:');
+      console.error('Error submitting guess:', error);
       return null;
+    } finally {
+      state.isSubmitting = false;
     }
   },
 

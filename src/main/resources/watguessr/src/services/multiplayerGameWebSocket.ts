@@ -64,6 +64,12 @@ export function connectToMultiplayerGame(gameId: string) {
     // Stop heartbeat on disconnect/error
     stopHeartbeat();
 
+    // Clean up existing connection before retry
+    if (stompClient) {
+      stompClient.disconnect();
+      stompClient = null;
+    }
+
     // Retry connection after 3 seconds
     setTimeout(() => {
       connectToMultiplayerGame(gameId);

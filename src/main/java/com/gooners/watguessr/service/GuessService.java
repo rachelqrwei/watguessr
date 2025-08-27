@@ -119,20 +119,9 @@ public class GuessService {
                     "ended" // Player completed this round
                 );
             }
-            // Upsert: if a guess already exists for (round, user), update it
-            if (guess.getUser() != null && guess.getUser().getId() != null && round.getId() != null) {
-                guessRepository.findFirstByRoundIdAndUserId(round.getId(), guess.getUser().getId())
-                        .ifPresent(existing -> {
-                            existing.setGuessX(guess.getGuessX());
-                            existing.setGuessY(guess.getGuessY());
-                            existing.setBuilding(guess.getBuilding());
-                            existing.setFloor(guess.getFloor());
-                            existing.setTime(guess.getTime());
-                            existing.setPoints(points);
-                            // persist update
-                            guessRepository.save(existing);
-                        });
-            }
+            // Set points on the current guess object
+            guess.setPoints(points);
+            guessRepository.save(guess);
         } catch (Exception ignored) {
         }
         // for singleplayer, PointsCalculator returns negative penalties; UI can display positive lost points

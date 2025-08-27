@@ -75,6 +75,12 @@ export function connectToRankedGame(gameId: string) {
     // Stop heartbeat on disconnect/error
     stopHeartbeat();
 
+    // Clean up existing connection before retry
+    if (stompClient) {
+      stompClient.disconnect();
+      stompClient = null;
+    }
+
     // Retry connection after 3 seconds
     setTimeout(() => {
       connectToRankedGame(gameId);
