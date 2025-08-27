@@ -42,26 +42,6 @@ public class RoundController {
     public UUID createRound(@RequestParam UUID gameId, @RequestParam UUID userId) {
         Game currentGame = gameService.findById(gameId);
 
-        // For ranked games, rounds are managed by RankedGameStateService
-        // Never create new rounds here to prevent empty rounds
-        if ("Ranked".equalsIgnoreCase(currentGame.getGameMode())) {
-            // Check if there's any round in this game where the user hasn't made a guess
-            List<Round> rounds = currentGame.getRounds();
-            for (Round round : rounds) {
-                // Check if user has made a guess for this round
-                Optional<Guess> guess = roundService.findGuessForUserAndRound(userId, round.getId());
-                if (!guess.isPresent()) {
-                    // User hasn't made a guess for this round, return its ID
-                    return round.getId();
-                }
-            }
-            
-            // If no existing round found, this shouldn't happen in ranked games
-            // The RankedGameStateService should have created the rounds already
-            throw new CustomException("No active round found for ranked game. Please wait for the game to start.");
-        }
-
-        // For non-ranked games (singleplayer, multiplayer), use the original logic
         // Check if there's any round in this game where the user hasn't made a guess
         List<Round> rounds = currentGame.getRounds();
         for (Round round : rounds) {

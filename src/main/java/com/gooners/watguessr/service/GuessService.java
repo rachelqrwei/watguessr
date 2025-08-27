@@ -19,16 +19,17 @@ public class GuessService {
 
     private final GuessRepository guessRepository;
     private final RoundRepository roundRepository;
-    private UserService userService;
     private final MultiplayerGameStateService multiplayerGameStateService;
+    private final RankedGameStateService rankedGameStateService;
 
     public GuessService(GuessRepository guessRepository,
-                        UserService userService, RoundService roundService, RoundRepository roundRepository,
-                        MultiplayerGameStateService multiplayerGameStateService) {
+                       RoundRepository roundRepository,
+                        MultiplayerGameStateService multiplayerGameStateService,
+                        RankedGameStateService rankedGameStateService) {
         this.guessRepository = guessRepository;
-        this.userService = userService;
         this.roundRepository = roundRepository;
         this.multiplayerGameStateService = multiplayerGameStateService;
+        this.rankedGameStateService = rankedGameStateService;
     }
     public RoundResult createAndEvaluateGuess(Guess guess) {
         // First create the guess (validates and saves without points)
@@ -104,9 +105,10 @@ public class GuessService {
         if (guess.getPoints() != null) {guess.setPoints(points);}
 
         try {
-            // Update multiplayer game state if this is a multiplayer game
+            // Update game state based on game mode
             UUID gameId = round.getGame().getId();
             String gameMode = round.getGame().getGameMode();
+            
             if ("Multiplayer".equals(gameMode) && guess.getUser() != null) {
                 // Calculate total score for this user in this game
                 Integer totalScore = PointsCalculator.getCurrentMultiplayerScore(gameId, guess.getUser().getId(), roundRepository);
@@ -119,6 +121,19 @@ public class GuessService {
                     "ended" // Player completed this round
                 );
             }
+            else if ("Ranked".equals(gameMode) && guess.getUser() != null) {
+                // Calculate total score for this user in this game  
+                Integer totalScore = PointsCalculator.getCurrentMultiplayerScore(gameId, guess.getUser().getId(), roundRepository);
+
+                // Update ranked game player progress
+                rankedGameStateService.updatePlayerProgress(
+                    gameId,
+                    guess.getUser().getId().toString(),
+                    totalScore,
+                    "ended" // Player completed this round
+                );
+            }
+            
             // Set points on the current guess object
             guess.setPoints(points);
             guessRepository.save(guess);
