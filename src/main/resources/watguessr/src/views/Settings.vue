@@ -927,14 +927,14 @@ export default {
 }
 
 .save-password-btn {
-  background: rgba(76, 175, 80, 0.12);
-  border: 1px solid #4caf50;
-  color: #4caf50;
+  background: rgba(182, 255, 127, 0.12);
+  border: 1px solid #B6FF7F;
+  color: #B6FF7F;
 }
 
 .save-password-btn:hover {
-  background: rgba(76, 175, 80, 0.2);
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+  background: rgba(182, 255, 127, 0.2);
+  box-shadow: 0 0 0 3px rgba(182, 255, 127, 0.12);
   transform: translateY(-1px);
 }
 
@@ -1477,15 +1477,15 @@ input[type='email'] {
 }
 
 .action-btn.success {
-  background: rgba(76, 175, 80, 0.15);
-  border: 1px solid #4caf50;
-  color: #4caf50;
+  background: rgba(182, 255, 127, 0.15);
+  border: 1px solid #B6FF7F;
+  color: #B6FF7F;
 }
 
 .action-btn.success:hover:not(:disabled) {
-  background: rgba(76, 175, 80, 0.25);
+  background: rgba(182, 255, 127, 0.25);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 12px rgba(182, 255, 127, 0.2);
 }
 
 .action-btn.success:disabled {
@@ -1622,7 +1622,7 @@ input[type='email'] {
 }
 
 .validation-item.valid {
-  color: #4caf50;
+  color: #B6FF7F;
 }
 
 .validation-item svg {

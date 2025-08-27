@@ -25,6 +25,7 @@
 
     <div v-if="getCurrentView === 'Image'" class="view-pane">
       <button class="view-change-button" @click="SET_CURRENT_VIEW('Map')">
+        <font-awesome-icon icon="map-location-dot" />
         VIEW MAP
       </button>
       <PlayImageView
