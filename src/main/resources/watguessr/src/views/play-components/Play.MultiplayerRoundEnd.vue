@@ -67,11 +67,7 @@
         <span>Showing guesses from multiple rounds</span>
       </div>
 
-      <!-- Show live updates indicator -->
-      <div v-if="isLiveUpdatesActive" class="live-updates-notice">
-        <span class="notice-icon">🔄</span>
-        <span>Live updates active - watching for new guesses</span>
-      </div>
+
 
       <div class="map-legend">
         <div class="legend-item">
@@ -157,9 +153,7 @@ export default {
     displayPoints() {
       return this.points;
     },
-    isLiveUpdatesActive() {
-      return this.gameStateListener !== null;
-    },
+
   },
   async mounted() {
     this.currentUser = this.getCurrentUser;
