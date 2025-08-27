@@ -1,20 +1,22 @@
 package com.gooners.watguessr.utils;
 
-import com.gooners.watguessr.dto.ErrorResponse;
+import java.util.stream.Collectors;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.util.Map;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import com.gooners.watguessr.dto.ErrorResponse;
+
 import jakarta.validation.ConstraintViolationException;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -123,7 +125,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex) {
-        ErrorResponse response = createErrorResponse("RATE_LIMIT_ERROR", ex.getMessage(), getStackTrace(ex));
+        String message = ex.getMessage();
+        if (ex.getRetryAfter() != null) {
+            message += ". " + ex.getRetryAfter();
+        }
+        
+        // For admin users, include retry-after info in details
+        String details = null;
+        if (isAdmin()) {
+            StringBuilder detailBuilder = new StringBuilder();
+            if (ex.getRetryAfter() != null) {
+                detailBuilder.append("Retry After: ").append(ex.getRetryAfter()).append("\n");
+            }
+            detailBuilder.append(getStackTrace(ex));
+            details = detailBuilder.toString();
+        }
+        
+        ErrorResponse response = createErrorResponse("RATE_LIMIT_ERROR", message, details);
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
     }
 
