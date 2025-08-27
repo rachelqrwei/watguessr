@@ -10,18 +10,23 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Service
 public class MultiplayerGameStateService {
 	
 	private final Map<UUID, MultiplayerGameStateDto> gameStates = new ConcurrentHashMap<>();
 	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
+	private final Map<UUID, Map<String, Instant>> playerDisconnectionTime = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
+	private final GameSessionService gameSessionService;
 
-	public MultiplayerGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
+	public MultiplayerGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService, GameSessionService gameSessionService) {
 		this.messagingTemplate = messagingTemplate;
 		this.roundService = roundService;
+		this.gameSessionService = gameSessionService;
 	}
 
 	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
@@ -290,6 +295,11 @@ public class MultiplayerGameStateService {
 						gameState.setFinalWinner(winnerId);
 					}
 
+					// Clean up game sessions for all players
+					gameState.getPlayers().keySet().forEach(playerId -> {
+						gameSessionService.removeGameSession(playerId);
+					});
+
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
@@ -314,13 +324,13 @@ public class MultiplayerGameStateService {
 				.put(userId, Instant.now());
 	}
 
-	@Scheduled(fixedRate = 10000) // every 30 seconds
+	@Scheduled(fixedRate = 10000) // every 10 seconds
 	public void cleanupInactiveUsers() {
 		if (gameStates.isEmpty()) {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(90); // 30 seconds
+		Instant cutoff = Instant.now().minusSeconds(90); // 90 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();
@@ -329,6 +339,13 @@ public class MultiplayerGameStateService {
 			for (var userEntry : new HashMap<>(userMap).entrySet()) {
 				String userId = userEntry.getKey();
 				Instant lastSeen = userEntry.getValue();
+
+				// Check if user is in disconnection buffer period
+				if (playerDisconnectionTime.containsKey(gameId) && 
+					playerDisconnectionTime.get(gameId).containsKey(userId)) {
+					// User is in buffer period, don't remove yet
+					continue;
+				}
 
 				if (lastSeen.isBefore(cutoff)) {
 					forceLeaveUser(gameId, userId);
@@ -351,7 +368,52 @@ public class MultiplayerGameStateService {
 			}
 		}
 
+		// Remove game session
+		gameSessionService.removeGameSession(userId);
+
 		broadcastGameState(gameId); // notify all clients
+	}
+
+	public void handlePlayerDisconnection(UUID gameId, String userId) {
+		playerDisconnectionTime
+			.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
+			.put(userId, Instant.now());
+		
+		// Mark player as disconnected but don't remove immediately
+		setPlayerStatus(gameId, userId, "disconnected");
+		
+		// Schedule removal after buffer period (20 seconds)
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				// Check if player hasn't reconnected
+				if (playerDisconnectionTime.getOrDefault(gameId, Collections.emptyMap())
+					.getOrDefault(userId, Instant.now()).isBefore(Instant.now().minusSeconds(20))) {
+					
+					// Remove player completely
+					forceLeaveUser(gameId, userId);
+					playerDisconnectionTime.get(gameId).remove(userId);
+				}
+			}
+		}, 20000); // 20 seconds
+	}
+
+	public boolean handlePlayerReconnection(UUID gameId, String userId) {
+		if (playerDisconnectionTime.containsKey(gameId) && 
+			playerDisconnectionTime.get(gameId).containsKey(userId)) {
+			
+			// Player reconnected within buffer period
+			playerDisconnectionTime.get(gameId).remove(userId);
+			setPlayerStatus(gameId, userId, "playing");
+			updateLastSeen(gameId, userId);
+			
+			// Broadcast reconnection success
+			messagingTemplate.convertAndSend("/topic/multiplayer-game/" + gameId + "/reconnect", true);
+			
+			return true;
+		}
+		return false;
 	}
 
 	// Inner class for player state

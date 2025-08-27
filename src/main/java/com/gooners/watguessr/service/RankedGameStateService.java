@@ -8,23 +8,29 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Service
 public class RankedGameStateService {
 	
 	private final Map<UUID, RankedGameStateDto> gameStates = new ConcurrentHashMap<>();
 	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
+	private final Map<UUID, Map<String, Instant>> playerDisconnectionTime = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
+	private final GameSessionService gameSessionService;
 
-	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
+	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService, GameSessionService gameSessionService) {
 		this.messagingTemplate = messagingTemplate;
 		this.roundService = roundService;
+		this.gameSessionService = gameSessionService;
 	}
 
 	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
@@ -301,6 +307,11 @@ public class RankedGameStateService {
 						System.err.println("❌ Failed to determine winner for WebSocket state: " + gameId);
 					}
 
+					// Clean up game sessions for all players
+					gameState.getPlayers().keySet().forEach(playerId -> {
+						gameSessionService.removeGameSession(playerId);
+					});
+
 					broadcastGameState(gameId);
 
 					// Broadcast game completion event
@@ -357,7 +368,48 @@ public class RankedGameStateService {
 			}
 		}
 
+		// Remove game session
+		gameSessionService.removeGameSession(userId);
+
 		broadcastGameState(gameId); // notify all clients
+	}
+
+	public void handlePlayerDisconnection(UUID gameId, String userId) {
+		playerDisconnectionTime
+			.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
+			.put(userId, Instant.now());
+		
+		// Mark player as disconnected but don't remove immediately
+		setPlayerStatus(gameId, userId, "disconnected");
+		
+		// Schedule removal after buffer period (20 seconds)
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				// Check if player hasn't reconnected
+				if (playerDisconnectionTime.getOrDefault(gameId, Collections.emptyMap())
+					.getOrDefault(userId, Instant.now()).isBefore(Instant.now().minusSeconds(20))) {
+					
+					// Remove player completely
+					forceLeaveUser(gameId, userId);
+					playerDisconnectionTime.get(gameId).remove(userId);
+				}
+			}
+		}, 20000); // 20 seconds
+	}
+
+	public boolean handlePlayerReconnection(UUID gameId, String userId) {
+		if (playerDisconnectionTime.containsKey(gameId) && 
+			playerDisconnectionTime.get(gameId).containsKey(userId)) {
+			
+			// Player reconnected within buffer period
+			playerDisconnectionTime.get(gameId).remove(userId);
+			setPlayerStatus(gameId, userId, "playing");
+			updateLastSeen(gameId, userId);
+			return true;
+		}
+		return false;
 	}
     // Inner class for player state
 	public static class PlayerStateDto {

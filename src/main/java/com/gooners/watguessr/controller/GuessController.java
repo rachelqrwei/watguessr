@@ -2,24 +2,21 @@ package com.gooners.watguessr.controller;
 
 import com.gooners.watguessr.config.RateLimit;
 import com.gooners.watguessr.dto.GuessCreateDto;
-import com.gooners.watguessr.dto.GuessDto;
 import com.gooners.watguessr.dto.RoundResult;
 import com.gooners.watguessr.entity.Round;
 import com.gooners.watguessr.entity.User;
-import com.gooners.watguessr.mapper.GuessMapper;
 import com.gooners.watguessr.entity.Guess;
 import com.gooners.watguessr.service.GuessService;
 import com.gooners.watguessr.service.RoundService;
 import com.gooners.watguessr.service.UserService;
+import com.gooners.watguessr.utils.CustomException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/guess")
@@ -28,21 +25,28 @@ public class GuessController {
     private final GuessService guessService;
     private final RoundService roundService;
     private final UserService userService;
-    private final GuessMapper guessMapper;
 
-    public GuessController(GuessService guessService, RoundService roundService, UserService userService,
-            GuessMapper guessMapper) {
+    public GuessController(GuessService guessService, RoundService roundService, UserService userService) {
         this.guessService = guessService;
         this.roundService = roundService;
         this.userService = userService;
-        this.guessMapper = guessMapper;
     }
 
     @PostMapping
     @RateLimit(requests = 30, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many guesses. Please slow down.")
-    public ResponseEntity<GuessDto> createGuess(
-            @RequestBody @Valid GuessCreateDto createDto) {
-        // TODO: Make sure only one guess per round per user is allowed.
+    public ResponseEntity<RoundResult> submitGuess(
+            @RequestBody @Valid GuessCreateDto createDto,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        // Extract authenticated user from JWT token
+        String username = jwt.getSubject();
+        User authenticatedUser = userService.findByUsername(username);
+        
+        // Security check: ensure authenticated user matches the userId in request
+        if (!authenticatedUser.getId().equals(createDto.getUserId())) {
+            throw new CustomException("You can only submit guesses for yourself");
+        }
+        
         // Fetch managed entities from database
         Round round = roundService.findById(createDto.getRoundId());
         User user = userService.findById(createDto.getUserId());
@@ -57,30 +61,12 @@ public class GuessController {
         toSave.setRound(round); // Set managed Round entity
         toSave.setUser(user); // Set managed User entity
 
-        Guess saved = guessService.create(toSave);
+        // Create and evaluate the guess in one operation
+        RoundResult result = guessService.createAndEvaluateGuess(toSave);
 
-        GuessDto result = guessMapper.toDto(saved);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(result);
-    }
-
-    @MessageMapping("/guess") // client sends to /app/guess
-    @SendTo("/topic/guesses")
-    public Guess processGuessInMultiplayerGame(Guess guess) {
-        // TODO: Make sure only one guess per round per user is allowed.
-        return guess;
-    }
-
-    @PostMapping("/evaluate-guess")
-    @RateLimit(requests = 60, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many evaluation requests.")
-    public ResponseEntity<RoundResult> evaluateGuess(
-            @RequestParam UUID roundId,
-            @RequestBody Guess guess) {
-        Round round = roundService.findById(roundId);
-        RoundResult result = guessService.evaluateGuess(round, guess);
-
-        return ResponseEntity.ok(result);
     }
 
 }

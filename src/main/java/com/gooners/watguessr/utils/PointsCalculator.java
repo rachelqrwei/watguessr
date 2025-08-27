@@ -67,7 +67,7 @@ public class PointsCalculator {
     //calculate euclidean distance
     public static double calculateDistance(Double x1, Double y1, Double x2, Double y2) {
         if (x1 == null || y1 == null || x2 == null || y2 == null) {
-            return Double.MAX_VALUE; // maximum penalty for missing coordinates
+            return Double.MAX_VALUE; 
         }
 
         // Convert lat/lng differences to approximate meters

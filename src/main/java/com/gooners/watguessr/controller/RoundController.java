@@ -40,8 +40,6 @@ public class RoundController {
     @GetMapping(value = "/create")
     @RateLimit(requests = 20, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many round creation requests.")
     public UUID createRound(@RequestParam UUID gameId, @RequestParam UUID userId) {
-        // Check to see if round exists where they haven't made a guess yet.
-        // If so, they should not be allowed to create a new round.
         Game currentGame = gameService.findById(gameId);
 
         // Check if there's any round in this game where the user hasn't made a guess
@@ -50,14 +48,12 @@ public class RoundController {
             // Check if user has made a guess for this round
             Optional<Guess> guess = roundService.findGuessForUserAndRound(userId, round.getId());
             if (!guess.isPresent()) {
-                // User hasn't made a guess for this round, return its ID instead of creating a
-                // new one
+                // User hasn't made a guess for this round, return its ID instead of creating a new one
                 return round.getId();
             }
         }
 
-        // If we get here, the user has made guesses for all existing rounds, so create
-        // a new one
+        // If we get here, the user has made guesses for all existing rounds, so create a new one
         Round round = roundService.create(gameId);
         return round.getId();
     }

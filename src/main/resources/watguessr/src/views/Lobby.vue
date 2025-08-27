@@ -316,6 +316,46 @@ export default {
         }
       }
     },
+
+    async reconnectToMultiplayerGame(gameId) {
+      try {
+        // Reconnect to the game WebSocket
+        connectToMultiplayerGame(gameId);
+        
+        // Update store with game ID
+        this.$store.commit('multiplayerGame/MG_SET_GAME_ID', gameId);
+        
+        // Show reconnection message
+        this.$notify({
+          title: 'Reconnecting',
+          message: 'Attempting to reconnect to your game...',
+          type: 'info'
+        });
+      } catch (error) {
+        console.error('Failed to reconnect to multiplayer game:', error);
+        localStorage.removeItem('currentGame');
+      }
+    },
+    
+    async reconnectToRankedGame(gameId) {
+      try {
+        // Reconnect to the game WebSocket
+        connectToRankedGame(gameId);
+        
+        // Update store with game ID
+        this.$store.commit('rankedGame/RG_SET_GAME_ID', gameId);
+        
+        // Show reconnection message
+        this.$notify({
+          title: 'Reconnecting',
+          message: 'Attempting to reconnect to your game...',
+          type: 'info'
+        });
+      } catch (error) {
+        console.error('Failed to reconnect to ranked game:', error);
+        localStorage.removeItem('currentGame');
+      }
+    },
     connectToLobbyWebSocket() {
       if (this.gameModeLabel === 'multiplayer' && this.lobbyId) {
         const currentUser = this.$store.getters["user/getCurrentUser"];
@@ -323,6 +363,8 @@ export default {
         // Connect to lobby WebSocket
         connectLobby(
           (lobbyUpdate) => {
+            console.log('Received lobby update:', lobbyUpdate);
+            console.log('Players in lobby:', lobbyUpdate.players);
             this.players = lobbyUpdate.players;
             this.isConnected = true;
           },
@@ -368,20 +410,33 @@ export default {
         joinLobby(currentUser, this.lobbyId);
       }
     },
-    async goHome() {
+    async cleanupLobby() {
       const currentUser = this.$store.getters["user/getCurrentUser"];
+
+      console.log('Cleaning up lobby:', { 
+        lobbyId: this.lobbyId, 
+        gameMode: this.gameModeLabel, 
+        hasUser: !!currentUser 
+      });
 
       if (this.lobbyId && this.gameModeLabel === "multiplayer") {
         try {
-          await leaveLobby(currentUser);
+          if (currentUser) {
+            console.log('Leaving lobby for user:', currentUser.username);
+            await leaveLobby(currentUser);
+          } else {
+            console.warn('No current user available for lobby cleanup');
+          }
+          
+          console.log('Disconnecting from lobby WebSocket');
           await disconnectLobby();
+          console.log('Lobby cleanup completed successfully');
         } catch (err) {
           console.error("❌ Failed to cleanup lobby:", err);
         }
+      } else {
+        console.log('Skipping lobby cleanup - not in multiplayer mode or no lobby ID');
       }
-
-      // Now navigate home
-      this.$router.push({ name: "home" });
     },
     initiateRankedWebSocketConnection() {
       this.rankedQueueState = 'searching';
@@ -496,6 +551,24 @@ export default {
     const currentUser = this.$store.getters["user/getCurrentUser"];
     this.myId = currentUser.id;
 
+    // Check if we need to reconnect to a game
+    const storedGame = localStorage.getItem('currentGame');
+    if (storedGame) {
+      const gameInfo = JSON.parse(storedGame);
+      if (Date.now() - gameInfo.timestamp < 20000) {
+        // Attempt to reconnect to the game
+        if (gameInfo.gameType === 'multiplayer') {
+          await this.reconnectToMultiplayerGame(gameInfo.gameId);
+        } else if (gameInfo.gameType === 'ranked') {
+          await this.reconnectToRankedGame(gameInfo.gameId);
+        }
+        return;
+      } else {
+        // Clear expired game info
+        localStorage.removeItem('currentGame');
+      }
+    }
+
     if (this.gameModeLabel === "multiplayer") {
       this.fetchLobbyInfo();
       this.connectToLobbyWebSocket();
@@ -510,9 +583,8 @@ export default {
       () => this.$route.fullPath,
       (newPath, oldPath) => {
         if (oldPath.includes("lobby") && !newPath.includes("lobby")) {
-          // Leaving lobby route
-          leaveLobby(currentUser);
-          disconnectLobby();
+          // Leaving lobby route - call cleanupLobby() for proper cleanup
+          this.cleanupLobby();
         }
       }
     );

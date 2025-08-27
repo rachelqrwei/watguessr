@@ -1,19 +1,20 @@
 import SockJS from "sockjs-client";
 import { Client, type Frame } from "@stomp/stompjs";
+import store from '../stores';
 
 export interface User {
   id: string;
   username: string;
 }
 
+export interface LobbyUpdate {
+  players: LobbyPlayer[];
+}
+
 export interface LobbyPlayer {
   userId: string;
   username: string;
   ready: boolean;
-}
-
-export interface LobbyUpdate {
-  players: LobbyPlayer[];
 }
 
 export interface GameStartInfo {
@@ -26,7 +27,6 @@ let onLobbyUpdateCallback: ((update: LobbyUpdate) => void) | null = null;
 let onGameStartCallback: ((info: GameStartInfo) => void) | null = null;
 let currentLobbyId: string | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
-let pageVisibilityHandler: (() => void) | null = null;
 
 /**
  * Connect to the lobby WebSocket
@@ -44,15 +44,28 @@ export function connectLobby(
     debug: (msg) => console.log(msg),
     reconnectDelay: 5000,
     onConnect: (frame: Frame) => {
+      console.log('Connected to lobby WebSocket');
       startHeartbeat();
-      setupPageVisibilityHandling();
+      setupPageUnloadHandling();
+      
+      // Subscribe to public lobby updates
+      if (stompClient) {
+        stompClient.subscribe(`/topic/lobbies/public`, (message) => {
+          console.log('Received public lobby update:', message.body);
+          // Dispatch a custom event that components can listen to
+          window.dispatchEvent(new CustomEvent('publicLobbyUpdate', {
+            detail: { message: message.body }
+          }));
+        });
+      }
     },
     onStompError: (frame) => {
       console.error("STOMP error:", frame);
     },
     onDisconnect: () => {
+      console.log('Disconnected from lobby WebSocket');
       stopHeartbeat();
-      cleanupPageVisibilityHandling();
+      cleanupPageUnloadHandling();
     },
   });
 
@@ -67,10 +80,21 @@ function startHeartbeat() {
 
   heartbeatInterval = setInterval(() => {
     if (stompClient?.connected && currentLobbyId) {
-      stompClient.publish({
-        destination: "/app/lobby/heartbeat",
-        body: JSON.stringify({ lobbyId: currentLobbyId }),
-      });
+      // Get current user from store if available
+      const currentUser = store?.getters?.['user/getCurrentUser'];
+      const userId = currentUser?.id;
+
+      if (userId) {
+        stompClient.publish({
+          destination: "/app/lobby/heartbeat",
+          body: JSON.stringify({ 
+            lobbyId: currentLobbyId,
+            userId: userId 
+          }),
+        });
+      } else {
+        console.warn('No user ID available for heartbeat');
+      }
     }
   }, 30000);
 }
@@ -89,36 +113,82 @@ function stopHeartbeat() {
  * Send lobby cleanup
  */
 function sendCleanup() {
-  if (!currentLobbyId) return;
+  if (!currentLobbyId) { 
+    console.log('No current lobby ID to cleanup');
+    return; 
+  }
+
+  // Get current user from store if available
+  const currentUser = store?.getters?.['user/getCurrentUser'];
+  const userId = currentUser?.id;
+
+  console.log('Sending lobby cleanup:', { lobbyId: currentLobbyId, userId, hasUser: !!currentUser });
 
   if (stompClient?.connected) {
     try {
-      stompClient.publish({
-        destination: "/app/lobby/cleanup",
-        body: JSON.stringify({ lobbyId: currentLobbyId }),
-      });
+      // Always send both lobbyId and userId when available for consistent backend handling
+      const cleanupData = { 
+        lobbyId: currentLobbyId,
+        userId: userId || null // Send null if not available
+      };
+
+      if (userId) {
+        // Send leave message with user info
+        stompClient.publish({
+          destination: "/app/lobby/leave",
+          body: JSON.stringify({ 
+            lobbyId: currentLobbyId, 
+            user: { id: userId, username: currentUser.username } 
+          }),
+        });
+        console.log('Sent leave message via WebSocket for user:', userId);
+      } else {
+        // Send general cleanup with just lobbyId
+        stompClient.publish({
+          destination: "/app/lobby/cleanup",
+          body: currentLobbyId, // Send just the lobbyId string, not an object
+        });
+        console.log('Sent general cleanup message via WebSocket');
+      }
     } catch (error) {
       console.error("Failed to send lobby cleanup via WS:", error);
+      // Fall through to REST API fallback
     }
   } else {
-    // Fallback: send cleanup via REST API if WebSocket not connected
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/lobbies/${currentLobbyId}/cleanup`, {
-      method: "POST",
-    }).catch((err) => console.error("Failed to cleanup lobby via REST:", err));
+    console.log('WebSocket not connected, using REST API fallback');
   }
+
+  // Always try REST API fallback for reliability
+  const cleanupData = userId 
+    ? { lobbyId: currentLobbyId, userId: userId }
+    : { lobbyId: currentLobbyId };
+    
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/lobby/cleanup`, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(cleanupData),
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('REST API cleanup successful');
+    } else {
+      console.error('REST API cleanup failed:', response.status);
+    }
+  })
+  .catch((err) => console.error("Failed to cleanup lobby via REST:", err));
 
   currentLobbyId = null; // prevent multiple cleanup calls
 }
 
 /**
- * Setup page visibility & unload handling
+ * Setup page unload handling
  */
-function setupPageVisibilityHandling() {
-  // Remove aggressive cleanup on tab switch
-  document.addEventListener("visibilitychange", pageVisibilityHandler);
-
-  // Only cleanup when user leaves / refreshes
+function setupPageUnloadHandling() {
+  // Only cleanup when user leaves / refreshes the page
   window.addEventListener("beforeunload", () => {
+    console.log('Page unloading - sending cleanup');
     sendCleanup();
   });
 }
@@ -126,11 +196,7 @@ function setupPageVisibilityHandling() {
 /**
  * Cleanup event listeners
  */
-function cleanupPageVisibilityHandling() {
-  if (pageVisibilityHandler) {
-    document.removeEventListener("visibilitychange", pageVisibilityHandler);
-    pageVisibilityHandler = null;
-  }
+function cleanupPageUnloadHandling() {
   window.removeEventListener("beforeunload", sendCleanup);
 }
 
@@ -176,12 +242,26 @@ export function joinLobby(user: User, lobbyId: string): void {
  * Leave the current lobby
  */
 export function leaveLobby(user: User): void {
-  if (!stompClient || !stompClient.connected || !currentLobbyId) return;
+  if (!stompClient || !stompClient.connected || !currentLobbyId) {
+    console.log('Cannot leave lobby:', { 
+      hasStompClient: !!stompClient, 
+      isConnected: stompClient?.connected, 
+      currentLobbyId 
+    });
+    return;
+  }
 
-  stompClient.publish({
-    destination: "/app/lobby/leave",
-    body: JSON.stringify({ lobbyId: currentLobbyId, user }),
-  });
+  console.log('Leaving lobby:', currentLobbyId, 'for user:', user);
+
+  try {
+    stompClient.publish({
+      destination: "/app/lobby/leave",
+      body: JSON.stringify({ lobbyId: currentLobbyId, user }),
+    });
+    console.log('Successfully sent leave message for user:', user.username);
+  } catch (error) {
+    console.error('Failed to send leave message:', error);
+  }
 
   currentLobbyId = null;
 }
@@ -216,7 +296,7 @@ export function startGame(lobbyId: string, gameMode: string, roundCount: number,
 export function disconnectLobby(): void {
   sendCleanup();
   stopHeartbeat();
-  cleanupPageVisibilityHandling();
+  cleanupPageUnloadHandling();
 
   if (stompClient) {
     stompClient.deactivate();

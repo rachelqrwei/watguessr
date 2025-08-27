@@ -28,21 +28,22 @@ public class LobbyService {
 	private final MultiplayerGameStateService multiplayerGameStateService;
 	private final GameService gameService;
 	private final RankedGameStateService rankedGameStateService;
+	private final GameSessionService gameSessionService;
 
 	@Autowired
-	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService, RankedGameStateService rankedGameStateService) {
+	public LobbyService(GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, MultiplayerGameStateService multiplayerGameStateService, @Lazy GameService gameService, RankedGameStateService rankedGameStateService, GameSessionService gameSessionService) {
 		this.gameRepository = gameRepository;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
 		this.gameService = gameService;
 		this.rankedGameStateService = rankedGameStateService;
+		this.gameSessionService = gameSessionService;
 	}
 
 	public void joinLobby(UUID lobbyId, User user) {
 		lobbies.computeIfAbsent(lobbyId, k -> new ArrayList<>());
 
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
-		Map<String, Instant> userLastSeen = new ConcurrentHashMap<>();
 
 		// Get max players from the game
 		Integer maxPlayers = gameRepository.findById(lobbyId)
@@ -53,7 +54,9 @@ public class LobbyService {
 		if (players.stream().noneMatch(p -> p.getUserId().equals(user.getId().toString())) && players.size() < maxPlayers) {
 			LobbyPlayerDto player = new LobbyPlayerDto(user.getId().toString(), user.getUsername(), false);
 			players.add(player);
-			userLastSeen.put(user.getId().toString(), Instant.now());
+			
+			// Update last seen tracking
+			updateLastSeen(lobbyId, user.getId().toString());
 
 			// Update the game entity with current player count
 			updateGamePlayerCount(lobbyId, players.size());
@@ -67,9 +70,18 @@ public class LobbyService {
 	}
 
 	public void leaveLobby(UUID lobbyId, User user) {
+		System.out.println("User " + user.getUsername() + " (ID: " + user.getId() + ") leaving lobby " + lobbyId);
+		
 		List<LobbyPlayerDto> players = lobbies.get(lobbyId);
 		if (players != null) {
-			players.removeIf(p -> p.getUserId().equals(user.getId().toString()));
+			boolean removed = players.removeIf(p -> p.getUserId().equals(user.getId().toString()));
+			System.out.println("Player removal result: " + (removed ? "removed" : "not found"));
+			
+			// Remove from last seen tracking
+			Map<String, Instant> userMap = lobbyUserLastSeen.get(lobbyId);
+			if (userMap != null) {
+				userMap.remove(user.getId().toString());
+			}
 			
 			// Update the game entity with current player count
 			updateGamePlayerCount(lobbyId, players.size());
@@ -79,7 +91,9 @@ public class LobbyService {
 			
 			// If no users left, remove the lobby from memory and database
 			if (players.isEmpty()) {
+				System.out.println("Lobby " + lobbyId + " is now empty, removing from memory");
 				lobbies.remove(lobbyId);
+				lobbyUserLastSeen.remove(lobbyId);
 				
 				// Remove corresponding Game entity from database
 				try {
@@ -91,6 +105,8 @@ public class LobbyService {
 			
 			// Also broadcast to public lobby list subscribers
 			broadcastPublicLobbyUpdate();
+		} else {
+			System.out.println("Lobby " + lobbyId + " not found in memory");
 		}
 	}
 
@@ -144,6 +160,9 @@ public class LobbyService {
 
 	private void broadcastLobbyUpdate(UUID lobbyId) {
 		List<LobbyPlayerDto> players = lobbies.getOrDefault(lobbyId, Collections.emptyList());
+		
+		System.out.println("Broadcasting lobby update for lobby " + lobbyId + " with " + players.size() + " players:");
+		players.forEach(p -> System.out.println("  - " + p.getUsername() + " (ID: " + p.getUserId() + ", Ready: " + p.isReady() + ")"));
 
 		messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, new LobbyUpdate(players));
 	}
@@ -199,6 +218,11 @@ public class LobbyService {
 						return user;
 					})
 					.toList();
+			
+			// Create game sessions for all players
+			for (LobbyPlayerDto player : players) {
+				gameSessionService.createGameSession(player.getUserId(), gameId);
+			}
 			
 			messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId + "/start", new GameStart(gameId.toString(), usersForMessage));
 			
@@ -261,7 +285,7 @@ public class LobbyService {
 
 	@Scheduled(fixedRate = 10000) // every 10 seconds
 	public void cleanupInactiveUsers() {
-		Instant cutoff = Instant.now().minusSeconds(30); // inactive for 90s
+		Instant cutoff = Instant.now().minusSeconds(90); // inactive for 90s
 
 		for (var lobbyEntry : lobbyUserLastSeen.entrySet()) {
 			UUID lobbyId = lobbyEntry.getKey();
@@ -310,10 +334,81 @@ public class LobbyService {
 
 	public boolean cleanupStaleLobby(String lobbyId) {
 		try {
-			lobbies.remove(lobbyId);
+			System.out.println("Cleaning up stale lobby: " + lobbyId);
+			UUID lobbyUUID = UUID.fromString(lobbyId);
+			
+			// Remove from lobbies map
+			List<LobbyPlayerDto> removedPlayers = lobbies.remove(lobbyUUID);
+			System.out.println("Removed " + (removedPlayers != null ? removedPlayers.size() : 0) + " players from lobby");
+			
+			// Remove from last seen tracking
+			lobbyUserLastSeen.remove(lobbyUUID);
+			
+			// Remove from database
+			try {
+				gameRepository.deleteById(lobbyUUID);
+				System.out.println("Deleted lobby from database: " + lobbyId);
+			} catch (Exception e) {
+				System.err.println("Failed to delete lobby from database: " + lobbyId + " - " + e.getMessage());
+			}
+			
+			// Broadcast public lobby update if there were players
+			if (removedPlayers != null && !removedPlayers.isEmpty()) {
+				broadcastPublicLobbyUpdate();
+				System.out.println("Broadcasted public lobby update");
+			}
+			
 			return true;
 		} catch (Exception e) {
 			System.err.println("Failed to cleanup lobby " + lobbyId + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Remove a specific user from a lobby (for cleanup purposes)
+	 */
+	public boolean removeUserFromLobby(String lobbyId, String userId) {
+		try {
+			System.out.println("Removing user " + userId + " from lobby " + lobbyId);
+			UUID lobbyUUID = UUID.fromString(lobbyId);
+			List<LobbyPlayerDto> players = lobbies.get(lobbyUUID);
+			
+			if (players != null) {
+				// Remove user from players list
+				boolean removed = players.removeIf(p -> p.getUserId().equals(userId));
+				System.out.println("User removal result: " + (removed ? "removed" : "not found"));
+				
+				if (removed) {
+					// Remove from last seen tracking
+					Map<String, Instant> userMap = lobbyUserLastSeen.get(lobbyUUID);
+					if (userMap != null) {
+						userMap.remove(userId);
+					}
+					
+					// Broadcast updated lobby state
+					broadcastLobbyUpdate(lobbyUUID);
+					System.out.println("Broadcasted lobby update");
+					
+					// If lobby is empty, clean it up completely
+					if (players.isEmpty()) {
+						System.out.println("Lobby is empty, cleaning up completely");
+						cleanupStaleLobby(lobbyId);
+					}
+					
+					// Broadcast public lobby update
+					broadcastPublicLobbyUpdate();
+					System.out.println("Broadcasted public lobby update");
+					
+					return true;
+				}
+			} else {
+				System.out.println("Lobby not found: " + lobbyId);
+			}
+			
+			return false;
+		} catch (Exception e) {
+			System.err.println("Failed to remove user " + userId + " from lobby " + lobbyId + ": " + e.getMessage());
 			return false;
 		}
 	}
