@@ -29,8 +29,9 @@ public class SceneService {
                 .orElseThrow(() -> new RuntimeException("Scene not found with id: " + id));
     }
 
-    public Scene getRandom() {
-        return sceneRepository.getRandom();
+
+    public Scene getRandomExcludingGameScenes(UUID gameId) {
+        return sceneRepository.getRandomExcludingGameScenes(gameId);
     }
 
     public ResponseInputStream<GetObjectResponse> getImageByRoundId(UUID roundId) {

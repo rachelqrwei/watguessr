@@ -39,7 +39,7 @@ public class RoundService {
             throw new CustomException("Cannot create rounds for completed games");
         }
         Round newRound = new Round();
-        newRound.setScene(sceneService.getRandom());
+        newRound.setScene(sceneService.getRandomExcludingGameScenes(gameId));
         newRound.setGame(game);
 
         Round savedRound = roundRepository.save(newRound);

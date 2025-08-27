@@ -51,12 +51,12 @@ public class PointsCalculator {
             // Reduce penalty when guessed faster (more time left)
             int penaltyMagnitude = -points; // points are negative for SP
             if (penaltyMagnitude < 0) penaltyMagnitude = 0;
-            // Up to 30% reduction when guessed instantly
+            // Up to 40% reduction when guessed instantly
             double reductionFactor = 1.0 - (0.40 * timeLeftFraction);
             int adjustedPenalty = (int) Math.round(penaltyMagnitude * reductionFactor);
             points = -adjustedPenalty;
         } else if ("Multiplayer".equals(mode) || "Ranked".equals(mode)) {
-            // Up to 20% boost when guessed instantly
+            // Up to 40% boost when guessed instantly
             double boostFactor = 1.0 + (0.40 * timeLeftFraction);
             points = (int) Math.round(points * boostFactor);
         }
