@@ -10,6 +10,7 @@ import CreateLobbyModal from '@/components/CreateLobbyModal.vue'
 import JoinLobbyModal from '@/components/JoinLobbyModal.vue'
 import OtpModal from '@/views/auth/OtpModal.vue'
 import LoginModal from "@/views/auth/LoginModal.vue";
+import WelcomeModal from '@/components/WelcomeModal.vue';
 
 export default {
   components: {
@@ -22,7 +23,8 @@ export default {
     LobbyBrowser,
     CreateLobbyModal,
     JoinLobbyModal,
-    OtpModal
+    OtpModal,
+    WelcomeModal
   },
 
   data() {
@@ -37,6 +39,7 @@ export default {
       otpEmail: '',
       otpUsername: '',
       showLoginModal: false,
+      showWelcomeModal: false,
     }
   },
 
@@ -115,13 +118,19 @@ export default {
           const name = urlParams.get('name')
           const picture = urlParams.get('picture')
           const isLogin = urlParams.get('login') === 'success'
+          const isNewUser = urlParams.get('new_user') === 'true'
 
           if (email && name) {
             if (isLogin) {
               // User is already authenticated via OAuth flow, just refresh auth state
               await this.$store.dispatch('user/initializeAuth')
+              
+              // Show welcome modal for new Google users
+              if (isNewUser) {
+                this.showWelcomeModal = true
+              }
             } else {
-              // New user signup
+              // New user signup (this path might not be used now)
               await this.$store.dispatch('user/signUpWithGoogle', {
                 email,
                 name,
@@ -189,6 +198,10 @@ export default {
       if (this.otpEmail) {
         await this.$store.dispatch('user/sendOtp', this.otpEmail)
       }
+    },
+
+    closeWelcomeModal() {
+      this.showWelcomeModal = false
     }
   },
 
@@ -285,6 +298,11 @@ export default {
     <LoginModal
       :visible="showLoginModal"
       @close="closeLoginModal"
+    />
+
+    <WelcomeModal
+      :visible="showWelcomeModal"
+      @close="closeWelcomeModal"
     />
 
   </div>

@@ -3,9 +3,7 @@ package com.gooners.watguessr.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,6 +17,7 @@ import com.gooners.watguessr.dto.LeaderboardUser;
 import com.gooners.watguessr.dto.QueryResults;
 import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.EmailVerification;
+import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.Guess;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
@@ -27,7 +26,6 @@ import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.GuessRepository;
 import com.gooners.watguessr.repository.UserRepository;
 import com.gooners.watguessr.utils.CustomException;
-import com.gooners.watguessr.entity.Game;
 
 @Service
 @Transactional
@@ -310,6 +308,10 @@ public class UserService {
             throw new CustomException("Failed to change passWord user: " + e.getMessage());
         }
 
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmailAddress(email);
     }
 
     public void deleteUser(String emailAddress) {
