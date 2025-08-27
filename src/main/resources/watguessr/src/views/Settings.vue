@@ -69,10 +69,8 @@
                   v-if="!isEditingUsername && !isEditingPassword"
                   class="action-btn primary"
                   @click="startUsernameEditing"
-                  :disabled="!canChangeUsername"
-                  :title="!canChangeUsername ? `You can change your username again in ${getRemainingDays()} day${getRemainingDays() !== 1 ? 's' : ''}` : ''"
                 >
-                  <font-awesome-icon :icon="canChangeUsername ? 'fa-solid fa-edit' : 'fa-solid fa-lock'" />
+                  <font-awesome-icon icon="fa-solid fa-edit" />
                   Change Username
                 </button>
               </div>
@@ -123,9 +121,7 @@
                       Username can be changed only once in 7 days.
                       {{
                         settings?.usernameChangedAt
-                          ? canChangeUsername
-                            ? ' Last changed: ' + formatDate(settings.usernameChangedAt)
-                            : ` Last changed: ${formatDate(settings.usernameChangedAt)}. You need to wait ${getRemainingDays()} more day${getRemainingDays() !== 1 ? 's' : ''}.`
+                          ? ' Last changed: ' + formatDate(settings.usernameChangedAt)
                           : ' This is your first time changing it'
                       }}
                     </div>
@@ -342,20 +338,6 @@ export default {
     showErrorMessage() {
       return this.errorMessage && this.errorMessage.trim() !== ''
     },
-    canChangeUsername() {
-      // If there's no usernameChangedAt, it means username has never been changed
-      if (!this.settings?.usernameChangedAt) {
-        return true
-      }
-      
-      // Check if 7 days have passed since last username change
-      const lastChanged = new Date(this.settings.usernameChangedAt)
-      const now = new Date()
-      const diffTime = now - lastChanged
-      const diffDays = diffTime / (1000 * 60 * 60 * 24)
-      
-      return diffDays >= 7
-    },
     usernameChecks() {
       const validLengths = this.newUsername.length >= 3 && this.newUsername.length <= 24
       const validCombination = !this.newUsername.includes(' ')
@@ -399,19 +381,6 @@ export default {
       if (this.isEditingPassword) {
         this.cancelPasswordEditing()
       }
-      
-      // Check if user can change username (7 days rule)
-      if (!this.canChangeUsername) {
-        const lastChanged = new Date(this.settings.usernameChangedAt)
-        const now = new Date()
-        const diffTime = now - lastChanged
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-        const daysRemaining = 7 - diffDays
-        
-        this.errorMessage = `You can only change your username once every 7 days. Please wait ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''}.`
-        return
-      }
-      
       this.isEditingUsername = true
       this.errorMessage = null
       this.newUsername = this.settings?.username || ''
@@ -428,18 +397,6 @@ export default {
     async saveUsername() {
       if (!this.newUsername || this.newUsername.trim() === '') {
         this.errorMessage = 'Username cannot be empty'
-        return
-      }
-      
-      // Double-check the 7-day rule before saving
-      if (!this.canChangeUsername) {
-        const lastChanged = new Date(this.settings.usernameChangedAt)
-        const now = new Date()
-        const diffTime = now - lastChanged
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-        const daysRemaining = 7 - diffDays
-        
-        this.errorMessage = `You can only change your username once every 7 days. Please wait ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''}.`
         return
       }
 
@@ -561,16 +518,6 @@ export default {
         return String(iso)
       }
     },
-    getRemainingDays() {
-      if (!this.settings?.usernameChangedAt) {
-        return 7; // If never changed, show 7 days
-      }
-      const lastChanged = new Date(this.settings.usernameChangedAt);
-      const now = new Date();
-      const diffTime = now - lastChanged;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return 7 - diffDays;
-    }
   },
   mounted() {
     if (this.isAuthenticated && this.getCurrentUser) {
@@ -1527,13 +1474,6 @@ input[type='email'] {
   background: rgba(255, 203, 59, 0.25);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(255, 203, 59, 0.2);
-}
-
-.action-btn.primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .action-btn.success {
