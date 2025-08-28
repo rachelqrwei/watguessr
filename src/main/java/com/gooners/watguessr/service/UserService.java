@@ -122,7 +122,7 @@ public class UserService {
         if (!emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress()).isPresent() &&
                 !userRepository.findFirstByEmailAddressAndVerifiedTrue(user.getEmailAddress()).isPresent()
         ) {
-            throw new CustomException("User not verified");
+            throw new CustomException("User not verified, please check your email. Unverified accounts are deleted after 24 hours.");
         }
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
