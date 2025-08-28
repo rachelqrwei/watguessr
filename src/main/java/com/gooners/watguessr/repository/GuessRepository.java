@@ -29,7 +29,7 @@ public interface GuessRepository extends JpaRepository<Guess, UUID> {
     @Query("SELECT g FROM Guess g WHERE g.user.id = :userId")
     List<Guess> findAllByUserId(@Param("userId") UUID userId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Guess g WHERE g.user.id = :userId")
     void deleteAllByUserId(@Param("userId") UUID userId);
 

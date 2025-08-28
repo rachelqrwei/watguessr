@@ -48,11 +48,11 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
     List<Game> findByWinnerIsNullAndCreatedAtBefore(OffsetDateTime dateTime);
 
     // New methods for user deletion
-    @Query("SELECT g FROM Game g WHERE g.winner.id = :userId")
+    @Query("SELECT g FROM Game g WHERE g.winner IS NOT NULL AND g.winner.id = :userId")
     List<Game> findGamesWonByUser(@Param("userId") UUID userId);
 
-    @Modifying
-    @Query("UPDATE Game g SET g.winner = NULL WHERE g.winner.id = :userId")
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Game g SET g.winner = NULL WHERE g.winner IS NOT NULL AND g.winner.id = :userId")
     void clearWinnerForUser(@Param("userId") UUID userId);
 
 }

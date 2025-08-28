@@ -16,6 +16,9 @@ public interface MatchmakingQueueRepository extends JpaRepository<MatchmakingQue
 
 	List<MatchmakingQueue> findByUserIdAndStatus(UUID userId, String status);
 
+	// New method for user deletion - find all queue entries for a user
+	List<MatchmakingQueue> findByUserId(UUID userId);
+
 	@Query("SELECT mq FROM MatchmakingQueue mq WHERE mq.status = 'waiting' " +
 			"AND mq.user.elo BETWEEN :minElo AND :maxElo " +
 			"AND mq.createdAt >= :minCreatedAt " +

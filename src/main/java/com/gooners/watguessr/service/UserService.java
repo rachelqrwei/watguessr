@@ -19,11 +19,13 @@ import com.gooners.watguessr.dto.UserSignupDto;
 import com.gooners.watguessr.entity.EmailVerification;
 import com.gooners.watguessr.entity.Game;
 import com.gooners.watguessr.entity.Guess;
+import com.gooners.watguessr.entity.MatchmakingQueue;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.mapper.LeaderboardMapper;
 import com.gooners.watguessr.repository.EmailVerificationRepository;
 import com.gooners.watguessr.repository.GameRepository;
 import com.gooners.watguessr.repository.GuessRepository;
+import com.gooners.watguessr.repository.MatchmakingQueueRepository;
 import com.gooners.watguessr.repository.UserRepository;
 import com.gooners.watguessr.utils.CustomException;
 
@@ -37,8 +39,9 @@ public class UserService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailVerificationService emailVerificationService;
     private final GuessRepository guessRepository;
+    private final MatchmakingQueueRepository matchmakingQueueRepository;
 
-    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailVerificationService emailVerificationService, GuessRepository guessRepository) {
+    public UserService(UserRepository userRepository, LeaderboardMapper leaderboardMapper, GameRepository gameRepository, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailVerificationService emailVerificationService, GuessRepository guessRepository, MatchmakingQueueRepository matchmakingQueueRepository) {
         this.userRepository = userRepository;
         this.leaderboardMapper = leaderboardMapper;
         this.gameRepository = gameRepository;
@@ -46,6 +49,7 @@ public class UserService {
         this.emailVerificationRepository = emailVerificationRepository;
         this.emailVerificationService = emailVerificationService;
         this.guessRepository = guessRepository;
+        this.matchmakingQueueRepository = matchmakingQueueRepository;
     }
 
     public void update(User user) {
@@ -314,8 +318,8 @@ public class UserService {
         return userRepository.existsByEmailAddress(email);
     }
 
-    @Transactional
     public void deleteUser(String emailAddress) {
+        System.out.println("Starting user deletion for email: " + emailAddress);
         User user = userRepository.findByEmailAddress(emailAddress);
         if (user == null) {
             throw new CustomException("User not found with email: " + emailAddress);
@@ -323,35 +327,80 @@ public class UserService {
 
         try {
             UUID userId = user.getId();
+            System.out.println("Found user with ID: " + userId);
             
             // Step 1: Delete all guesses made by the user
-            List<Guess> userGuesses = guessRepository.findAllByUserId(userId);
-            if (!userGuesses.isEmpty()) {
-                guessRepository.deleteAllByUserId(userId);
-                System.out.println("Deleted " + userGuesses.size() + " guesses for user: " + userId);
+            try {
+                List<Guess> userGuesses = guessRepository.findAllByUserId(userId);
+                if (!userGuesses.isEmpty()) {
+                    guessRepository.deleteAllByUserId(userId);
+                    System.out.println("Deleted " + userGuesses.size() + " guesses for user: " + userId);
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting guesses for user " + userId + ": " + e.getMessage());
+                // Continue with deletion process
             }
 
             // Step 2: Clear winner references in games where this user was the winner
-            List<Game> gamesWon = gameRepository.findGamesWonByUser(userId);
-            if (!gamesWon.isEmpty()) {
-                gameRepository.clearWinnerForUser(userId);
-                System.out.println("Cleared winner reference in " + gamesWon.size() + " games for user: " + userId);
+            try {
+                List<Game> gamesWon = gameRepository.findGamesWonByUser(userId);
+                if (!gamesWon.isEmpty()) {
+                    gameRepository.clearWinnerForUser(userId);
+                    System.out.println("Cleared winner reference in " + gamesWon.size() + " games for user: " + userId);
+                }
+            } catch (Exception e) {
+                System.err.println("Error clearing winner references for user " + userId + ": " + e.getMessage());
+                // Continue with deletion process
             }
 
-            // Step 3: Delete email verification records
-            Optional<EmailVerification> evOptional = emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress());
-            if (evOptional.isPresent()) {
-                EmailVerification ev = evOptional.get();
-                emailVerificationRepository.delete(ev);
-                System.out.println("Deleted email verification record for user: " + userId);
+            // Step 3: Delete matchmaking queue entries for the user
+            try {
+                List<MatchmakingQueue> userQueueEntries = matchmakingQueueRepository.findByUserId(userId);
+                if (!userQueueEntries.isEmpty()) {
+                    matchmakingQueueRepository.deleteAll(userQueueEntries);
+                    System.out.println("Deleted " + userQueueEntries.size() + " matchmaking queue entries for user: " + userId);
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting matchmaking queue entries for user " + userId + ": " + e.getMessage());
+                // Continue with deletion process
             }
 
-            // Step 4: Finally delete the user
+            // Step 4: Delete email verification records (both verified and unverified)
+            try {
+                // Delete verified email verification records
+                Optional<EmailVerification> evOptional = emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress());
+                if (evOptional.isPresent()) {
+                    EmailVerification ev = evOptional.get();
+                    emailVerificationRepository.delete(ev);
+                    System.out.println("Deleted verified email verification record for user: " + userId);
+                }
+                
+                // Delete unverified email verification records
+                Optional<EmailVerification> unverifiedEvOptional = emailVerificationRepository.findFirstUnverifiedByEmail(user.getEmailAddress());
+                if (unverifiedEvOptional.isPresent()) {
+                    EmailVerification unverifiedEv = unverifiedEvOptional.get();
+                    emailVerificationRepository.delete(unverifiedEv);
+                    System.out.println("Deleted unverified email verification record for user: " + userId);
+                }
+                
+                if (!evOptional.isPresent() && !unverifiedEvOptional.isPresent()) {
+                    System.out.println("No email verification records found for user: " + userId);
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting email verification records for user " + userId + ": " + e.getMessage());
+                // Continue with deletion process
+            }
+
+            // Step 5: Finally delete the user
             userRepository.delete(user);
             System.out.println("Successfully deleted user: " + userId);
             
         } catch (Exception e) {
+            System.err.println("Error in deleteUser: " + e.getMessage());
+            e.printStackTrace();
             throw new CustomException("Failed to delete user: " + e.getMessage());
+        } finally {
+            System.out.println("User deletion process completed for email: " + emailAddress);
         }
     }
 
