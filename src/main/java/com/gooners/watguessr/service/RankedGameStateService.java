@@ -21,10 +21,12 @@ public class RankedGameStateService {
 	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
+	private final UserService userService;
 
-	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
+	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService, UserService userService) {
 		this.messagingTemplate = messagingTemplate;
 		this.roundService = roundService;
+		this.userService = userService;
 	}
 
 	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
@@ -328,7 +330,7 @@ public class RankedGameStateService {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(90); // 30 seconds
+		Instant cutoff = Instant.now().minusSeconds(25); // 20 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();
@@ -362,11 +364,30 @@ public class RankedGameStateService {
 					removeGame(gameId);
 					return; // Don't broadcast since game is removed
 				}
+				else {
+					// Give the remaining player +2 ELO bonus for being abandoned
+					String remainingUserId = players.keySet().iterator().next(); // get the only key
+					User leftAloneUser = userService.findById(UUID.fromString(remainingUserId));
+					if (leftAloneUser != null) {
+						Integer updatedElo = leftAloneUser.getElo() + 2;
+						leftAloneUser.setElo(updatedElo);
+						userService.update(leftAloneUser);
+					}
+				}
 			}
+		}
+
+		// Reduce ELO by 10 points as a penalty for disconnecting
+		User disconnectingUser = userService.findById(UUID.fromString(userId));
+		if (disconnectingUser != null) {
+			Integer updatedElo = disconnectingUser.getElo() - 10;
+			disconnectingUser.setElo(Math.max(0, updatedElo)); // Ensure ELO doesn't go below 0
+			userService.update(disconnectingUser);
 		}
 
 		broadcastGameState(gameId); // notify all clients
 	}
+
     // Inner class for player state
 	public static class PlayerStateDto {
 		private Integer score;
