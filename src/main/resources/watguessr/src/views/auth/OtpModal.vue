@@ -113,10 +113,10 @@ export default {
       if (this._iv) {
         clearInterval(this._iv);
       }
-      
+
       // Reset cooldown to 5 seconds to match backend rate limiting
-      this.cooldown = 10;
-      
+      this.cooldown = 20;
+
       // Start new countdown
       this._iv = setInterval(() => {
         if (this.cooldown > 0) {
@@ -129,7 +129,7 @@ export default {
   },
   mounted() {
     // Start with 5 second cooldown to match backend rate limiting
-    this.cooldown = 10;
+    this.cooldown = 20;
     this._iv = setInterval(() => {
       if (this.cooldown > 0) this.cooldown--;
     }, 1000);

@@ -17,17 +17,17 @@
             "Perfect for procrastinating between classes. I've discovered so many cool spots on campus!"
           </div>
           <div class="testimonial-author">
-            <div class="author-name">Alex T.</div>
-            <div class="author-program">Mathematics '24</div>
+            <div class="author-name">Dylan D.</div>
+            <div class="author-program">Computer Science '29</div>
           </div>
         </div>
         <div class="testimonial-card">
           <div class="testimonial-text">
-            "The daily challenges keep me coming back. Great way to take a study break!"
+            "I thought I knew Waterloo's campus… this game humbled me."
           </div>
           <div class="testimonial-author">
-            <div class="author-name">Jordan K.</div>
-            <div class="author-program">Engineering '26</div>
+            <div class="author-name">Sooyeun K.</div>
+            <div class="author-program">SYDE '28</div>
           </div>
         </div>
       </div>
