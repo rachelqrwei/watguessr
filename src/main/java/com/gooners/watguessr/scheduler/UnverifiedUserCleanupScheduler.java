@@ -15,7 +15,7 @@ public class UnverifiedUserCleanupScheduler {
     }
 
     // Run daily at 2 AM
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 2 * * *")
     public void cleanupUnverifiedUsers() {
         int deletedCount = userService.cleanupUnverifiedUsers();
         if (deletedCount > 0) {
