@@ -84,12 +84,7 @@ export default {
                     // login in user
           const resLogin = await this.login({username: this.username, password: this.password});
 
-          // Show welcome modal for successful new user signup
-          if (resLogin) {
-            // Use store to trigger welcome modal on home page
-            this.$store.commit('user/SHOW_WELCOME_MODAL');
-          }
-
+          // Login successful, emit verified event to parent
           this.$emit('verified');
         } else {
           this.error = res || 'Verification failed.';

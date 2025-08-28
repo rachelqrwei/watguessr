@@ -126,10 +126,11 @@ public class GoogleAuthController {
 
             // Redirect frontend with new_user flag
             String redirectParams = String.format(
-                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success",
+                    "?google_auth=true&email=%s&name=%s&picture=%s&login=success&new_user=%s",
                     URLEncoder.encode(email, StandardCharsets.UTF_8),
                     URLEncoder.encode(name, StandardCharsets.UTF_8),
-                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "");
+                    picture != null ? URLEncoder.encode(picture, StandardCharsets.UTF_8) : "",
+                    isNewUser ? "true" : "false");
 
             response.sendRedirect(frontendBaseUrl + redirectParams);
 
