@@ -99,14 +99,14 @@ public class AuthController {
     }
 
     @PostMapping("/send-otp")
-    @RateLimit(requests = 3, timeWindow = 5, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OTP requests. Please wait before requesting again.")
+    @RateLimit(requests = 15, timeWindow = 5, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OTP requests. Please wait before requesting again.")
     public String sendOtp(@RequestParam String to) {
         emailVerificationService.prepareToSendEmail(to);
         return "OTP sent to " + to;
     }
 
     @PostMapping("/verify-otp")
-    @RateLimit(requests = 10, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OTP verification attempts.")
+    @RateLimit(requests = 15, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many OTP verification attempts.")
     public ResponseEntity<Void> verifyOtp(@RequestParam String email, @RequestParam String submittedOtp) {
         var success = emailVerificationService.verify(email, submittedOtp); // checks + side effects. String email,
                                                                             // String submittedCode
