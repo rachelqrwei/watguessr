@@ -1,15 +1,17 @@
 package com.gooners.watguessr.repository;
 
-import com.gooners.watguessr.entity.User;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.gooners.watguessr.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
@@ -57,5 +59,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     User findByEmailAddress(String to);
 
     Optional<User> findFirstByEmailAddressAndVerifiedTrue(String emailAddress);
+
+    @Query("SELECT u FROM User u WHERE " +
+           "(u.verified = false OR u.verified IS NULL) AND u.createdAt < :cutoffTime")
+    List<User> findUnverifiedUsersOlderThan(@Param("cutoffTime") OffsetDateTime cutoffTime);
 
 }
