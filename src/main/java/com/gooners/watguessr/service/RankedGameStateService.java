@@ -358,31 +358,24 @@ public class RankedGameStateService {
 			Map<String, PlayerStateDto> players = gameState.getPlayers();
 			if (players != null) {
 				players.remove(userId);
+
+				// Reduce ELO by 10 points as a penalty for disconnecting
+				User disconnectingUser = userService.findById(UUID.fromString(userId));
 				
 				// If no players left in the game, remove the game state
 				if (players.isEmpty()) {
+					disconnectingUser.setElo(disconnectingUser.getElo() + 2); // Ensure ELO doesn't go below 0
+					userService.update(disconnectingUser);
+
 					removeGame(gameId);
 					return; // Don't broadcast since game is removed
 				}
 				else {
-					// Give the remaining player +2 ELO bonus for being abandoned
-					String remainingUserId = players.keySet().iterator().next(); // get the only key
-					User leftAloneUser = userService.findById(UUID.fromString(remainingUserId));
-					if (leftAloneUser != null) {
-						Integer updatedElo = leftAloneUser.getElo() + 2;
-						leftAloneUser.setElo(updatedElo);
-						userService.update(leftAloneUser);
-					}
+					Integer updatedElo = disconnectingUser.getElo() - 10;
+					disconnectingUser.setElo(Math.max(0, updatedElo)); // Ensure ELO doesn't go below 0
+					userService.update(disconnectingUser);
 				}
 			}
-		}
-
-		// Reduce ELO by 10 points as a penalty for disconnecting
-		User disconnectingUser = userService.findById(UUID.fromString(userId));
-		if (disconnectingUser != null) {
-			Integer updatedElo = disconnectingUser.getElo() - 10;
-			disconnectingUser.setElo(Math.max(0, updatedElo)); // Ensure ELO doesn't go below 0
-			userService.update(disconnectingUser);
 		}
 
 		broadcastGameState(gameId); // notify all clients
