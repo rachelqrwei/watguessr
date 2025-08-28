@@ -1,10 +1,17 @@
 package com.gooners.watguessr.entity;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user")
@@ -40,7 +47,7 @@ public class User {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
-    @Column(name = "verified")
+    @Column(name = "verified", nullable = false)
     private Boolean verified;
 
     @Column(name = "username_changed_at")
