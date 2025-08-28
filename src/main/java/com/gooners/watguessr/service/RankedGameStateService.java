@@ -21,10 +21,12 @@ public class RankedGameStateService {
 	private final Map<UUID, Map<String, Instant>> gameUserLastSeen = new ConcurrentHashMap<>();
 	private final SimpMessagingTemplate messagingTemplate;
 	private final RoundService roundService;
+	private final UserService userService;
 
-	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService) {
+	public RankedGameStateService(SimpMessagingTemplate messagingTemplate, RoundService roundService, UserService userService) {
 		this.messagingTemplate = messagingTemplate;
 		this.roundService = roundService;
+		this.userService = userService;
 	}
 
 	public void initializeGame(UUID gameId, List<User> users, Integer roundCount, Integer timer) {
@@ -328,7 +330,7 @@ public class RankedGameStateService {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(90); // 30 seconds
+		Instant cutoff = Instant.now().minusSeconds(30); // 20 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();
@@ -356,17 +358,29 @@ public class RankedGameStateService {
 			Map<String, PlayerStateDto> players = gameState.getPlayers();
 			if (players != null) {
 				players.remove(userId);
+
+				// Reduce ELO by 10 points as a penalty for disconnecting
+				User disconnectingUser = userService.findById(UUID.fromString(userId));
 				
 				// If no players left in the game, remove the game state
 				if (players.isEmpty()) {
+					disconnectingUser.setElo(disconnectingUser.getElo() + 2); // Ensure ELO doesn't go below 0
+					userService.update(disconnectingUser);
+
 					removeGame(gameId);
 					return; // Don't broadcast since game is removed
+				}
+				else {
+					Integer updatedElo = disconnectingUser.getElo() - 10;
+					disconnectingUser.setElo(Math.max(0, updatedElo)); // Ensure ELO doesn't go below 0
+					userService.update(disconnectingUser);
 				}
 			}
 		}
 
 		broadcastGameState(gameId); // notify all clients
 	}
+
     // Inner class for player state
 	public static class PlayerStateDto {
 		private Integer score;

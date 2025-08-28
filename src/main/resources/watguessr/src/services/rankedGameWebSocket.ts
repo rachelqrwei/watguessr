@@ -93,12 +93,12 @@ export function disconnectFromRankedGame() {
     // Get current user and game ID for leave message
     const currentUser = store.getters['user/getCurrentUser'];
     const gameId = store.getters['rankedGame/rankedGame_getGameId'];
-    
+
     // Send leave message before disconnecting
     if (currentUser?.id && gameId) {
       console.log('Sending leave message before disconnecting from ranked game');
       sendLeaveGame(gameId, currentUser.id);
-      
+
       // Give a small delay for the leave message to be sent
       setTimeout(() => {
         stopHeartbeat();
@@ -125,25 +125,25 @@ export function disconnectFromRankedGame() {
 // Setup immediate leaving functionality
 function setupImmediateLeaving() {
   console.log('Setting up immediate leaving for ranked game...');
-  
+
   // Add beforeunload event listener for immediate leaving
   window.addEventListener('beforeunload', handleBeforeUnload);
 
   // Store initial path to detect route changes
   (window as any).__rankedInitialPath = window.location.pathname;
-  
+
   // Watch for route changes to leave game if navigating away
   if (typeof window !== 'undefined' && window.location) {
     // Use a more reliable route change detection
     const checkRouteChange = () => {
       const currentPath = window.location.pathname;
       const initialPath = (window as any).__rankedInitialPath;
-      
+
       // Only log occasionally to avoid spam
       if (Math.random() < 0.1) { // 10% chance to log
         console.log('Route check:', { currentPath, initialPath });
       }
-      
+
       // Check if we've left the game routes
       if (!currentPath.includes('play') && !currentPath.includes('game-end')) {
         // We've left the game routes, cleanup
@@ -155,7 +155,7 @@ function setupImmediateLeaving() {
 
     // Check route changes periodically (since we don't have Vue router access here)
     const routeCheckInterval = setInterval(checkRouteChange, 2000); // Check every 2 seconds instead of 1
-    
+
     // Store the interval for cleanup
     (window as any).__rankedRouteCheckInterval = routeCheckInterval;
   }
@@ -164,7 +164,7 @@ function setupImmediateLeaving() {
 // Cleanup immediate leaving functionality
 function cleanupImmediateLeaving() {
   console.log('Cleaning up immediate leaving functionality...');
-  
+
   // Remove beforeunload event listener
   window.removeEventListener('beforeunload', handleBeforeUnload);
 
@@ -347,7 +347,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
   const playerIds = Object.keys(players);
   if (!hasLeftGame && playerIds.length === 1 && playerIds[0] === currentUser.id) {
     hasLeftGame = true; // prevent re-trigger
-    alert("⚠️ I'm the only one left, leaving game...");
+    alert("⚠️ I'm the only one left, leaving game... ELO Update: +2");
     window.location.href = "/";
   }
 
@@ -378,7 +378,7 @@ function handleGameStateUpdate(gameState: RankedGameStateDto) {
       playerId => gameState.players[playerId].status === 'ended'
     ).length
   };
-  
+
   const gameStateEvent = new CustomEvent('rankedGameStateUpdate', {
     detail: roundEndData
   });
