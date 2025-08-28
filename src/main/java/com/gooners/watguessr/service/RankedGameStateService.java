@@ -330,7 +330,7 @@ public class RankedGameStateService {
 			return;
 		}
 
-		Instant cutoff = Instant.now().minusSeconds(25); // 20 seconds
+		Instant cutoff = Instant.now().minusSeconds(30); // 20 seconds
 
 		for (var gameEntry : gameUserLastSeen.entrySet()) {
 			UUID gameId = gameEntry.getKey();
