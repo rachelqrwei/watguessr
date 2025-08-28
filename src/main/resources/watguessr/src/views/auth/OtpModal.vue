@@ -151,7 +151,7 @@ export default {
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(2px);
   display: grid; place-items: center;
-  padding: 16px;
+  padding: 20px;
   z-index: 1000;
 }
 
@@ -189,17 +189,40 @@ export default {
 
 /* form */
 .form-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   gap: 12px;
   align-items: center;
 }
 
 .otp-input {
+  flex: 1;
+  min-width: 0; /* Allow input to shrink */
   height: 44px; padding: 0 14px; border-radius: 10px;
   border: 1px solid #3a3a3a; background: #2a2a2a; color: #fff;
   font-size: 1.05rem; letter-spacing: .12em; text-align: center;
   outline: none; transition: border-color .15s;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 20px 16px 16px; /* Reduce padding on mobile */
+    margin: 16px; /* Add margin to prevent edge overflow */
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .otp-input {
+    width: 100%;
+    flex: none; /* Remove flex on mobile */
+  }
+  
+  .verify-btn {
+    width: 100%; /* Make button full width on mobile */
+  }
 }
 .otp-input:focus { border-color: #00d8ff; }
 
@@ -208,6 +231,8 @@ export default {
   border: 0; border-radius: 10px; cursor: pointer;
   background: #00d8ff; color: #111; font-weight: 700;
   transition: transform .06s ease, filter .2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 .verify-btn:disabled { opacity: .6; cursor: not-allowed; }
 .verify-btn:active { transform: translateY(1px); }
