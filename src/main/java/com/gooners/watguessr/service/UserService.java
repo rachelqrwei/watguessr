@@ -314,6 +314,7 @@ public class UserService {
         return userRepository.existsByEmailAddress(email);
     }
 
+    @Transactional
     public void deleteUser(String emailAddress) {
         User user = userRepository.findByEmailAddress(emailAddress);
         if (user == null) {

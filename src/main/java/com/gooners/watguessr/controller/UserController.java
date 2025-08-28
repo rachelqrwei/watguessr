@@ -141,7 +141,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user")
-    @RateLimit(requests = 3, timeWindow = 10, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
+    @RateLimit(requests = 3, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.IP_ADDRESS, message = "Too many account deletion attempts.")
     public ResponseEntity<String> deleteUser(@RequestParam String emailAddress, @AuthenticationPrincipal Jwt jwt) {
         // Verify the authenticated user is deleting their own account
         String authenticatedUserEmail = getAuthenticatedUserEmail(jwt);

@@ -309,13 +309,22 @@ export const actions = {
 
     try {
       const { emailAddress, newPassword } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword} `, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-password?emailAddress=${emailAddress}&newPassword=${newPassword}`, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.message || errorData.error || `Failed to change password: ${response.status}`;
+        throw new Error(message);
+      }
+      
+      return true;
     } catch (err) {
-      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
-      return null;
+      const message = err instanceof Error ? err.message : 'Failed to change password';
+      commit('SET_ERROR', message);
+      throw new Error(message);
     } finally {
       commit('SET_LOADING', false);
     }
@@ -327,13 +336,22 @@ export const actions = {
 
     try {
       const { emailAddress, newUsername } = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername} `, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/change-username?emailAddress=${emailAddress}&newUsername=${newUsername}`, {
         method: "PUT",
         credentials: "include" // send HttpOnly cookie
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.message || errorData.error || `Failed to change username: ${response.status}`;
+        throw new Error(message);
+      }
+      
+      return true;
     } catch (err) {
-      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
-      return null;
+      const message = err instanceof Error ? err.message : 'Failed to change username';
+      commit('SET_ERROR', message);
+      throw new Error(message);
     } finally {
       commit('SET_LOADING', false);
     }
@@ -345,13 +363,25 @@ export const actions = {
 
     try {
       const { emailAddress} = payload;
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-user?emailAddress=${emailAddress}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/delete-user?emailAddress=${emailAddress}`, {
         method: "DELETE",
         credentials: "include" // send HttpOnly cookie
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.message || errorData.error || `Failed to delete account: ${response.status}`;
+        throw new Error(message);
+      }
+      
+      // Account deleted successfully, clear authentication state
+      commit('CLEAR_AUTH');
+      
+      return true;
     } catch (err) {
-      commit('SET_ERROR', err instanceof Error ? err.message : 'Unknown error');
-      return null;
+      const message = err instanceof Error ? err.message : 'Failed to delete account';
+      commit('SET_ERROR', message);
+      throw new Error(message);
     } finally {
       commit('SET_LOADING', false);
     }

@@ -524,8 +524,14 @@ export default {
         await this.deleteUser({
           emailAddress: this.settings.emailAddress,
         })
+        
+        // Account deleted successfully, redirect to home
         this.$router.push('/')
-        window.location.reload()
+        
+        // Show success message before redirect
+        this.$toast?.success?.('Account deleted successfully') ||
+          console.log('Account deleted successfully')
+          
       } catch (err) {
         this.errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
       } finally {
