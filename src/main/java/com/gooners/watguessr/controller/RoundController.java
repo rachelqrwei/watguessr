@@ -99,7 +99,7 @@ public class RoundController {
     }
 
     @GetMapping(value = "/by-game-with-guesses")
-    @RateLimit(requests = 60, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many round data requests.")
+    @RateLimit(requests = 300, timeWindow = 1, keyStrategy = RateLimit.KeyStrategy.USER_ID, message = "Too many round data requests.")
     public List<RoundGuessesDto> getRoundsByGameWithGuesses(@RequestParam UUID gameId) {
         Game game = gameService.findById(gameId);
         var gameRounds = game.getRounds();
