@@ -68,7 +68,6 @@
           <a href="https://www.linkedin.com/in/rachelqrwei/" target="_blank" rel="noopener">Rachel Wei</a>,
           <a href="https://www.linkedin.com/in/sooyeunleanne/" target="_blank" rel="noopener">Leanne Kim</a>,
           <a href="https://www.linkedin.com/in/kenny-wu-kensei/" target="_blank" rel="noopener">Kenny Wu</a>
-           (the japanese one) and
           <a href="https://www.linkedin.com/in/stanley-wng/" target="_blank" rel="noopener">Stanley Wang</a>
         </footer>
       </div>
