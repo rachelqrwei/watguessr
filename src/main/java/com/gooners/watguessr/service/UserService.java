@@ -418,4 +418,69 @@ public class UserService {
             throw new CustomException("You can only change your username once every 7 days. Last changed at " + user.getUsernameChangedAt());
         }
     }
+
+    /**
+     * Cleanup unverified users that are older than 1 day.
+     * This includes both manual signup users and any Google OAuth users that might be unverified.
+     * @return number of users deleted
+     */
+    public int cleanupUnverifiedUsers() {
+        // Calculate cutoff time (1 day ago)
+        OffsetDateTime cutoffTime = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
+        
+        // Find unverified users older than 1 day
+        List<User> unverifiedUsers = userRepository.findUnverifiedUsersOlderThan(cutoffTime);
+        
+        if (unverifiedUsers.isEmpty()) {
+            return 0;
+        }
+        
+        int deletedCount = 0;
+        
+        for (User user : unverifiedUsers) {
+            try {
+                // Additional verification check: for manual signup users, also check EmailVerification
+                // For Google OAuth users, they should already have User.verified = true
+                boolean shouldDelete = false;
+                
+                if (!user.getVerified()) {
+                    // Check if this is a manual signup user with EmailVerification
+                    Optional<EmailVerification> evOptional = emailVerificationRepository.findFirstVerifiedByEmail(user.getEmailAddress());
+                    
+                    if (evOptional.isEmpty()) {
+                        // No verified EmailVerification found, safe to delete
+                        shouldDelete = true;
+                    } else {
+                        // Has verified EmailVerification but User.verified is still false
+                        // This might be a data inconsistency, let's fix it instead of deleting
+                        user.setVerified(true);
+                        userRepository.save(user);
+                        System.out.println("Fixed verification status for user: " + user.getUsername());
+                    }
+                } else {
+                    // User is verified, should not delete
+                    System.out.println("Skipping verified user: " + user.getUsername());
+                }
+                
+                if (shouldDelete) {
+                    // Delete associated EmailVerification records first
+                    Optional<EmailVerification> evToDelete = emailVerificationRepository.findFirstUnverifiedByEmail(user.getEmailAddress());
+                    if (evToDelete.isPresent()) {
+                        emailVerificationRepository.delete(evToDelete.get());
+                    }
+            
+                    // Delete the user
+                    userRepository.delete(user);
+                    deletedCount++;
+                    
+                    System.out.println("Deleted unverified user: " + user.getUsername() + " (created: " + user.getCreatedAt() + ")");
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Failed to delete unverified user " + user.getUsername() + ": " + e.getMessage());
+            }
+        }
+        
+        return deletedCount;
+    }
 }
