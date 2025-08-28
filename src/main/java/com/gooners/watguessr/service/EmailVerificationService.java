@@ -76,9 +76,8 @@ public class EmailVerificationService {
                      "Thanks for signing up for WatGuessr! To complete your account verification, please use the following verification code:\n\n" +
                      "VERIFICATION CODE: " + otp + "\n\n" +
                      "This code will expire in 5 minutes.\n\n" +
-                     "\n\n" +
                      "If you accidentally close the verification modal, you can always resend it with the following link:\n" +
-                     redirectUrl + "\n\n";
+                     redirectUrl;
 
         sendEmail(to, subject, body);
     }
