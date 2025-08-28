@@ -202,6 +202,10 @@ export default {
     async handleOtpResend() {
       if (this.otpEmail) {
         await this.$store.dispatch('user/sendOtp', this.otpEmail)
+        // Reset the cooldown timer in the OTP modal
+        if (this.$refs.otpModal) {
+          this.$refs.otpModal.resetCooldown()
+        }
       }
     },
 
@@ -293,6 +297,7 @@ export default {
     />
 
     <OtpModal
+      ref="otpModal"
       :visible="showOtpModal"
       :email="otpEmail"
       @close="closeOtpModal"

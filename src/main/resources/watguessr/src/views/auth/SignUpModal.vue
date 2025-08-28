@@ -87,6 +87,7 @@
       </form>
 
       <OtpModal
+        ref="otpModal"
         :visible="showOtpModal"
         :email="userEmail"
         :username="username"
@@ -186,6 +187,10 @@ export default {
     },
     async resendOtp() {
       await this.sendOtp(this.userEmail);
+      // Reset the cooldown timer in the OTP modal
+      if (this.$refs.otpModal) {
+        this.$refs.otpModal.resetCooldown()
+      }
     },
 
     async handleGoogleSignIn() {
