@@ -9,7 +9,7 @@
           </div>
           <div class="testimonial-author">
             <div class="author-name">Toph C.</div>
-            <div class="author-program">Computer Science '29</div>
+            <div class="author-program">Computer Science </div>
           </div>
         </div>
         <div class="testimonial-card">
@@ -18,7 +18,7 @@
           </div>
           <div class="testimonial-author">
             <div class="author-name">Dylan D.</div>
-            <div class="author-program">Computer Science '29</div>
+            <div class="author-program">Computer Science </div>
           </div>
         </div>
         <div class="testimonial-card">
@@ -27,7 +27,7 @@
           </div>
           <div class="testimonial-author">
             <div class="author-name">Sooyeun K.</div>
-            <div class="author-program">SYDE '28</div>
+            <div class="author-program">Systems Design Engineering</div>
           </div>
         </div>
       </div>
