@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15-alpine # Alpine versions are much smaller/faster
+    volumes:
+      - ./src/main/resources/db/utility-scripts/create-db-postgresql.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: watguessr_db
+      POSTGRES_USER: watuser
+      POSTGRES_PASSWORD: goon
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Keeping the DB footprint small for your 2GB RAM
+
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/watguessr_db
+      - SPRING_DATASOURCE_USERNAME=watuser
+      - SPRING_DATASOURCE_PASSWORD=goon
+      # The line below tells Java to limit its "Heap" memory usage
+      - JAVA_OPTS=-Xmx512M -Xms256M
+    deploy:
+      resources:
+        limits:
+          memory: 768M
