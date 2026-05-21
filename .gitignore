@@ -35,4 +35,10 @@ build/
 jwt/
 *.pem
 .env
+.envrc
 node_modules/
+
+terraform/.terraform/
+terraform/*.tfstate*
+.DS_Store
+terraform/terraform.tfvars
