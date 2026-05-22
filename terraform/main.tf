@@ -12,7 +12,8 @@ terraform {
 }
 
 provider "cloudflare" {
-  api_token = var.cloudflare_api_token
+    email   = "wukenny0126@gmail.com"
+    api_key = var.cloudflare_api_token
 }
 
 provider "digitalocean" {
@@ -23,14 +24,14 @@ provider "digitalocean" {
 # Create Tunnel
 resource "cloudflare_zero_trust_tunnel_cloudflared" "macbook_tunnel" {
     account_id = var.cloudflare_account_id
-    name       = "watguessr_local_dev"
+    name       = "watguessr_local_dev_kenny"
     secret     = base64encode("a-random-32-character-string-here") # We will automate this later
 }
 
 # Create the DNS record
 resource "cloudflare_record" "dev_link" {
     zone_id    = var.cloudflare_zone_id
-    name       = "dev" #creates dev.watguessr.io
+    name       = "dev-kenny" #creates dev.watguessr.io
     content      = "${cloudflare_zero_trust_tunnel_cloudflared.macbook_tunnel.id}.cfargotunnel.com"
     type       = "CNAME"
     proxied    = true

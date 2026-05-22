@@ -42,3 +42,21 @@ terraform/.terraform/
 terraform/*.tfstate*
 .DS_Store
 terraform/terraform.tfvars
+s
+
+cloudflare_zero_trust_tunnel_cloudflared.macbook_tunnel: Creating...
+cloudflare_zero_trust_tunnel_cloudflared.macbook_tunnel: Creation complete after 2s [id=b1933769-24a9-4f97-bd10-2340f212d373]
+cloudflare_zero_trust_tunnel_cloudflared_config.macbook_config: Creating...
+cloudflare_record.dev_link: Creating...
+cloudflare_zero_trust_tunnel_cloudflared_config.macbook_config: Creation complete after 1s [id=b1933769-24a9-4f97-bd10-2340f212d373]
+cloudflare_record.dev_link: Still creating... [00m10s elapsed]
+cloudflare_record.dev_link: Still creating... [00m20s elapsed]
+cloudflare_record.dev_link: Still creating... [00m30s elapsed]
+╷
+│ Error: expected DNS record to not already be present but already exists
+│
+│   with cloudflare_record.dev_link,
+│   on main.tf line 32, in resource "cloudflare_record" "dev_link":
+│   32: resource "cloudflare_record" "dev_link" {
+│
+╵
