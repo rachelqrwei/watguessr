@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +45,11 @@ public class MatchmakingService {
 	private static final int ELO_RANGE_MAX = 500;
 	private static final long QUEUE_TIMEOUT_MINUTES = 5;
 
+	// Users currently waiting, so the scheduled sweep can skip the database when
+	// nobody is queued. Neon only scales to zero after 5 minutes without a query,
+	// so an unconditional 30s poll would keep the compute billing 24/7.
+	private final Set<UUID> waitingUsers = ConcurrentHashMap.newKeySet();
+
 	/**
 	 * Add a user to the matchmaking queue
 	 */
@@ -59,6 +65,7 @@ public class MatchmakingService {
 		queueEntry.setStatus("waiting");
 
 		MatchmakingQueue saved = queueRepository.save(queueEntry);
+		waitingUsers.add(userId);
 
 		// Immediately try to find a match
 		findRankedMatch(saved);
@@ -70,6 +77,8 @@ public class MatchmakingService {
 	 * Remove a user from all queues
 	 */
 	public void leaveQueue(UUID userId) {
+		waitingUsers.remove(userId);
+
 		List<MatchmakingQueue> userQueues = queueRepository.findByUserIdAndStatus(userId, "waiting");
 		for (MatchmakingQueue queue : userQueues) {
 			queue.setStatus("expired");
@@ -128,6 +137,7 @@ public class MatchmakingService {
 		for (MatchmakingQueue player : players) {
 			player.setStatus("matched");
 			queueRepository.save(player);
+			waitingUsers.remove(player.getUser().getId());
 
 			notifyPlayerMatched(player.getUser().getId(), gameId, players);
 		}
@@ -186,6 +196,10 @@ public class MatchmakingService {
 	 */
 	@Scheduled(fixedRate = 30000) // Run every 30 seconds
 	public void processMatchmakingQueue() {
+		if (waitingUsers.isEmpty()) {
+			return;
+		}
+
 		// Clean up expired entries
 		OffsetDateTime cutoff = OffsetDateTime.now().minusMinutes(QUEUE_TIMEOUT_MINUTES);
 		List<MatchmakingQueue> expiredEntries = queueRepository.findExpiredEntries(cutoff);
@@ -193,12 +207,21 @@ public class MatchmakingService {
 		for (MatchmakingQueue expired : expiredEntries) {
 			expired.setStatus("expired");
 			queueRepository.save(expired);
+			waitingUsers.remove(expired.getUser().getId());
 
 			notifyUserQueueTimeout(expired.getUser().getId());
 		}
 
 		// Try to find matches for waiting players with expanded criteria
 		List<MatchmakingQueue> waitingPlayers = queueRepository.findByStatus("waiting");
+
+		// Reconcile against the database. Queue rows can be removed without going
+		// through leaveQueue (account deletion does this), and a stranded entry
+		// here would keep the sweep querying forever.
+		waitingUsers.retainAll(waitingPlayers.stream()
+				.map(p -> p.getUser().getId())
+				.collect(Collectors.toSet()));
+
 		for (MatchmakingQueue waiting : waitingPlayers) {
 			findRankedMatch(waiting);
 		}

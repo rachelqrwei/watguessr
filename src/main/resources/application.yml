@@ -12,12 +12,15 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    # Connection pooling to prevent database connection exhaustion
+    # Connection pooling to prevent database connection exhaustion.
+    # minimum-idle must stay 0 so the pool fully drains when traffic stops:
+    # Neon only scales to zero after 5 minutes with no connections, and a
+    # non-zero minimum-idle makes Hikari reopen connections every max-lifetime.
     hikari:
       maximum-pool-size: 5
-      minimum-idle: 2
+      minimum-idle: 0
       connection-timeout: 20000
-      idle-timeout: 300000
+      idle-timeout: 60000
       max-lifetime: 1200000
   mail:
     host: ${SPRING_MAIL_HOST}

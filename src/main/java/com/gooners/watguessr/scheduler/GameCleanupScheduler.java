@@ -16,7 +16,9 @@ public class GameCleanupScheduler {
         this.roundService = roundService;
     }
 
-	@Scheduled(fixedRate = 60000) // every 1 minute
+	// Run daily at 2 AM. Games are only eligible after 2 hours unfinished,
+	// so a frequent poll never helped and just kept the scheduler busy.
+	@Scheduled(cron = "0 0 2 * * *")
 	public void scheduledCleanup() {
 		int deleted = gameService.cleanupExpiredGames() + roundService.cleanupEmptyRoundsFromFinishedGames();
 		if (deleted > 0) {

@@ -1,10 +1,10 @@
 package com.gooners.watguessr.scheduler;
 
 import com.gooners.watguessr.service.LobbyService;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-@Component
+// Soft-deleted: empty lobbies are already removed by leaveLobby and
+// cleanupInactiveUsers (90s idle). This hourly sweep was redundant.
+// @Component
 public class LobbyCleanupScheduler {
 
 	private final LobbyService lobbyService;
@@ -13,7 +13,7 @@ public class LobbyCleanupScheduler {
 		this.lobbyService = lobbyService;
 	}
 
-	@Scheduled(fixedRate = 3600000) // every 1 minute
+	// @Scheduled(fixedRate = 3600000)
 	public void scheduledCleanup() {
 		int deleted = lobbyService.cleanupEmptyLobbies();
 	}
