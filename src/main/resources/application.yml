@@ -22,6 +22,7 @@ spring:
       connection-timeout: 20000
       idle-timeout: 60000
       max-lifetime: 1200000
+      keepalive-time: 0
   mail:
     host: ${SPRING_MAIL_HOST}
     port: ${SPRING_MAIL_PORT}

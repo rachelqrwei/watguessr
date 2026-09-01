@@ -4,6 +4,7 @@ import com.gooners.watguessr.entity.MatchmakingQueue;
 import com.gooners.watguessr.entity.User;
 import com.gooners.watguessr.repository.MatchmakingQueueRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class MatchmakingService {
 
 	private final MatchmakingQueueRepository queueRepository;
@@ -24,19 +24,22 @@ public class MatchmakingService {
 	private final SimpMessagingTemplate messagingTemplate;
 	private final MultiplayerGameStateService multiplayerGameStateService;
 	private final RankedGameStateService rankedGameStateService;
+	private final MatchmakingService self;
 
 	public MatchmakingService(MatchmakingQueueRepository queueRepository,
 							  GameService gameService,
 							  UserService userService,
 							  SimpMessagingTemplate messagingTemplate, 
 							  MultiplayerGameStateService multiplayerGameStateService,
-							  RankedGameStateService rankedGameStateService) {
+							  RankedGameStateService rankedGameStateService,
+							  @Lazy MatchmakingService self) {
 		this.queueRepository = queueRepository;
 		this.gameService = gameService;
 		this.userService = userService;
 		this.messagingTemplate = messagingTemplate;
 		this.multiplayerGameStateService = multiplayerGameStateService;
 		this.rankedGameStateService = rankedGameStateService;
+		this.self = self;
 	}
 
 	// Constants for matchmaking
@@ -53,6 +56,7 @@ public class MatchmakingService {
 	/**
 	 * Add a user to the matchmaking queue
 	 */
+	@Transactional
 	public UUID joinQueue(UUID userId) {
 		// Remove user from any existing queues first
 		leaveQueue(userId);
@@ -76,6 +80,7 @@ public class MatchmakingService {
 	/**
 	 * Remove a user from all queues
 	 */
+	@Transactional
 	public void leaveQueue(UUID userId) {
 		waitingUsers.remove(userId);
 
@@ -192,7 +197,11 @@ public class MatchmakingService {
 	}
 
 	/**
-	 * Scheduled task to clean up expired queue entries and expand ELO ranges
+	 * Scheduled task to clean up expired queue entries and expand ELO ranges.
+	 * Not @Transactional: an empty-queue return must not open a JDBC connection,
+	 * or Neon never sees 5 minutes of idle and cannot scale to zero.
+	 * Work goes through {@code self} so @Transactional actually applies (self-invocation
+	 * on this would skip the proxy).
 	 */
 	@Scheduled(fixedRate = 30000) // Run every 30 seconds
 	public void processMatchmakingQueue() {
@@ -200,6 +209,11 @@ public class MatchmakingService {
 			return;
 		}
 
+		self.sweepMatchmakingQueue();
+	}
+
+	@Transactional
+	public void sweepMatchmakingQueue() {
 		// Clean up expired entries
 		OffsetDateTime cutoff = OffsetDateTime.now().minusMinutes(QUEUE_TIMEOUT_MINUTES);
 		List<MatchmakingQueue> expiredEntries = queueRepository.findExpiredEntries(cutoff);
